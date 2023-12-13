@@ -1,0 +1,7 @@
+{
+  "endpoints" : {
+    "auth" : "https://spc.cloud.ceventis.de/auth/realms/viamedici",
+    "engine" : "https://spc.cloud.ceventis.de/hca/api/engine",
+    "store" : "https://spc.cloud.ceventis.de/hca/api/store"
+  }
+}
