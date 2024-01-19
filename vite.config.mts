@@ -18,7 +18,7 @@ export default defineConfig(() => ({
         },
         rollupOptions: {
             // make sure to externalize deps that shouldn't be bundled into your library
-            external: [/^@viamedici-spc\/fp-ts-extensions.*/, /^fp-ts.*/, /^fast-equals.*/, /^retry-ts.*/, /^ts-pattern.*/, /^url-join.*/],
+            external: [/^@viamedici-spc\/fp-ts-extensions.*/, /^fp-ts.*/, /^fast-equals.*/, /^retry-ts.*/, /^ts-pattern.*/, /^url-join.*/, /^dyna-guid.*/],
         },
     },
     plugins: [

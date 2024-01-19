@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "@viamedici-spc/fp-ts-extensions": "^1.0.0",
+    "dyna-guid": "^2.1.2",
     "fast-equals": "^5.0.0",
     "fp-ts": "^2.16.1",
     "retry-ts": "^0.1.4",

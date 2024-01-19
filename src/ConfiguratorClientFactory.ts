@@ -18,6 +18,7 @@ import ISessionLifetimeHandler from "./sessionCreator/ISessionLifetimeHandler";
 import ClientSideSessionLifetimeHandler from "./sessionCreator/ClientSideSessionLifetimeHandler";
 import ServerSideSessionLifetimeHandler from "./sessionCreator/ServerSideSessionLifetimeHandler";
 import ContractToRestMapper from "./mappers/ContractToRestMapper";
+import SynchronousOperationDecorator from "./domain/decorators/SynchronousOperationDecorator";
 
 // noinspection JSUnusedGlobalSymbols
 export function createClient(options: ClientOptions): IConfiguratorClient {
@@ -59,6 +60,7 @@ export function createClient(options: ClientOptions): IConfiguratorClient {
         new ConfigurationSessionInternal(configurationSessionHandler, session),
         s => new ResilienceDecorator(s),
         s => new OperationOptimizerDecorator(s),
+        SynchronousOperationDecorator.new,
         s => new LoggingDecorator(s, false)
     );
 
