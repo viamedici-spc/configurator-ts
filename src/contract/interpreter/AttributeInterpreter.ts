@@ -10,15 +10,18 @@ import {
     ComponentAttribute,
     ComponentDecisionState,
     Decision,
-    DecisionKind,
-    NumericAttribute,
+    DecisionKind, Inclusion,
+    NumericAttribute, Selection,
 } from "../Types";
 import * as ChoiceValueInterpreter from "./ChoiceValueInterpreter";
 
 export function isMandatory(attribute: Attribute): boolean {
     return match(attribute)
         .with({type: AttributeType.Choice}, (a) => a.cardinality.lowerBound > 0)
-        .otherwise(() => true);
+        .with({type: AttributeType.Boolean}, (a) => a.selection === Selection.Mandatory)
+        .with({type: AttributeType.Numeric}, (a) => a.selection === Selection.Mandatory)
+        .with({type: AttributeType.Component}, (a) => a.inclusion === Inclusion.Optional && a.selection === Selection.Mandatory)
+        .exhaustive();
 }
 
 export function isMultiSelect(attribute: Attribute): boolean {
