@@ -39,6 +39,7 @@ enum WellKnownErrorType {
     SessionNotFound = "SessionNotFound",
     SetDecisionConflict = "SetDecisionConflict",
     Unauthorized = "Unauthorized",
+    AuthenticationFailure = "AuthenticationFailure"
 }
 
 const isWellKnownErrorType: Refinement<string | null | undefined, WellKnownErrorType> = (s: string | null | undefined): s is WellKnownErrorType =>
@@ -81,7 +82,7 @@ function interpretWellKnownEngineError(error: string | null | undefined): O.Opti
         }))
 
         // Session call was made with expired session or Session Management call was made with invalid, expired or missing authentication
-        .with(P.union(WellKnownErrorType.SessionNotFound, WellKnownErrorType.Unauthorized), (): FailureResult => ({
+        .with(P.union(WellKnownErrorType.SessionNotFound, WellKnownErrorType.Unauthorized, WellKnownErrorType.AuthenticationFailure), (): FailureResult => ({
             type: FailureType.ConfigurationUnauthenticated
         }))
 
