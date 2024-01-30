@@ -66,6 +66,7 @@ export function request<T>(urlSegments: string[] | string, options: RequestInit,
                 });
             }
 
+            // TODO: Not working. Maybe an exception is thrown for 401 errors
             if (r.status === HttpStatusCodes.NoContent){
                 return TE.right({response: r, data: {}});
             }

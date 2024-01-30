@@ -542,6 +542,7 @@ export type FailureResult = ConfigurationModelNotFound
     | ConfigurationTimeout
     | ConfigurationUnauthenticated
     | DecisionsToRespectInvalid
+    | SpecifiedDeploymentForbidden
     | ServiceError
     | Unknown
     ;
@@ -569,7 +570,8 @@ export enum FailureType {
     DecisionsToRespectInvalid = "DecisionsToRespectInvalid",
     ConfigurationModelInvalid = "ConfigurationModelInvalid",
     ConfigurationInitializationFailure = "ConfigurationInitializationFailure",
-    ConfigurationModelNotFeasible = "ConfigurationModelNotFeasible"
+    ConfigurationModelNotFeasible = "ConfigurationModelNotFeasible",
+    SpecifiedDeploymentForbidden = "SpecifiedDeploymentForbidden"
 }
 
 export type ServiceError = BaseFailure & {
@@ -647,6 +649,13 @@ export type ConfigurationSetManyConflict = BaseFailure & {
     readonly type: FailureType.ConfigurationSetManyConflict;
     readonly decisionExplanations: ReadonlyArray<DecisionExplanation>
     readonly constraintExplanations: ReadonlyArray<ConstraintExplanation>
+};
+
+export type SpecifiedDeploymentForbidden = BaseFailure & {
+    readonly type: FailureType.SpecifiedDeploymentForbidden;
+    readonly detail: string;
+    readonly deploymentName: string;
+    readonly channel: string;
 };
 
 export const FailureResultFactory = {

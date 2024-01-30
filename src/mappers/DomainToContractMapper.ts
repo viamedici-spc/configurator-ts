@@ -179,6 +179,14 @@ export default class DomainToContractMapper implements IDomainToContractMapper {
                 decisionExplanations: pipe(f.decisionExplanations, RA.map(d => this.mapToDecisionExplanation(d))),
                 constraintExplanations: pipe(f.constraintExplanations, RA.map(c => this.mapToConstraintExplanation(c)))
             }))
+
+            .with({type: Domain.FailureType.SpecifiedDeploymentForbidden}, (f): FailureResult => ({
+                type: FailureType.SpecifiedDeploymentForbidden,
+                detail: f.detail,
+                deploymentName: f.deploymentName,
+                channel: f.channel
+            }))
+
             .exhaustive();
     }
 

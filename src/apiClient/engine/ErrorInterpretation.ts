@@ -8,7 +8,8 @@ import {
     ConfigurationInitializationFailure,
     ConfigurationModelNotFeasible,
     FailureResult,
-    FailureType
+    FailureType,
+    SpecifiedDeploymentForbidden
 } from "../../domain/Model";
 import {logJson} from "../../crossCutting/Dev";
 
@@ -39,7 +40,8 @@ enum WellKnownErrorType {
     SessionNotFound = "SessionNotFound",
     SetDecisionConflict = "SetDecisionConflict",
     Unauthorized = "Unauthorized",
-    AuthenticationFailure = "AuthenticationFailure"
+    AuthenticationFailure = "AuthenticationFailure",
+    SpecifiedDeploymentForbidden = "SpecifiedDeploymentForbidden"
 }
 
 const isWellKnownErrorType: Refinement<string | null | undefined, WellKnownErrorType> = (s: string | null | undefined): s is WellKnownErrorType =>
@@ -48,7 +50,7 @@ const isWellKnownErrorType: Refinement<string | null | undefined, WellKnownError
 const getWellKnownErrorType = (s: string | null | undefined): O.Option<WellKnownErrorType> =>
     isWellKnownErrorType(s) ? O.some(s) : O.none;
 
-function interpretWellKnownEngineError(error: string | null | undefined): O.Option<FailureResult> {
+function interpretWellKnownEngineError(problemDetails: ProblemDetails): O.Option<FailureResult> {
     const matchError = (e: WellKnownErrorType): FailureResult => match(e)
         // Engine reports conflict due to ConfigurationModel not found
         .with(WellKnownErrorType.ConfigurationModelNotFound, (): FailureResult => ({
@@ -113,9 +115,16 @@ function interpretWellKnownEngineError(error: string | null | undefined): O.Opti
             type: FailureType.ConfigurationConflict,
         }))
 
+        .with(WellKnownErrorType.SpecifiedDeploymentForbidden, (): SpecifiedDeploymentForbidden => ({
+            type: FailureType.SpecifiedDeploymentForbidden,
+            detail: problemDetails.detail as string,
+            deploymentName: problemDetails.deploymentName,
+            channel: problemDetails.channel
+        }))
+
         .exhaustive();
 
-    return pipe(error, getWellKnownErrorType, O.map(matchError));
+    return pipe(problemDetails.type, getWellKnownErrorType, O.map(matchError));
 }
 
 const isLocalErrorTypes: Refinement<string | null | undefined, LocalErrorType> = (s: string | null | undefined): s is LocalErrorType =>
@@ -154,7 +163,7 @@ export function interpretEngineError(problemDetails: ProblemDetails, context?: s
     const type = problemDetails.type;
 
     return pipe(O.none,
-        O.alt(() => interpretWellKnownEngineError(type)),
+        O.alt(() => interpretWellKnownEngineError(problemDetails)),
         O.alt(() => interpretLocalError(type)),
         O.getOrElse((): FailureResult => {
             console.error("InterpretEngineError encountered unexpected error type", "ProblemDetails", problemDetails, "Context", context);
