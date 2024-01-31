@@ -4,6 +4,7 @@ import {match} from "ts-pattern";
 import {deepEqual} from "fast-equals";
 import {getNullableEq, getNullTolerantReadOnlyArrayEq} from "../crossCutting/Eq";
 import * as Engine from "../apiClient/engine/models/generated/Engine";
+import {eqGlobalConstraintId} from "../contract/Types";
 
 export type TaskEitherResult<T> = TaskEither<FailureResult, T>;
 
@@ -154,6 +155,34 @@ export type ConfigurationSessionContext = {
     readonly usageRuleParameters: ReadonlyRecord<string, string>;
     readonly configurationModelSource: ConfigurationModelSource;
     readonly decisionsToRespect: Option<AttributeRelations>;
+    readonly allowedInExplain: Option<AllowedInExplain>;
+};
+
+export type AllowedInExplain = {
+    readonly rules: Option<AllowedRulesInExplain>;
+};
+
+export enum AllowedRulesInExplainType {
+    all = "all",
+    none = "none",
+    specific = "specific"
+}
+
+export type AllowedRulesInExplain = AllowedRulesInExplainNone
+    | AllowedRulesInExplainAll
+    | AllowedRulesInExplainSpecific;
+
+export type AllowedRulesInExplainNone = {
+    type: AllowedRulesInExplainType.none
+};
+
+export type AllowedRulesInExplainAll = {
+    type: AllowedRulesInExplainType.all
+};
+
+export type AllowedRulesInExplainSpecific = {
+    type: AllowedRulesInExplainType.specific,
+    rules: ReadonlyArray<GlobalConstraintId>
 };
 
 export type DecisionsToRespect = {
@@ -186,11 +215,25 @@ const eqDecisionsToRespect = O.getEq(RA.getEq(Eq.struct<DecisionsToRespect>({
     decisions: getNullTolerantReadOnlyArrayEq(eqGlobalAttributeId)
 })));
 
+const eqAllowedRulesInExplain = O.getEq(Eq.fromEquals<AllowedRulesInExplain>((x, y) =>
+    match({x, y})
+        .returnType<boolean>()
+        .with({x: {type: AllowedRulesInExplainType.all}, y: {type: AllowedRulesInExplainType.all}}, () => true)
+        .with({x: {type: AllowedRulesInExplainType.none}, y: {type: AllowedRulesInExplainType.none}}, () => true)
+        .with({x: {type: AllowedRulesInExplainType.specific}, y: {type: AllowedRulesInExplainType.specific}},
+            ({x, y}) => RA.getEq(eqGlobalConstraintId).equals(x.rules, y.rules))
+        .otherwise(() => false)));
+
+const eqAllowedInExplain = O.getEq(Eq.struct<AllowedInExplain>({
+    rules: eqAllowedRulesInExplain
+}));
+
 
 export const eqSessionContext = Eq.struct<ConfigurationSessionContext>({
     configurationModelSource: Eq.fromEquals<ConfigurationModelSource>((x, y) => deepEqual(x, y)),
     decisionsToRespect: eqDecisionsToRespect,
-    usageRuleParameters: RR.getEq(Str.Eq)
+    usageRuleParameters: RR.getEq(Str.Eq),
+    allowedInExplain: eqAllowedInExplain
 });
 
 export enum ConfigurationModelSourceType {

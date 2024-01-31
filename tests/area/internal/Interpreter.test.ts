@@ -45,7 +45,8 @@ describe("Interpreter", () => {
                     channel: ""
                 },
                 decisionsToRespect: O.none,
-                usageRuleParameters: {}
+                usageRuleParameters: {},
+                allowedInExplain: O.none
             },
             sessionId: O.of(""),
             solutions: []

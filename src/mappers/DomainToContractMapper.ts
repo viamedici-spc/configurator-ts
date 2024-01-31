@@ -89,13 +89,13 @@ export default class DomainToContractMapper implements IDomainToContractMapper {
 
     private mapToConflictHandling(conflictHandling: Domain.ConflictResolution): Contract.ConflictResolution {
         return match(conflictHandling)
-            .with({ type: "Manual" }, (v): Contract.ManualConflictResolution => {
+            .with({type: "Manual"}, (v): Contract.ManualConflictResolution => {
                 return {
                     type: "Manual",
                     includeConstraintsInConflictExplanation: v.includeConstraintsInConflictExplanation
-                }
+                };
             })
-            .with({ type: "Automatic" }, (v): Contract.AutomaticConflictResolution => ({
+            .with({type: "Automatic"}, (v): Contract.AutomaticConflictResolution => ({
                 type: "Automatic"
             }))
             .exhaustive();
@@ -105,8 +105,9 @@ export default class DomainToContractMapper implements IDomainToContractMapper {
         return {
             configurationModelSource: this.mapToConfigurationModelSource(sessionContext.configurationModelSource),
             attributeRelations: this.mapToDecisionsToRespect(sessionContext.decisionsToRespect),
-            usageRuleParameters: this.mapToUsageRuleParameters(sessionContext.usageRuleParameters)
-        };
+            usageRuleParameters: this.mapToUsageRuleParameters(sessionContext.usageRuleParameters),
+            allowedInExplain: this.mapToAllowedInExplain(sessionContext.allowedInExplain)
+        } satisfies Required<Contract.SessionContext>;
     }
 
     public mapToFailureResult(failureResult: Domain.FailureResult): FailureResult {
@@ -197,7 +198,7 @@ export default class DomainToContractMapper implements IDomainToContractMapper {
         };
     }
 
-    private mapToDecisionsToRespect(decisionsToRespect: O.Option<Domain.AttributeRelations>): Contract.AttributeRelations | undefined {
+    private mapToDecisionsToRespect(decisionsToRespect: O.Option<Domain.AttributeRelations>): Contract.AttributeRelations | null {
         return pipe(
             decisionsToRespect,
             O.map(flow(RA.map((decisionsToRespect): Contract.DecisionsToRespect => ({
@@ -207,7 +208,7 @@ export default class DomainToContractMapper implements IDomainToContractMapper {
                     RA.map(decisionToRespect => this.mapToGlobalAttributeId(decisionToRespect))
                 )
             })))),
-            O.toUndefined
+            O.toNullable
         );
     }
 
@@ -433,5 +434,33 @@ export default class DomainToContractMapper implements IDomainToContractMapper {
 
     private mapToUsageRuleParameters(usageRuleParameters: ReadonlyRecord<string, string>): ReadonlyRecord<string, string> {
         return usageRuleParameters;
+    }
+
+    private mapToAllowedInExplain(allowedInExplain: O.Option<Domain.AllowedInExplain>): Contract.AllowedInExplain | null {
+        return pipe(
+            allowedInExplain,
+            O.map(a => ({
+                rules: this.mapToAllowedRulesInExplain(a.rules)
+            }) satisfies Required<Contract.AllowedInExplain>),
+            O.toNullable
+        );
+    }
+
+    private mapToAllowedRulesInExplain(allowedRulesInExplain: O.Option<Domain.AllowedRulesInExplain>): Contract.AllowedRulesInExplain | null {
+        return pipe(
+            allowedRulesInExplain,
+            O.map(r =>
+                match(r)
+                    .returnType<Contract.AllowedRulesInExplain>()
+                    .with({type: Domain.AllowedRulesInExplainType.all}, () => ({type: Contract.AllowedRulesInExplainType.all}) satisfies Contract.AllowedRulesInExplainAll)
+                    .with({type: Domain.AllowedRulesInExplainType.none}, () => ({type: Contract.AllowedRulesInExplainType.none}) satisfies Contract.AllowedRulesInExplainNone)
+                    .with({type: Domain.AllowedRulesInExplainType.specific}, r => ({
+                        type: Contract.AllowedRulesInExplainType.specific,
+                        rules: pipe(r.rules, RA.map(this.mapToGlobalConstraintId))
+                    }) satisfies Contract.AllowedRulesInExplainSpecific)
+                    .exhaustive()
+            ),
+            O.toNullable
+        );
     }
 }

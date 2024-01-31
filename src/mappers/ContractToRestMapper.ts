@@ -65,33 +65,37 @@ export default class ContractToRestMapper implements IContractToRestMapper {
         };
     }
 
-    private mapToAllowedInExplain(allowedInExplain: Contract.AllowedInExplain | null | undefined): Engine.AllowedInExplain {
-        return match(allowedInExplain)
+    private mapToAllowedInExplain(allowedInExplain: Contract.AllowedInExplain | null | undefined): Engine.AllowedInExplain | null {
+        if (allowedInExplain == null) {
+            return null;
+        }
+
+        return {
+            rules: this.mapToAllowedRulesInExplain(allowedInExplain.rules)
+        };
+    }
+
+    private mapToAllowedRulesInExplain(allowedRulesInExplain: Contract.AllowedRulesInExplain | null | undefined): Engine.AllowedRules | null {
+        return match(allowedRulesInExplain)
+            .returnType<Engine.AllowedRules | null>()
             .with({
-                rules: {
-                    type: Contract.AllowedRulesInExplainType.none
-                }
-            }, (v): Engine.AllowedInExplain => ({
-                rules: {
-                    type: "AllowedRulesNone"
-                }
-            }))
+                type: Contract.AllowedRulesInExplainType.all
+            }, () => ({
+                type: "AllowedRulesAll"
+            }) satisfies Engine.AllowedRulesAll)
             .with({
-                rules: {
-                    type: Contract.AllowedRulesInExplainType.specific,
-                    rules: P.array(P.any)
-                }
-            }, (v): Engine.AllowedInExplain => ({
-                rules: {
-                    type: "AllowedRulesSpecific",
-                    rules: pipe(v.rules.rules, RA.map(x => this.mapToGlobalConstraintId(x)), x => [...x])
-                }
-            }))
-            .otherwise((): Engine.AllowedInExplain => ({
-                rules: {
-                    type: "AllowedRulesAll"
-                }
-            }));
+                type: Contract.AllowedRulesInExplainType.none
+            }, () => ({
+                type: "AllowedRulesNone"
+            }) satisfies Engine.AllowedRulesNone)
+            .with({
+                type: Contract.AllowedRulesInExplainType.specific
+            }, (a) => ({
+                type: "AllowedRulesSpecific",
+                rules: pipe(a.rules, RA.map(this.mapToGlobalConstraintId), RA.toArray)
+            }) satisfies Engine.AllowedRulesSpecific)
+            .with(P.nullish, () => null)
+            .exhaustive();
     }
 
     private mapToGlobalConstraintId(constraintId: Contract.GlobalConstraintId): Engine.GlobalConstraintId {

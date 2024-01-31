@@ -39,7 +39,8 @@ describe("ConfigurationSessionInitializer", () => {
                     configurationModelPackage: configurationModelPackage
                 },
                 decisionsToRespect: O.none,
-                usageRuleParameters: {}
+                usageRuleParameters: {},
+                allowedInExplain: O.none
             };
 
             const sessionHandler = new ConfigurationSessionHandler(testSessionHandler, engineApiClient, restToDomainMapper, domainToRestMapper, domainToContractMapper, domainUpdater);

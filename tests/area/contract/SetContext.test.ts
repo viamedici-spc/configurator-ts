@@ -11,8 +11,12 @@ import {createDefaultClient} from "../../setup/clientFactory";
 import {externalFrameBackpack, extModel, fancyCar, orgModel} from "../../setup/ConfigurationModelPackageDefinitions";
 import {describe, expect, it, vi} from "vitest";
 import {
+    AllowedInExplain,
+    AllowedRulesInExplainSpecific,
+    AllowedRulesInExplainType,
     AttributeType,
     ChoiceValueDecisionState,
+    ConfigurationModelFromPackage,
     ConfigurationModelSourceType,
     DecisionKind,
     FailureType,
@@ -321,6 +325,61 @@ describe("Session Context", () => {
                         ]
                     }), FailureType.DecisionsToRespectInvalid
                 );
+            });
+        });
+    });
+
+    describe("Equality Tests", () => {
+        const configurationModelSource: ConfigurationModelFromPackage = {
+            type: ConfigurationModelSourceType.Package,
+            configurationModelPackage: {
+                root: "root",
+                configurationModels: [{
+                    configurationModelId: "root",
+                    attributes: {
+                        booleanAttributes: [{
+                            attributeId: "bool1",
+                            isDecisionRequired: true
+                        }]
+                    },
+                    constraints: [{
+                        constraintId: "c1",
+                        textualConstraint: "true"
+                    }]
+                }]
+            }
+        };
+        const basicSessionContext: SessionContext = {
+            configurationModelSource: configurationModelSource
+        };
+        const expectedBasicSessionContext: Required<SessionContext> = {
+            configurationModelSource: configurationModelSource,
+            usageRuleParameters: {},
+            allowedInExplain: null,
+            attributeRelations: null
+        };
+        const allowedInExplain: AllowedInExplain = {
+            rules: {
+                type: AllowedRulesInExplainType.specific,
+                rules: [{configurationModelId: "root", localId: "c1"}]
+            } satisfies AllowedRulesInExplainSpecific
+        };
+
+        it("Basic Context is equal", async () => {
+            const session = await sut.createSession(basicSessionContext);
+
+            expect(session.getSessionContext()).toStrictEqual(expectedBasicSessionContext);
+        });
+
+        it("AllowedInExplain is passed correctly", async () => {
+            const session = await sut.createSession({
+                ...basicSessionContext,
+                allowedInExplain: allowedInExplain
+            });
+
+            expect(session.getSessionContext()).toStrictEqual({
+                ...expectedBasicSessionContext,
+                allowedInExplain: allowedInExplain
             });
         });
     });

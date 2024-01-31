@@ -129,7 +129,8 @@ export default class ContractToDomainMapper implements IContractToDomainMapper {
         return {
             configurationModelSource: this.mapToConfigurationModelSource(sessionContext.configurationModelSource),
             decisionsToRespect: this.mapToDecisionsToRespect(sessionContext.attributeRelations),
-            usageRuleParameters: this.mapToUsageRuleParameters(sessionContext.usageRuleParameters)
+            usageRuleParameters: this.mapToUsageRuleParameters(sessionContext.usageRuleParameters),
+            allowedInExplain: this.mapToAllowedInExplain(sessionContext.allowedInExplain)
         };
     }
 
@@ -223,6 +224,13 @@ export default class ContractToDomainMapper implements IContractToDomainMapper {
             localId: attributeId.localId,
             componentPath: attributeId.componentPath ?? [],
             sharedConfigurationModel: attributeId.sharedConfigurationModelId
+        };
+    }
+
+    private mapToGlobalConstraintId(constraintId: Contract.GlobalConstraintId): Domain.GlobalConstraintId {
+        return {
+            localId: constraintId.localId,
+            configurationModelId: constraintId.configurationModelId
         };
     }
 
@@ -375,5 +383,32 @@ export default class ContractToDomainMapper implements IContractToDomainMapper {
 
     private mapToUsageRuleParameters(usageRuleParameters?: Record<string, string> | null): ReadonlyRecord<string, string> {
         return usageRuleParameters ?? {};
+    }
+
+    private mapToAllowedInExplain(allowedInExplain: Contract.AllowedInExplain | null | undefined): O.Option<Domain.AllowedInExplain> {
+        return pipe(
+            allowedInExplain,
+            O.fromNullable,
+            O.map(a => ({
+                rules: this.mapToAllowedRulesInExplain(a.rules)
+            }) satisfies Domain.AllowedInExplain)
+        );
+    }
+
+    private mapToAllowedRulesInExplain(allowedRulesInExplain: Contract.AllowedRulesInExplain | null | undefined): O.Option<Domain.AllowedRulesInExplain> {
+        return pipe(
+            allowedRulesInExplain,
+            O.fromNullable,
+            O.map(r => match(r)
+                .returnType<Domain.AllowedRulesInExplain>()
+                .with({type: Contract.AllowedRulesInExplainType.all}, () => ({type: Domain.AllowedRulesInExplainType.all}) satisfies Domain.AllowedRulesInExplainAll)
+                .with({type: Contract.AllowedRulesInExplainType.none}, () => ({type: Domain.AllowedRulesInExplainType.none}) satisfies Domain.AllowedRulesInExplainNone)
+                .with({type: Contract.AllowedRulesInExplainType.specific}, r => ({
+                    type: Domain.AllowedRulesInExplainType.specific,
+                    rules: pipe(r.rules, RA.map(this.mapToGlobalConstraintId))
+                }) satisfies Domain.AllowedRulesInExplainSpecific)
+                .exhaustive()
+            )
+        );
     }
 }
