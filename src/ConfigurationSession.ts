@@ -1,7 +1,7 @@
 import {constVoid, flow, O, pipe, T, TE} from "@viamedici-spc/fp-ts-extensions";
 import {IContractToDomainMapper} from "./mappers/ContractToDomainMapper";
 import {IDomainToContractMapper} from "./mappers/DomainToContractMapper";
-import IConfigurationSession, {OnConfigurationChangedHandler} from "./IConfigurationSession";
+import IConfigurationSession, {ExplainQuestionParam, OnConfigurationChangedHandler} from "./IConfigurationSession";
 import {IConfigurationSessionInternal} from "./domain/IConfigurationSessionInternal";
 import {TaskEitherResult} from "./domain/Model";
 import {
@@ -16,6 +16,7 @@ import {
     SessionContext,
     SetManyMode,
 } from "./contract/Types";
+import {explainQuestionBuilder, ExplainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
 
 // noinspection JSUnusedLocalSymbols,JSUnusedGlobalSymbols
 export default class ConfigurationSession implements IConfigurationSession {
@@ -122,10 +123,11 @@ export default class ConfigurationSession implements IConfigurationSession {
     /**
      * @throws {FailureResult}
      */
-    public explain(question: ExplainQuestion, answerType: "decisions"): Promise<DecisionsExplainAnswer>;
-    public explain(question: ExplainQuestion, answerType: "constraints"): Promise<ConstraintsExplainAnswer>;
-    public explain(question: ExplainQuestion, answerType: "full"): Promise<FullExplainAnswer>;
-    public async explain(explainQuestion: ExplainQuestion, answerType: "decisions" | "constraints" | "full"): Promise<ExplainAnswer> {
+    public explain(question: ExplainQuestionParam, answerType: "decisions"): Promise<DecisionsExplainAnswer>;
+    public explain(question: ExplainQuestionParam, answerType: "constraints"): Promise<ConstraintsExplainAnswer>;
+    public explain(question: ExplainQuestionParam, answerType: "full"): Promise<FullExplainAnswer>;
+    public async explain(question: ExplainQuestionParam, answerType: "decisions" | "constraints" | "full"): Promise<ExplainAnswer> {
+        const explainQuestion = typeof question === "function" ? question(explainQuestionBuilder) : question;
         const domainExplainQuestion = this.contractToDomainMapper.mapToExplainQuestion(explainQuestion, answerType);
 
         return await pipe(

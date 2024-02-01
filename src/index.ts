@@ -111,13 +111,13 @@ import ContractToRestMapper from "./mappers/ContractToRestMapper";
 import ClientSideSessionLifetimeHandler from "./sessionCreator/ClientSideSessionLifetimeHandler";
 import ServerSideSessionLifetimeHandler from "./sessionCreator/ServerSideSessionLifetimeHandler";
 import ConfiguratorClient from "./ConfiguratorClient";
-import IConfigurationSession, {OnConfigurationChangedHandler} from "./IConfigurationSession";
+import IConfigurationSession, {ExplainQuestionParam, OnConfigurationChangedHandler} from "./IConfigurationSession";
 import IConfiguratorClient from "./IConfiguratorClient";
 import * as ConfigurationInterpreter from "./contract/interpreter/ConfigurationInterpreter";
 import * as AttributeInterpreter from "./contract/interpreter/AttributeInterpreter";
 import * as ChoiceValueInterpreter from "./contract/interpreter/ChoiceValueInterpreter";
-import * as QuestionBuilder from "./contract/ExplainQuestionBuilder";
-import {explainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
+import * as ExplainQuestionBuilderModule from "./contract/ExplainQuestionBuilder";
+import {explainQuestionBuilder, ExplainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
 
 import {createClient} from "./ConfiguratorClientFactory";
 import {ClientOptions, ClientSideLifeTimeHandlerOptions, ServerSideLifeTimeHandlerOptions} from "./Options";
@@ -141,6 +141,7 @@ export {
     ServerSideSessionLifetimeHandler,
     ClientSideSessionLifetimeHandler,
     ContractToRestMapper,
+    type ExplainQuestionParam,
     type IConfigurationSession,
     type OnConfigurationChangedHandler,
     type IConfiguratorClient,
@@ -258,7 +259,8 @@ export {
     AttributeInterpreter,
     ChoiceValueInterpreter,
 
-    // QuestionBuilder
-    QuestionBuilder,
+    // ExplainQuestionBuilder
+    ExplainQuestionBuilderModule,
+    type ExplainQuestionBuilder,
     explainQuestionBuilder
 };

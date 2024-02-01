@@ -18,7 +18,7 @@ export type StateStage<TState, TNext> = {
     state: (state: TState) => TNext
 }
 
-export type Result = {
+export type ExplainQuestionBuilder = {
     whyIsNotSatisfied: {
         configuration: WhyIsConfigurationNotSatisfied,
         attribute: AttributeIdStage<WhyIsAttributeNotSatisfied>
@@ -31,7 +31,7 @@ export type Result = {
     }
 };
 
-export const explainQuestionBuilder: Result = {
+export const explainQuestionBuilder: ExplainQuestionBuilder = {
     whyIsNotSatisfied: {
         configuration: {
             question: ExplainQuestionType.whyIsNotSatisfied,

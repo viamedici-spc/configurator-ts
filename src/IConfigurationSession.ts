@@ -1,20 +1,19 @@
 import {
-    ChoiceValueDecisionState,
-    ChoiceValueId,
     Configuration,
     ConstraintsExplainAnswer,
     DecisionsExplainAnswer,
     ExplicitDecision,
     FullExplainAnswer,
-    GlobalAttributeId,
     ExplainQuestion,
     SessionContext,
     SetManyMode,
-    ExplainSolution,
-    WhyIsChoiceValueStateNotPossible
+    ExplainSolution
 } from "./contract/Types";
+import {ExplainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
 
 export type OnConfigurationChangedHandler = (configuration: Configuration) => void;
+
+export type ExplainQuestionParam = ExplainQuestion | ((b: ExplainQuestionBuilder) => ExplainQuestion);
 
 export default interface IConfigurationSession {
     setOnConfigurationChangedHandler(handler: OnConfigurationChangedHandler): void;
@@ -52,11 +51,11 @@ export default interface IConfigurationSession {
     /**
      * @throws {FailureResult}
      */
-    explain(question: ExplainQuestion, answerType: "decisions"): Promise<DecisionsExplainAnswer>;
+    explain(question: ExplainQuestionParam, answerType: "decisions"): Promise<DecisionsExplainAnswer>;
 
-    explain(question: ExplainQuestion, answerType: "constraints"): Promise<ConstraintsExplainAnswer>;
+    explain(question: ExplainQuestionParam, answerType: "constraints"): Promise<ConstraintsExplainAnswer>;
 
-    explain(question: ExplainQuestion, answerType: "full"): Promise<FullExplainAnswer>;
+    explain(question: ExplainQuestionParam, answerType: "full"): Promise<FullExplainAnswer>;
 
     /**
      * @throws {FailureResult}
