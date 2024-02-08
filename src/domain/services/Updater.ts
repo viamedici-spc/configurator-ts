@@ -29,15 +29,21 @@ export class DomainUpdater implements IDomainUpdater {
 
     public updateConfigurationSession(session: Model.ConfigurationSessionState, response: Engine.PutDecisionResponse): Model.ConfigurationSessionState {
 
-        const model = this.updateConfigurationModel(session.configuration, response);
+        const configuration = this.updateConfiguration(session.configuration, response);
 
         return {
             ...session,
-            configuration: model
+            configuration: configuration
         };
     }
 
-    private updateConfigurationModel(model: Model.Configuration, putDecisionResponse: Engine.PutDecisionResponse): Model.Configuration {
+    private updateConfiguration(configuration: Model.Configuration, putDecisionResponse: Engine.PutDecisionResponse): Model.Configuration {
+
+        const canContributeToConfigurationSatisfactionAttributes = pipe(
+            putDecisionResponse.consequences?.canAttributeContributeToConfigurationSatisfaction ?? [],
+            RA.map(this.restToDomainMapper.mapToGlobalAttributeId)
+        );
+        const getCanContribute = (attributeId: Model.GlobalAttributeId) => RA.elem(Model.eqGlobalAttributeId)(attributeId, canContributeToConfigurationSatisfactionAttributes);
 
         const choiceAttributeDecisions = pipe(putDecisionResponse.affectedDecisions?.choiceValueDecisions ?? [], RA.map(d => ({
             attributeId: this.restToDomainMapper.mapToGlobalAttributeId(d.attributeId), payload: d
@@ -67,7 +73,7 @@ export class DomainUpdater implements IDomainUpdater {
             attributeId: this.restToDomainMapper.mapToGlobalAttributeId(d.attributeId), payload: d
         })));
 
-        const variableIds: ReadonlyArray<Model.GlobalAttributeId> = pipe([],
+        const attributeIds: ReadonlyArray<Model.GlobalAttributeId> = pipe([],
             RA.concat(pipe(booleanAttributeDecisions, RA.map(a => a.attributeId))),
             RA.concat(pipe(booleanAttributeConsequences, RA.map(a => a.attributeId))),
 
@@ -83,9 +89,10 @@ export class DomainUpdater implements IDomainUpdater {
             RA.uniq(Model.eqGlobalAttributeId)
         );
 
-        const attributes = pipe(variableIds,
-            RA.reduce(model.attributes, (a: ReadonlyArray<Model.Attribute>, c: Model.GlobalAttributeId) => {
-                const attribute = model.attributes.find(a => Model.eqGlobalAttributeId.equals(a.attributeId, c)) as Model.Attribute;
+        const attributes = pipe(
+            attributeIds,
+            RA.reduce(configuration.attributes, (a: ReadonlyArray<Model.Attribute>, c: Model.GlobalAttributeId) => {
+                const attribute = configuration.attributes.find(a => Model.eqGlobalAttributeId.equals(a.attributeId, c)) as Model.Attribute;
 
                 return match(attribute)
                     .with({
@@ -132,11 +139,24 @@ export class DomainUpdater implements IDomainUpdater {
                         return updateAttribute(att)(a);
                     })
                     .exhaustive();
-            }));
+            }),
+            RA.map(attribute => {
+                // Don't update all attributes to ensure the instance for untouched attributes stays the same.
+                const canContribute = getCanContribute(attribute.attributeId);
+                if (attribute.canContributeToConfigurationSatisfaction != canContribute) {
+                    return {
+                        ...attribute,
+                        canContributeToConfigurationSatisfaction: canContribute
+                    } satisfies Model.Attribute;
+                }
+
+                return attribute;
+            })
+        );
 
         return {
-            ...model,
-            isSatisfied: pipe(putDecisionResponse.consequences?.isConfigurationSatisfied, O.fromNullable, O.getOrElse((): boolean => model.isSatisfied)),
+            ...configuration,
+            isSatisfied: pipe(putDecisionResponse.consequences?.isConfigurationSatisfied, O.fromNullable, O.getOrElse((): boolean => configuration.isSatisfied)),
             attributes: attributes
         };
     }

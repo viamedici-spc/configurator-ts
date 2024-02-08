@@ -1,20 +1,21 @@
 import {createDefaultClient} from "../../setup/clientFactory";
 import {
+    canContributeToDemo,
     changeDecisionDemo,
     externalFrameBackpack,
     implicationDemo
 } from "../../setup/ConfigurationModelPackageDefinitions";
 import {
-    expectBoolean,
+    expectBoolean, expectCanContributeToConfigurationSatisfaction,
     expectChoice,
     expectComponent,
-    expectContractFailureResult,
+    expectContractFailureResult, expectIsSatisfied,
     expectNumeric,
     expectPossibleBooleanDecisionStates,
     expectPossibleChoiceDecisionStates,
     expectPossibleComponentDecisionStates
 } from "../../setup/Expectations";
-import {describe, it} from "vitest";
+import {describe, expect, it} from "vitest";
 import {
     AttributeType,
     ChoiceValueDecisionState,
@@ -299,6 +300,43 @@ describe("ConfiguratorClient-MakeDecision", () => {
             expectPossibleChoiceDecisionStates(session.getConfiguration(), {localId: "X"}, "X2", [ChoiceValueDecisionState.Included]);
         });
 
+    });
+
+    describe("Success Cases - CanContributeTo", () => {
+        it("Updates according to response", async () => {
+            const session = await sut.createSession({
+                configurationModelSource: {
+                    type: ConfigurationModelSourceType.Package,
+                    configurationModelPackage: canContributeToDemo
+                },
+            });
+
+
+            const attributeX = {localId: "X"};
+            const attributeY = {localId: "Y"};
+
+            let configuration = session.getConfiguration();
+            expect(configuration.isSatisfied).toBe(false);
+            expectIsSatisfied(configuration, attributeX, true);
+            expectIsSatisfied(configuration, attributeY, true);
+            expectCanContributeToConfigurationSatisfaction(configuration, attributeX, true);
+            expectCanContributeToConfigurationSatisfaction(configuration, attributeY, true);
+
+            // DO
+            await session.makeDecision({
+                type: AttributeType.Choice,
+                attributeId: {localId: "X"},
+                choiceValueId: "X1",
+                state: ChoiceValueDecisionState.Included
+            });
+
+            configuration = session.getConfiguration();
+            expect(configuration.isSatisfied).toBe(true);
+            expectIsSatisfied(configuration, attributeX, true);
+            expectIsSatisfied(configuration, attributeY, true);
+            expectCanContributeToConfigurationSatisfaction(configuration, attributeX, false);
+            expectCanContributeToConfigurationSatisfaction(configuration, attributeY, false);
+        });
     });
 
     describe("Failure Cases", () => {
