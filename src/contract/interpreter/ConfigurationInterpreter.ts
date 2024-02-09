@@ -1,4 +1,4 @@
-import {flow, O, pipe, RA, Str} from "@viamedici-spc/fp-ts-extensions";
+import {flow, O, pipe, RA, Str, Eq, Predicate, P} from "@viamedici-spc/fp-ts-extensions";
 import * as AttributeInterpreter from "./AttributeInterpreter";
 import {
     booleanAttributeRefinement,
@@ -20,39 +20,43 @@ import {
     Decision,
     DecisionKind,
     eqGlobalAttributeId,
-    GlobalAttributeId,
+    GlobalAttributeId, LocalAttributeId,
     NumericAttribute
 } from "../Types";
-import {getNullTolerantReadOnlyArrayEq} from "../../crossCutting/Eq";
 
-// TODO: feature/components: Also export predicate functions for isComponentAt, isRoot, ...
+const nullableStringEq = Eq.eqNullable(Str.Eq);
+const readOnlyStringArrayEq = RA.getEq(Str.Eq);
 
-const nullTolerantReadOnlyArrayEq = getNullTolerantReadOnlyArrayEq(Str.Eq);
+function isChildOf(parentId: {
+    sharedConfigurationModelId: ConfigurationModelId | null,
+    componentPath: ReadonlyArray<LocalAttributeId>
+}, includeSubcomponents: boolean): Predicate<GlobalAttributeId> {
+    const hasChildSameSharedModelId = (potentialChild: GlobalAttributeId) => nullableStringEq.equals(parentId.sharedConfigurationModelId, potentialChild.sharedConfigurationModelId);
+
+    const parentIdComponentPathLength = parentId.componentPath.length;
+    const doesChildComponentPathStartsWith = (potentialChild: GlobalAttributeId) =>
+        readOnlyStringArrayEq.equals(pipe(potentialChild.componentPath ?? [], RA.takeLeft(parentIdComponentPathLength)), parentId.componentPath);
+    const areParentAndChildComponentPathEqual = (potentialChild: GlobalAttributeId) => readOnlyStringArrayEq.equals(potentialChild.componentPath ?? [], parentId.componentPath);
+
+    return pipe(
+        hasChildSameSharedModelId,
+        P.and(includeSubcomponents ? doesChildComponentPathStartsWith : areParentAndChildComponentPathEqual)
+    );
+}
 
 export function filterAttributesOfComponent(attributes: ReadonlyArray<Attribute>, componentAttributeId: GlobalAttributeId, includeSubcomponents: boolean): ReadonlyArray<Attribute> {
-    const refLength = componentAttributeId.componentPath?.length ?? 0;
+    const isChildOfPredicate = pipe(
+        isChildOf({
+            sharedConfigurationModelId: componentAttributeId.sharedConfigurationModelId ?? null,
+            componentPath: pipe(componentAttributeId.componentPath ?? [], RA.append(componentAttributeId.localId))
+        }, includeSubcomponents),
+        P.contramap((a: Attribute) => a.id)
+    );
 
-    // TODO: Discuss with Robert and Florian:
-    // Should also take sharedConfigurationModelId into account;
-    // If that is the case, then filterAttributesOfShared can be removed because their function would be identical.
-
-    return pipe(attributes, RA.filter((a: Attribute) => {
-        const curLength = a.id.componentPath?.length ?? 0;
-
-        if (includeSubcomponents) {
-            if (refLength > curLength) {
-                return false;
-            }
-
-            return pipe(
-                a.id.componentPath ?? [],
-                RA.zip(componentAttributeId.componentPath ?? []),
-                RA.every(([a, b]) => a === b)
-            );
-        }
-
-        return nullTolerantReadOnlyArrayEq.equals(a.id.componentPath, componentAttributeId.componentPath);
-    }));
+    return pipe(
+        attributes,
+        RA.filter(isChildOfPredicate)
+    );
 }
 
 // noinspection JSUnusedGlobalSymbols
@@ -60,22 +64,16 @@ export function filterAttributesOfShared(attributes: ReadonlyArray<Attribute>, c
     return []; // TODO: feature/components
 }
 
-// noinspection JSUnusedGlobalSymbols
 export function filterAttributesOfRoot(attributes: ReadonlyArray<Attribute>): ReadonlyArray<Attribute> {
-    return pipe(attributes, RA.filter(a => {
+    return pipe(
+        attributes,
+        RA.filter(a => {
+            const notNested = (a.id.componentPath ?? []).length === 0;
+            const notShared = a.id.sharedConfigurationModelId == null;
 
-        const notNested = pipe(a.id.componentPath,
-            O.fromNullable,
-            O.map(p => p.length === 0),
-            O.getOrElse(() => true)
-        );
-
-        const notShared = pipe(a.id.sharedConfigurationModelId, O.fromNullable,
-            O.match(() => true, () => false)
-        );
-
-        return notNested && notShared;
-    }));
+            return notNested && notShared;
+        })
+    );
 }
 
 export function getChoiceDecisions(c: Configuration, kind: DecisionKind): ReadonlyArray<Decision<ChoiceValueDecisionState>> {
