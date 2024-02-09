@@ -59,9 +59,19 @@ export function filterAttributesOfComponent(attributes: ReadonlyArray<Attribute>
     );
 }
 
-// noinspection JSUnusedGlobalSymbols
-export function filterAttributesOfShared(attributes: ReadonlyArray<Attribute>, configurationModelId: ConfigurationModelId, includeSubcomponents: boolean): ReadonlyArray<Attribute> {
-    return []; // TODO: feature/components
+export function filterAttributesOfShared(attributes: ReadonlyArray<Attribute>, sharedConfigurationModelId: ConfigurationModelId, includeSubcomponents: boolean): ReadonlyArray<Attribute> {
+    const isChildOfPredicate = pipe(
+        isChildOf({
+            sharedConfigurationModelId: sharedConfigurationModelId,
+            componentPath: []
+        }, includeSubcomponents),
+        P.contramap((a: Attribute) => a.id)
+    );
+
+    return pipe(
+        attributes,
+        RA.filter(isChildOfPredicate)
+    );
 }
 
 export function filterAttributesOfRoot(attributes: ReadonlyArray<Attribute>): ReadonlyArray<Attribute> {
