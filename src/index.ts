@@ -102,6 +102,8 @@ import {
     ConfigurationUnauthenticated,
     ConfigurationUnauthorized,
     DecisionsToRespectInvalid,
+    ExplainFailure,
+    ExplainConflict,
     FailureResult,
     FailureType,
     ServiceError,
@@ -244,6 +246,8 @@ export {
     type ConfigurationSolutionNotAvailable,
     type ConfigurationInitializationFailure,
     type ConfigurationSetManyConflict,
+    type ExplainConflict,
+    type ExplainFailure,
     ConfigurationConflictReason,
 
     // Contract Definitions

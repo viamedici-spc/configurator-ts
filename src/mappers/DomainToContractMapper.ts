@@ -188,6 +188,14 @@ export default class DomainToContractMapper implements IDomainToContractMapper {
                 channel: f.channel
             }))
 
+            .with({type: Domain.FailureType.ExplainConflict}, (): FailureResult => ({
+                type: FailureType.ExplainConflict
+            }))
+
+            .with({type: Domain.FailureType.ExplainFailure}, (): FailureResult => ({
+                type: FailureType.ExplainFailure
+            }))
+
             .exhaustive();
     }
 

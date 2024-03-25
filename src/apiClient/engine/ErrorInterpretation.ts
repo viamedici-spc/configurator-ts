@@ -7,6 +7,8 @@ import {
     ConfigurationConflictReason,
     ConfigurationInitializationFailure,
     ConfigurationModelNotFeasible,
+    ExplainConflict,
+    ExplainFailure,
     FailureResult,
     FailureType,
     SpecifiedDeploymentForbidden
@@ -41,7 +43,9 @@ enum WellKnownErrorType {
     SetDecisionConflict = "SetDecisionConflict",
     Unauthorized = "Unauthorized",
     AuthenticationFailure = "AuthenticationFailure",
-    SpecifiedDeploymentForbidden = "SpecifiedDeploymentForbidden"
+    SpecifiedDeploymentForbidden = "SpecifiedDeploymentForbidden",
+    ExplainConflict = "ExplainConflict",
+    ExplainFailure = "ExplainFailure"
 }
 
 const isWellKnownErrorType: Refinement<string | null | undefined, WellKnownErrorType> = (s: string | null | undefined): s is WellKnownErrorType =>
@@ -120,6 +124,14 @@ function interpretWellKnownEngineError(problemDetails: ProblemDetails): O.Option
             detail: problemDetails.detail as string,
             deploymentName: problemDetails.deploymentName,
             channel: problemDetails.channel
+        }))
+
+        .with(WellKnownErrorType.ExplainConflict, (): ExplainConflict => ({
+            type: FailureType.ExplainConflict,
+        }))
+
+        .with(WellKnownErrorType.ExplainFailure, (): ExplainFailure => ({
+            type: FailureType.ExplainFailure,
         }))
 
         .exhaustive();
