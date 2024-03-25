@@ -2,6 +2,7 @@ import {createDefaultClient} from "../../setup/clientFactory";
 import {explainSatisfactionDemo, externalFrameBackpack} from "../../setup/ConfigurationModelPackageDefinitions";
 import {describe, expect, it} from "vitest";
 import {
+    AllowedRulesInExplainType,
     AttributeType,
     ChoiceValueDecisionState,
     ConfigurationModelSourceType,
@@ -35,6 +36,9 @@ describe("ConfiguratorClient-Explain", () => {
                     type: ConfigurationModelSourceType.Package,
                     configurationModelPackage: externalFrameBackpack
                 },
+                allowedInExplain: {
+                    rules: {type: AllowedRulesInExplainType.all}
+                }
             });
 
             // DO
@@ -133,6 +137,9 @@ describe("ConfiguratorClient-Explain", () => {
                     type: ConfigurationModelSourceType.Package,
                     configurationModelPackage: explainSatisfactionDemo
                 },
+                allowedInExplain: {
+                    rules: {type: AllowedRulesInExplainType.all}
+                }
             });
         }
 
@@ -195,6 +202,9 @@ describe("ConfiguratorClient-Explain", () => {
                     type: ConfigurationModelSourceType.Package,
                     configurationModelPackage: explainSatisfactionDemo
                 },
+                allowedInExplain: {
+                    rules: {type: AllowedRulesInExplainType.all}
+                }
             });
         }
 

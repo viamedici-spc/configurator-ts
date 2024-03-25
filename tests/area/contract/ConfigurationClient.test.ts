@@ -2,6 +2,7 @@ import {createDefaultClient} from "../../setup/clientFactory";
 import {externalFrameBackpack} from "../../setup/ConfigurationModelPackageDefinitions";
 import {describe, expect, it} from "vitest";
 import {
+    AllowedRulesInExplainType,
     AttributeType,
     ChoiceValueDecisionState,
     ConfigurationModelSourceType,
@@ -87,6 +88,9 @@ describe("ConfiguratorClient", () => {
                 configurationModelSource: {
                     type: ConfigurationModelSourceType.Package,
                     configurationModelPackage: externalFrameBackpack
+                },
+                allowedInExplain: {
+                    rules: {type: AllowedRulesInExplainType.all}
                 }
             });
 
@@ -168,11 +172,10 @@ describe("ConfiguratorClient", () => {
                         configurationModelPackage: externalFrameBackpack
                     }
                 });
-            }
-            catch (e: any){
+            } catch (e: any) {
                 logJson(e, "after create session");
                 expect(e.type).toEqual("Local.LowLevelCommunicationError");
             }
-        })
-    })
+        });
+    });
 });
