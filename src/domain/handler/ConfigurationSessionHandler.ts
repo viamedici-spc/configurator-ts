@@ -98,9 +98,11 @@ export class ConfigurationSessionHandler implements IConfigurationSessionHandler
                         RA.concat(pipe(success.rejectedDecisions?.choiceValueDecisions ?? [], RA.map((d): Domain.AttributeDecision => this.restToDomainMapper.mapToExplicitChoiceValueDecision(d))))
                     );
 
-                    if (pipe(rejectedDecisions, RA.isNonEmpty)) {
-                        return TE.left(Domain.FailureResultFactory.createConfigurationRejectedDecisionsConflict(rejectedDecisions));
-                    }
+                    // This case has to be handled with a success result including additional information about the rejectedDecisions.
+                    // Making this a failure result will corrupt the session state as the applied decisions are not integrated.
+                    // if (pipe(rejectedDecisions, RA.isNonEmpty)) {
+                    //     return TE.left(Domain.FailureResultFactory.createConfigurationRejectedDecisionsConflict(rejectedDecisions));
+                    // }
 
                     return TE.of(this.domainUpdater.updateConfigurationSession(session, success));
                 })
