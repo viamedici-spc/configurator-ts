@@ -7,11 +7,20 @@ import {
     ExplainQuestion,
     SessionContext,
     SetManyMode,
-    ExplainSolution
+    ExplainSolution, Attribute, GlobalAttributeId
 } from "./contract/Types";
 import {ExplainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
 
-export type OnConfigurationChangedHandler = (configuration: Configuration) => void;
+type ConfigurationChanges = {
+    readonly isSatisfied?: boolean,
+    readonly attributes: {
+        readonly added: ReadonlyArray<Attribute>,
+        readonly changed: ReadonlyArray<Attribute>,
+        readonly removed: ReadonlyArray<GlobalAttributeId>
+    }
+}
+
+export type OnConfigurationChangedHandler = (configurationChanges: ConfigurationChanges) => void;
 
 export type ExplainQuestionParam = ExplainQuestion | ((b: ExplainQuestionBuilder) => ExplainQuestion);
 
@@ -22,9 +31,16 @@ export default interface IConfigurationSession {
 
     getConfiguration(): Configuration;
 
+    // TODO: Throw exception when OnConfigurationChangedHandler is set
+    getConfigurationChanges(): ConfigurationChanges;
+
+    // TODO: Throw exception when OnConfigurationChangedHandler is set
+    clearConfigurationChanges(): void;
+
     /**
      * @throws {FailureResult}
      */
+    // TODO: Remove
     restoreConfiguration(configuration: Configuration): Promise<void>;
 
     /**

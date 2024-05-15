@@ -12,8 +12,8 @@ export type ClientSideLifeTimeHandlerOptions = {
 };
 
 export type ClientOptions = {
-    readonly hcaEngineBaseUrl?: string // Default: https://hca.cloud.viamedici.de/engine
-    readonly sessionHandler: ISessionLifetimeHandler | ServerSideLifeTimeHandlerOptions | ClientSideLifeTimeHandlerOptions
+    readonly hcaEngineBaseUrl?: string
+    readonly sessionHandler: ServerSideLifeTimeHandlerOptions | ClientSideLifeTimeHandlerOptions
 }
 
 export function applyDefaults(options: ClientOptions): ClientOptions {

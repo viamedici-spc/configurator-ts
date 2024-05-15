@@ -265,6 +265,12 @@ export type SessionContext = {
     readonly attributeRelations?: AttributeRelations | null;
     readonly usageRuleParameters?: Record<string, string> | null;
     readonly allowedInExplain?: AllowedInExplain | null;
+
+    readonly hca: { // HcaOptions
+        readonly engineBaseUrl?: string, readonly accessToken: string
+    } | {
+        readonly hcaEngineBaseUrl?: string, readonly sessionCreateUrl: string
+    }
 }
 
 export type AllowedInExplain = {
