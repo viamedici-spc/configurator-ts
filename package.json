@@ -1,7 +1,7 @@
 {
   "name": "@viamedici-spc/configurator-ts",
   "version": "0.0.0",
-  "description": "TypeScript library to build configurator web applications based on the Viamedici Headless Configuration API (HCA).",
+  "description": "TypeScript library to build configurator web applications based on the Viamedici Headless Configuration Engine (HCE).",
   "repository": {
     "type": "git",
     "url": "https://github.com/viamedici-spc/configurator-ts.git"
@@ -33,7 +33,7 @@
     "product",
     "configuration",
     "spc",
-    "hca",
+    "hce",
     "csp",
     "constraint",
     "satisfaction",

@@ -16,12 +16,14 @@ Configuration Engine_ (HCE).
 It offers all the features of the HCE through a strongly typed API, eliminating the need to
 interact directly with the HCE's REST API.
 
-This library is intended for use in a browser environment and is not compatible with server environments like **Node.js**.
+This library is intended for use in a browser environment and is not compatible with server environments like **Node.js
+**.
 
 ## Framework Independence
 
 The library is designed to be framework-agnostic, allowing you to use any framework of your choice to build your
-configurator application. The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) is implemented with
+configurator application. The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) for example is
+implemented with
 **Vue.js**.
 
 For **React** users, we offer a dedicated
@@ -46,17 +48,23 @@ executing the latest user action.
 When a configuration conflict is detected and explained, the library makes it easy to apply the desired solution to
 resolve the conflict.
 
+## Demo App
+
+The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) is a comprehensive showcase of the features provided by this library and the HCE. It demonstrates how to effectively integrate and utilize this library within a Vue.js-based Single Page Application (SPA).
+
 ## Getting Started
 
-### 1. Install
+### 1. Install Package
+
 This library supports both **ESM** and **CommonJS**.
 
    ```bash
-   npm install
-   yarn install
+npm install @viamedici-spc/configurator-ts
+yarn add @viamedici-spc/configurator-ts
    ```
 
 ### 2. Create a Client
+
 Set up the connection parameters for the HCE by creating a client.
 
 ```typescript
@@ -71,7 +79,9 @@ const client = createClient({
 ```
 
 ### 3. Create a Session
-Using the previously created client, initiate a configuration session by specifying the _Configuration Model_ you want to use.
+
+Using the previously created client, initiate a configuration session by specifying the _Configuration Model_ you want
+to use.
 
 ```typescript
 const session = await client.createSession({
@@ -84,6 +94,7 @@ const session = await client.createSession({
 ```
 
 ### 4. Make a Decision
+
 You can now make your first decision for the `Painting Color` attribute by selecting (_including_) the value `Green`.
 
 ```typescript
