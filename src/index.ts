@@ -148,9 +148,6 @@ import IConfigurationSession from "./IConfigurationSession";
 import ISessionFactory from "./ISessionFactory";
 import GlobalAttributeIdKeyBuilder from "./crossCutting/GlobalAttributeIdKeyBuilder";
 import {globalAttributeIdEq, globalAttributeIdKeyEq, globalConstraintIdEq, sessionContextEq} from "./contract/Eqs";
-import * as R from 'fp-ts/Record';
-
-R.empty;
 
 export {
     type IConfigurationSession,

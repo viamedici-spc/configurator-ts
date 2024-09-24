@@ -18,7 +18,7 @@ export default defineConfig(() => ({
         },
         rollupOptions: {
             // make sure to externalize deps that shouldn't be bundled into your library
-            external: [/^@viamedici-spc\/fp-ts-extensions.*/, /^fp-ts.*/, /^fast-equals.*/, /^ts-pattern.*/, /^dyna-guid.*/, /^@morphic-ts\/batteries.*/, /^memoizee.*/, /^p-defer.*/, /^spark-md5.*/, /^xstate.*/],
+            external: [/^@viamedici-spc\/fp-ts-extensions.*/, /^fp-ts.*/, /^fast-equals.*/, /^ts-pattern.*/, /^dyna-guid.*/, /^@morphic-ts\/batteries.*/, /^memoizee.*/, /^p-defer.*/, /^spark-md5.*/, /^xstate.*/, /^tslib.*/],
         },
     },
     plugins: [
