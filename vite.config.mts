@@ -1,5 +1,4 @@
 import {defineConfig} from "vite";
-import checker from "vite-plugin-checker";
 import dts from "vite-plugin-dts";
 
 export default defineConfig(() => ({
@@ -9,7 +8,7 @@ export default defineConfig(() => ({
         lib: {
             entry: "src/index.ts",
             formats: ["es", "cjs"],
-            name: "configurator",
+            name: "configurator-ts",
             // We don't have ESM spec conform package because of fp-ts dependency.
             // So we can't let Vite name the ESM package .mjs because it would break compatibility with webpack.
             // Webpacks expects a fully spec conform package for a .mjs package. Node.js would be happy with this.
@@ -17,12 +16,11 @@ export default defineConfig(() => ({
             fileName: (format, entry) => entry + "." + (format === "es" ? "js" : format === "cjs" ? "cjs" : "XXX")
         },
         rollupOptions: {
-            // make sure to externalize deps that shouldn't be bundled into your library
+            // Make sure to externalize deps that shouldn't be bundled into the library
             external: [/^@viamedici-spc\/fp-ts-extensions.*/, /^fp-ts.*/, /^fast-equals.*/, /^ts-pattern.*/, /^dyna-guid.*/, /^@morphic-ts\/batteries.*/, /^memoizee.*/, /^p-defer.*/, /^spark-md5.*/, /^xstate.*/, /^tslib.*/],
         },
     },
     plugins: [
-        checker({typescript: true}),
         dts({rollupTypes: true})
     ],
     test: {
