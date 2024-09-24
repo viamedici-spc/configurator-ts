@@ -23,8 +23,7 @@ This library is intended for use in a browser environment and is not compatible 
 
 The library is designed to be framework-agnostic, allowing you to use any framework of your choice to build your
 configurator application. The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) for example is
-implemented with
-**Vue.js**.
+implemented with **Vue.js**.
 
 For **React** users, we offer a dedicated
 library, [configurator-react](https://github.com/viamedici-spc/configurator-react), which is built on top of this
@@ -43,6 +42,15 @@ seamless user experience. For example, if a session is terminated by the HCE due
 automatically initiated when the user resumes activity. The previous configuration state is fully restored before
 executing the latest user action.
 
+### Optimistic Decisions
+
+Decisions are applied optimistically to the configuration state, enhancing the perceived responsiveness of the
+configurator application and improving the overall user experience.
+
+When a user selects a value, the configuration state immediately reflects this selection as an explicit inclusion. The
+UI component — such as a toggle button or a drop-down menu — instantly displays the user’s choice. Once the HCE fully
+processes the decision, the resulting consequences are applied asynchronously to the configuration state.
+
 ### Apply Explain Solution
 
 When a configuration conflict is detected and explained, the library makes it easy to apply the desired solution to
@@ -50,7 +58,9 @@ resolve the conflict.
 
 ## Demo App
 
-The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) is a comprehensive showcase of the features provided by this library and the HCE. It demonstrates how to effectively integrate and utilize this library within a Vue.js-based Single Page Application (SPA).
+The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) is a comprehensive showcase of the features
+provided by this library and the HCE. It demonstrates how to effectively integrate and utilize this library within a
+Vue.js-based Single Page Application (SPA).
 
 ## Getting Started
 
@@ -58,33 +68,21 @@ The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) is a compr
 
 This library supports both **ESM** and **CommonJS**.
 
-   ```bash
+```bash
 npm install @viamedici-spc/configurator-ts
 yarn add @viamedici-spc/configurator-ts
-   ```
-
-### 2. Create a Client
-
-Set up the connection parameters for the HCE by creating a client.
-
-```typescript
-import {createClient} from "@viamedici-spc/configurator-ts";
-
-const client = createClient({
-    sessionHandler: {
-        accessToken: "<your access token>",
-    },
-    hcaEngineBaseUrl: "https://spc.cloud.ceventis.de/hca/api/engine",
-});
 ```
 
-### 3. Create a Session
+### 2. Create a Session
 
-Using the previously created client, initiate a configuration session by specifying the _Configuration Model_ you want
-to use.
+Initiate a configuration session by specifying the access token for the HCE and the _Configuration Model_ you
+want to use.
 
 ```typescript
-const session = await client.createSession({
+const session = await SessionFactory.createSession({
+    sessionInitialisationOptions: {
+        accessToken: "<your access token>"
+    },
     configurationModelSource: {
         type: ConfigurationModelSourceType.Channel,
         deploymentName: "Car-Root",
@@ -93,7 +91,7 @@ const session = await client.createSession({
 });
 ```
 
-### 4. Make a Decision
+### 3. Make a Decision
 
 You can now make your first decision for the `Painting Color` attribute by selecting (_including_) the value `Green`.
 

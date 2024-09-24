@@ -1,156 +1,282 @@
-import {constVoid, flow, O, pipe, T, TE} from "@viamedici-spc/fp-ts-extensions";
-import {IContractToDomainMapper} from "./mappers/ContractToDomainMapper";
-import {IDomainToContractMapper} from "./mappers/DomainToContractMapper";
-import IConfigurationSession, {ExplainQuestionParam, OnConfigurationChangedHandler} from "./IConfigurationSession";
-import {IConfigurationSessionInternal} from "./domain/IConfigurationSessionInternal";
-import {TaskEitherResult} from "./domain/Model";
 import {
+    CollectedDecision,
     Configuration,
+    ConfigurationChanges,
     ConstraintsExplainAnswer,
+    DecisionKind,
     DecisionsExplainAnswer,
     ExplainAnswer,
-    ExplainQuestion,
+    ExplainQuestionParam,
     ExplainSolution,
+    CollectedExplicitDecision,
     ExplicitDecision,
     FullExplainAnswer,
+    CollectedImplicitDecision,
+    OnConfigurationChangedHandler,
     SessionContext,
     SetManyMode,
+    SetManyResult,
+    Subscription as TSubscription,
+    OnCanResetConfigurationChangedHandler
 } from "./contract/Types";
-import {explainQuestionBuilder, ExplainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
+import IConfigurationSession from "./IConfigurationSession";
+import {ConfigurationSessionState} from "./domain/model/ConfigurationSessionState";
+import {Subscription, waitFor} from "xstate";
+import * as Session from "./domain/logic/SessionLogic";
+import {E, flow, I, O, pipe, RA} from "@viamedici-spc/fp-ts-extensions";
+import * as RT from "fp-ts/ReadonlyTuple";
+import {createWorkProcessingMachine, MachineState, resolveDeferredPromises} from "./domain/WorkProcessingMachine";
+import {explainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
+import {ConfiguratorErrorType, SessionClosed} from "./contract/ConfiguratorError";
+import {StoredConfigurationV1} from "./contract/storedConfiguration/StoredConfigurationV1";
+import {loadConfiguration} from "./domain/logic/ConfigurationStoring";
+import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
+import {getCollectedDecisions, hasAnyExplicitDecision} from "./domain/logic/ConfigurationRawData";
+import {
+    collectedExplicitDecisionRefinement,
+    collectedImplicitDecisionRefinement
+} from "./contract/refinements/CollectedDecisionRefinements";
+import {match, P} from "ts-pattern";
+import SubscriptionHandler from "./domain/logic/SubscriptionHandler";
+import ConfigurationRawData from "./domain/model/ConfigurationRawData";
+import {
+    calculateConfigurationChangedHandler,
+    calculateCanResetConfigurationChangedHandler
+} from "./domain/logic/HandlerChangeCalculation";
+import HashedConfiguration from "./domain/model/HashedConfiguration";
+import memoize from "memoizee";
+import GenericChangesHandler from "./domain/logic/GenericChangesHandler";
+import {emptyChanges} from "./domain/logic/ConfigurationChanges";
 
-// noinspection JSUnusedLocalSymbols,JSUnusedGlobalSymbols
 export default class ConfigurationSession implements IConfigurationSession {
+    private readonly canResetConfigurationMemo = memoize(hasAnyExplicitDecision, {max: 5});
+    private readonly calculateConfigurationChangedHandlerMemo = memoize(calculateConfigurationChangedHandler, {max: 5});
+    private readonly getCollectedDecisionsMemo = memoize(getCollectedDecisions);
+    private readonly getImplicitCollectedDecisionsMemo = memoize(flow(this.getCollectedDecisionsMemo, RA.filter(collectedImplicitDecisionRefinement)));
+    private readonly getExplicitCollectedDecisionsMemo = memoize(flow(this.getCollectedDecisionsMemo, RA.filter(collectedExplicitDecisionRefinement)));
 
-    private onConfigurationChangedHandler: O.Option<OnConfigurationChangedHandler>;
+    private readonly sessionChangesHandler = new GenericChangesHandler<HashedConfiguration, Parameters<OnConfigurationChangedHandler>>(this.calculateConfigurationChangedHandlerMemo);
+    private readonly configurationChangedSubscriptionHandler = new SubscriptionHandler<HashedConfiguration, Parameters<OnConfigurationChangedHandler>>(this.calculateConfigurationChangedHandlerMemo);
+    private readonly canResetConfigurationSubscriptionHandler = new SubscriptionHandler<ConfigurationRawData, Parameters<OnCanResetConfigurationChangedHandler>>(calculateCanResetConfigurationChangedHandler(this.canResetConfigurationMemo));
+    private readonly actor: ReturnType<typeof createWorkProcessingMachine>;
+    private readonly subscription: Subscription;
 
-    private readonly inner: IConfigurationSessionInternal;
-    private readonly contractToDomainMapper: IContractToDomainMapper;
-    private readonly domainToContractMapper: IDomainToContractMapper;
+    // Will be set in constructor by call to handleActorUpdate.
+    public sessionState: ConfigurationSessionState = null as any;
 
-    constructor(inner: IConfigurationSessionInternal, contractToDomainMapper: IContractToDomainMapper, domainToContractMapper: IDomainToContractMapper) {
-        this.inner = inner;
+    constructor(initialSessionState: ConfigurationSessionState) {
+        this.handleActorUpdate({sessionState: initialSessionState, deferredPromiseCompletions: RA.empty});
 
-        this.contractToDomainMapper = contractToDomainMapper;
-        this.domainToContractMapper = domainToContractMapper;
-
-        this.onConfigurationChangedHandler = O.none;
+        this.actor = createWorkProcessingMachine(initialSessionState);
+        this.subscription = this.actor.on("MachineState", state => {
+            this.handleActorUpdate(state);
+        });
+        this.actor.start();
     }
 
-    public setOnConfigurationChangedHandler(handler: OnConfigurationChangedHandler): void {
-        const handlerInternal = pipe(handler, O.fromNullable, O.map(h => (s) => {
-            const configuration = this.domainToContractMapper.mapToConfiguration(s);
-            h(configuration);
-        }));
+    getDecisions(kind: DecisionKind.Explicit): readonly CollectedExplicitDecision[];
+    getDecisions(kind: DecisionKind.Implicit): readonly CollectedImplicitDecision[];
+    getDecisions(): readonly CollectedDecision[];
+    getDecisions(kind?: DecisionKind): readonly CollectedDecision[] {
+        this.throwIfSessionClosed();
 
-        this.inner.setOnConfigurationChangedHandler(handlerInternal);
+        const fn = match(kind)
+            .with(DecisionKind.Explicit, () => this.getExplicitCollectedDecisionsMemo)
+            .with(DecisionKind.Implicit, () => this.getImplicitCollectedDecisionsMemo)
+            .with(P.nullish, () => this.getCollectedDecisionsMemo)
+            .exhaustive();
+        return fn(this.sessionState.configurationRawData);
     }
 
-    public getConfiguration(): Configuration {
-        const configuration = this.inner.getConfiguration();
-        return this.domainToContractMapper.mapToConfiguration(configuration);
+    async storeConfiguration(): Promise<StoredConfiguration> {
+        this.throwIfSessionClosed();
+
+        const workItem = Session.storeConfiguration();
+
+        this.actor.send({type: "EnqueueWork", workItem: workItem});
+
+        return await workItem.deferredPromise.promise;
     }
 
-    public getSessionContext(): SessionContext {
-        const sessionContext = this.inner.getSessionContext();
+    async restoreConfiguration(storedConfiguration: StoredConfigurationV1): Promise<SetManyResult> {
+        this.throwIfSessionClosed();
 
-        return this.domainToContractMapper.mapToSessionContext(sessionContext);
+        const loadedConfiguration = loadConfiguration(storedConfiguration);
+        if (E.isLeft(loadedConfiguration)) {
+            throw loadedConfiguration.left;
+        }
+
+        const workItem = pipe(
+            Session.setMany(loadedConfiguration.right, {
+                type: "DropExistingDecisions",
+                conflictHandling: {type: "Automatic"}
+            }),
+            I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.restoreConfiguration ?? false)
+        );
+        this.actor.send({type: "EnqueueWork", workItem: workItem});
+
+        return await workItem.deferredPromise.promise;
     }
 
-    /**
-     * @throws {FailureResult}
-     */
-    public async setSessionContext(sessionContext: SessionContext): Promise<void> {
-        const domainSessionContext = this.contractToDomainMapper.mapToSessionContext(sessionContext);
+    get canResetConfiguration(): boolean {
+        this.throwIfSessionClosed();
 
-        return await pipe(this.inner.setSessionContext(domainSessionContext),
-            TE.map(constVoid),
-            this.adaptToContractPromise()
-        )();
+        return this.canResetConfigurationMemo(this.sessionState.configurationRawData);
     }
 
-    /**
-     * @throws {FailureResult}
-     */
-    public async restoreConfiguration(configuration: Configuration): Promise<void> {
+    async resetConfiguration(): Promise<void> {
+        const workItem = pipe(
+            Session.setMany([], {type: "DropExistingDecisions", conflictHandling: {type: "Automatic"}}),
+            I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.resetConfiguration ?? false)
+        );
+        this.actor.send({type: "EnqueueWork", workItem: workItem});
 
-        const domainState = this.contractToDomainMapper.mapToConfiguration(configuration);
-
-        return await pipe(this.inner.restoreConfiguration(domainState),
-            TE.map(constVoid),
-            this.adaptToContractPromise()
-        )();
+        await workItem.deferredPromise.promise;
     }
 
-    /**
-     * @throws {FailureResult}
-     */
-    public async makeDecision(decision: ExplicitDecision): Promise<void> {
+    addConfigurationChangedListener(handler: OnConfigurationChangedHandler): TSubscription {
+        this.throwIfSessionClosed();
 
-        const domainDecision = this.contractToDomainMapper.mapToAttributeDecision(decision);
-
-        return await pipe(this.inner.makeDecision(domainDecision),
-            TE.map(constVoid),
-            this.adaptToContractPromise()
-        )();
+        return this.configurationChangedSubscriptionHandler.addListener(handler);
     }
 
-    /**
-     * @throws {FailureResult}
-     */
-    public async setMany(decisions: ReadonlyArray<ExplicitDecision>, mode: SetManyMode): Promise<void> {
-        const domainDecisions = this.contractToDomainMapper.mapToAttributeDecisions(decisions);
-        const domainMode = this.contractToDomainMapper.mapToMode(mode);
+    addCanResetConfigurationChangedListener(handler: OnCanResetConfigurationChangedHandler): TSubscription {
+        this.throwIfSessionClosed();
 
-        return await pipe(
-            this.inner.setMany(domainDecisions, domainMode),
-            TE.map(constVoid),
-            this.adaptToContractPromise()
-        )();
+        return this.canResetConfigurationSubscriptionHandler.addListener(handler);
     }
 
-    /**
-     * @throws {FailureResult}
-     */
-    public async applySolution(solution: ExplainSolution): Promise<void> {
-        const domainSolution = this.contractToDomainMapper.mapToSolution(solution);
+    getSessionContext(): SessionContext {
+        this.throwIfSessionClosed();
 
-        return await pipe(this.inner.applySolution(domainSolution),
-            TE.map(constVoid),
-            this.adaptToContractPromise()
-        )();
+        return this.sessionState.sessionContext;
     }
 
-    /**
-     * @throws {FailureResult}
-     */
-    public explain(question: ExplainQuestionParam, answerType: "decisions"): Promise<DecisionsExplainAnswer>;
-    public explain(question: ExplainQuestionParam, answerType: "constraints"): Promise<ConstraintsExplainAnswer>;
-    public explain(question: ExplainQuestionParam, answerType: "full"): Promise<FullExplainAnswer>;
-    public async explain(question: ExplainQuestionParam, answerType: "decisions" | "constraints" | "full"): Promise<ExplainAnswer> {
-        const explainQuestion = typeof question === "function" ? question(explainQuestionBuilder) : question;
-        const domainExplainQuestion = this.contractToDomainMapper.mapToExplainQuestion(explainQuestion, answerType);
+    getConfiguration(): Configuration {
+        this.throwIfSessionClosed();
 
-        return await pipe(
-            this.inner.explain(domainExplainQuestion),
-            TE.map(explanationResult => this.domainToContractMapper.mapToExplainAnswer(explanationResult)),
-            this.adaptToContractPromise()
-        )();
+        return this.sessionState.configuration;
     }
 
-    /**
-     * @throws {FailureResult}
-     */
-    public async close(): Promise<void> {
+    getConfigurationChanges(): ConfigurationChanges {
+        this.throwIfSessionClosed();
 
-        return await pipe(
-            this.inner.close(),
-            TE.mapLeft(l => this.domainToContractMapper.mapToFailureResult(l)),
-            TE.match(Promise.reject, s => Promise.resolve())
-        )();
+        return pipe(
+            this.sessionChangesHandler.getChanges(),
+            O.map(RT.snd),
+            O.getOrElse(() => emptyChanges)
+        );
     }
 
-    private adaptToContractPromise<R>(): (e: TaskEitherResult<R>) => T.Task<Promise<R>> {
-        return flow(TE.mapLeft(l => this.domainToContractMapper.mapToFailureResult(l)),
-            TE.match(l => Promise.reject(l), r => Promise.resolve(r)));
+    clearConfigurationChanges(): void {
+        this.throwIfSessionClosed();
+
+        this.sessionChangesHandler.clearChanges();
     }
-}
+
+    async makeDecision(decision: ExplicitDecision): Promise<void> {
+        this.throwIfSessionClosed();
+
+        const workItem = pipe(
+            decision,
+            Session.makeDecision,
+            I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.makeDecision ?? true)
+        );
+        this.actor.send({type: "EnqueueWork", workItem: workItem});
+
+        await workItem.deferredPromise.promise;
+    }
+
+    async applySolution(solution: ExplainSolution): Promise<SetManyResult> {
+        this.throwIfSessionClosed();
+
+        const workItem = pipe(
+            Session.setMany(solution.decisions, solution.mode),
+            I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.applySolution ?? true)
+        );
+        this.actor.send({type: "EnqueueWork", workItem: workItem});
+
+        return await workItem.deferredPromise.promise;
+    }
+
+    async setMany(decisions: readonly ExplicitDecision[], mode: SetManyMode): Promise<SetManyResult> {
+        this.throwIfSessionClosed();
+
+        const workItem = pipe(
+            Session.setMany(decisions, mode),
+            I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.setMany ?? true)
+        );
+        this.actor.send({type: "EnqueueWork", workItem: workItem});
+
+        return await workItem.deferredPromise.promise;
+    }
+
+    async setSessionContext(sessionContext: SessionContext): Promise<void> {
+        this.throwIfSessionClosed();
+
+        const workItem = pipe(
+            sessionContext,
+            Session.setSessionContext,
+            I.ap(false)
+        );
+        this.actor.send({type: "EnqueueWork", workItem: workItem});
+
+        await workItem.deferredPromise.promise;
+    }
+
+    async reinitialize(): Promise<void> {
+        this.throwIfSessionClosed();
+
+        const workItem = pipe(
+            Session.reinitialize(),
+            I.ap(false)
+        );
+        this.actor.send({type: "EnqueueWork", workItem: workItem});
+
+        await workItem.deferredPromise.promise;
+    }
+
+    explain(question: ExplainQuestionParam, answerType: "decisions"): Promise<DecisionsExplainAnswer>;
+    explain(question: ExplainQuestionParam, answerType: "constraints"): Promise<ConstraintsExplainAnswer>;
+    explain(question: ExplainQuestionParam, answerType: "full"): Promise<FullExplainAnswer>;
+    async explain(question: ExplainQuestionParam, answerType: "decisions" | "constraints" | "full"): Promise<ExplainAnswer> {
+        this.throwIfSessionClosed();
+
+        const q = typeof question === "function" ? question(explainQuestionBuilder) : question;
+        const workItem = Session.explain(q, answerType);
+
+        this.actor.send({type: "EnqueueWork", workItem: workItem});
+
+        return await workItem.deferredPromise.promise;
+    }
+
+    async close(): Promise<void> {
+        if (this.actor.getSnapshot().status !== "active") {
+            return;
+        }
+
+        this.subscription.unsubscribe();
+        this.actor.send({type: "Shutdown"});
+        await waitFor(this.actor, s => s.status !== "active");
+        this.configurationChangedSubscriptionHandler.unsubscribeAllListeners();
+    }
+
+    private handleActorUpdate(state: Omit<MachineState, "type">) {
+        this.sessionState = state.sessionState;
+
+        this.sessionChangesHandler.setValue(this.sessionState.configuration);
+
+        // First inform all listener about the change.
+        this.configurationChangedSubscriptionHandler.notifyListeners(this.sessionState.configuration);
+        this.canResetConfigurationSubscriptionHandler.notifyListeners(this.sessionState.configurationRawData);
+
+        // Then resolve all waiting promises.
+        resolveDeferredPromises(state.deferredPromiseCompletions);
+    }
+
+    private throwIfSessionClosed(): void {
+        if (this.actor.getSnapshot().status !== "active") {
+            throw {type: ConfiguratorErrorType.SessionClosed} satisfies SessionClosed;
+        }
+    }
+};

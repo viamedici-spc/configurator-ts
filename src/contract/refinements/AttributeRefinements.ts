@@ -1,15 +1,14 @@
 import {
     Attribute,
-    LocalAttributeId,
     AttributeType,
     BooleanAttribute,
     ChoiceAttribute,
     NumericAttribute,
     ComponentAttribute
 } from "../Types";
+import {Refinement} from "fp-ts/Refinement";
 
-export const booleanAttributeRefinement = (a: Attribute): a is BooleanAttribute => a.type === AttributeType.Boolean;
-export const choiceAttributeRefinement = (a: Attribute): a is ChoiceAttribute => a.type === AttributeType.Choice;
-export const numericAttributeRefinement = (a: Attribute): a is NumericAttribute => a.type === AttributeType.Numeric;
-export const componentAttributeRefinement = (a: Attribute): a is ComponentAttribute => a.type === AttributeType.Component;
-export const attributeIdRefinement = (a: string): a is LocalAttributeId => true;
+export const booleanAttributeRefinement: Refinement<Attribute, BooleanAttribute> = (a: Attribute): a is BooleanAttribute => a.type === AttributeType.Boolean;
+export const choiceAttributeRefinement: Refinement<Attribute, ChoiceAttribute> = (a: Attribute): a is ChoiceAttribute => a.type === AttributeType.Choice;
+export const numericAttributeRefinement: Refinement<Attribute, NumericAttribute> = (a: Attribute): a is NumericAttribute => a.type === AttributeType.Numeric;
+export const componentAttributeRefinement: Refinement<Attribute, ComponentAttribute> = (a: Attribute): a is ComponentAttribute => a.type === AttributeType.Component;
