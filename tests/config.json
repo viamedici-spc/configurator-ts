@@ -1,7 +1,10 @@
 {
   "endpoints" : {
-    "auth" : "https://spc.cloud.ceventis.de/auth/realms/viamedici",
-    "engine" : "https://spc.cloud.ceventis.de/hca/api/engine",
-    "store" : "https://spc.cloud.ceventis.de/hca/api/store"
+    "engine" : "https://spc.cloud.ceventis.de/hca/api/engine"
+  },
+  "credentials" : {
+    "engine" : {
+      "accessToken" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhYzlmY2RiNC1hNmMwLTRmMjMtYjRhZS1iOGEyODY5MzMxMTMiLCJ0aWQiOiJ2aWFtZWRpY2kiLCJpc3MiOiJ2aWFtZWRpY2kifQ.RWB-RWxoXPBR4m0br-rD1TxOqiHf7LEb-yoqT8GaupA"
+    }
   }
 }

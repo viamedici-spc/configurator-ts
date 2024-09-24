@@ -1,5 +1,4 @@
-import {flow, O, pipe, RA, Str, Eq, Predicate, P} from "@viamedici-spc/fp-ts-extensions";
-import * as AttributeInterpreter from "./AttributeInterpreter";
+import {pipe, RA, Str, RM, Ord, OrdT, identity} from "@viamedici-spc/fp-ts-extensions";
 import {
     booleanAttributeRefinement,
     choiceAttributeRefinement,
@@ -11,216 +10,106 @@ import {
     BooleanAttribute,
     ChoiceAttribute,
     ChoiceValue,
-    ChoiceValueDecisionState,
     ChoiceValueId,
     ComponentAttribute,
-    ComponentDecisionState,
     Configuration,
     ConfigurationModelId,
-    Decision,
-    DecisionKind,
-    eqGlobalAttributeId,
-    GlobalAttributeId, LocalAttributeId,
-    NumericAttribute
+    GlobalAttributeId, GlobalAttributeIdKey, NumericAttribute
 } from "../Types";
+import {Refinement, id} from "fp-ts/Refinement";
+import GlobalAttributeIdKeyBuilder from "../../crossCutting/GlobalAttributeIdKeyBuilder";
 
-const nullableStringEq = Eq.eqNullable(Str.Eq);
-const readOnlyStringArrayEq = RA.getEq(Str.Eq);
-
-function isChildOf(parentId: {
-    sharedConfigurationModelId: ConfigurationModelId | null,
-    componentPath: ReadonlyArray<LocalAttributeId>
-}, includeSubcomponents: boolean): Predicate<GlobalAttributeId> {
-    const hasChildSameSharedModelId = (potentialChild: GlobalAttributeId) => nullableStringEq.equals(parentId.sharedConfigurationModelId, potentialChild.sharedConfigurationModelId);
-
-    const parentIdComponentPathLength = parentId.componentPath.length;
-    const doesChildComponentPathStartsWith = (potentialChild: GlobalAttributeId) =>
-        readOnlyStringArrayEq.equals(pipe(potentialChild.componentPath ?? [], RA.takeLeft(parentIdComponentPathLength)), parentId.componentPath);
-    const areParentAndChildComponentPathEqual = (potentialChild: GlobalAttributeId) => readOnlyStringArrayEq.equals(potentialChild.componentPath ?? [], parentId.componentPath);
-
-    return pipe(
-        hasChildSameSharedModelId,
-        P.and(includeSubcomponents ? doesChildComponentPathStartsWith : areParentAndChildComponentPathEqual)
-    );
-}
-
-export function filterAttributesOfComponent(attributes: ReadonlyArray<Attribute>, componentAttributeId: GlobalAttributeId, includeSubcomponents: boolean): ReadonlyArray<Attribute> {
-    const isChildOfPredicate = pipe(
-        isChildOf({
-            sharedConfigurationModelId: componentAttributeId.sharedConfigurationModelId ?? null,
-            componentPath: pipe(componentAttributeId.componentPath ?? [], RA.append(componentAttributeId.localId))
-        }, includeSubcomponents),
-        P.contramap((a: Attribute) => a.id)
-    );
-
+export function getAttributesOfComponentAttribute(attributes: Configuration["attributes"], componentAttributeId: GlobalAttributeId, includeSubcomponents: boolean): ReadonlyArray<Attribute> {
     return pipe(
         attributes,
-        RA.filter(isChildOfPredicate)
-    );
-}
-
-export function filterAttributesOfShared(attributes: ReadonlyArray<Attribute>, sharedConfigurationModelId: ConfigurationModelId, includeSubcomponents: boolean): ReadonlyArray<Attribute> {
-    const isChildOfPredicate = pipe(
-        isChildOf({
-            sharedConfigurationModelId: sharedConfigurationModelId,
-            componentPath: []
-        }, includeSubcomponents),
-        P.contramap((a: Attribute) => a.id)
-    );
-
-    return pipe(
-        attributes,
-        RA.filter(isChildOfPredicate)
-    );
-}
-
-export function filterAttributesOfRoot(attributes: ReadonlyArray<Attribute>): ReadonlyArray<Attribute> {
-    return pipe(
-        attributes,
+        RM.toReadonlyArray(Ord.trivial as OrdT<GlobalAttributeIdKey>),
+        RA.map(([_, a]) => a),
         RA.filter(a => {
-            const notNested = (a.id.componentPath ?? []).length === 0;
-            const notShared = a.id.sharedConfigurationModelId == null;
+            if (a.id.sharedConfigurationModelId != componentAttributeId.sharedConfigurationModelId) {
+                return false;
+            }
 
-            return notNested && notShared;
+            const componentAttributeIdPath = [...(componentAttributeId.componentPath ?? []), componentAttributeId.localId];
+            const trimmedCandidateId = pipe(
+                a.id.componentPath ?? [],
+                includeSubcomponents ? RA.takeLeft(componentAttributeIdPath.length) : identity
+            );
+
+            return RA.getEq(Str.Eq).equals(componentAttributeIdPath, trimmedCandidateId);
         })
     );
 }
 
-export function getChoiceDecisions(c: Configuration, kind: DecisionKind): ReadonlyArray<Decision<ChoiceValueDecisionState>> {
+export function getAttributesOfSharedConfigurationModel(attributes: Configuration["attributes"], sharedConfigurationModelId: ConfigurationModelId, includeSubcomponents: boolean): ReadonlyArray<Attribute> {
     return pipe(
-        getChoiceAttributes(c),
-        RA.map((v: ChoiceAttribute) => AttributeInterpreter.getChoiceDecisions(v, kind)),
-        RA.flatten,
-        RA.filterMap(d => O.fromNullable(d))
+        attributes,
+        RM.toReadonlyArray(Ord.trivial as OrdT<GlobalAttributeIdKey>),
+        RA.map(([_, a]) => a),
+        RA.filter(a => a.id.sharedConfigurationModelId == sharedConfigurationModelId && (includeSubcomponents || RA.isEmpty(a.id.componentPath ?? [])))
     );
 }
 
-// noinspection JSUnusedGlobalSymbols
-export function getNumericDecisions(c: Configuration, kind: DecisionKind): ReadonlyArray<Decision<number>> {
+export function getAttributesOfRootConfigurationModel(attributes: Configuration["attributes"]): ReadonlyArray<Attribute> {
     return pipe(
-        getNumericAttributes(c),
-        RA.filter(a => a.decision?.kind === kind),
-        RA.map((v: NumericAttribute) => AttributeInterpreter.getNumericDecision(v)),
-        RA.filterMap(d => O.fromNullable(d))
+        attributes,
+        RM.toReadonlyArray(Ord.trivial as OrdT<GlobalAttributeIdKey>),
+        RA.map(([_, a]) => a),
+        RA.filter(a => a.id.sharedConfigurationModelId == null && RA.isEmpty(a.id.componentPath ?? []))
     );
 }
 
-// noinspection JSUnusedGlobalSymbols
-export function getBooleanDecisions(c: Configuration, kind: DecisionKind): ReadonlyArray<Decision<boolean>> {
-    return pipe(
-        getBooleanAttributes(c),
-        RA.filter(a => a.decision?.kind === kind),
-        RA.map((v: BooleanAttribute) => AttributeInterpreter.getBooleanDecision(v)),
-        RA.filterMap(d => O.fromNullable(d))
+function getAttributes<B extends Attribute>(refinement: Refinement<Attribute, B>): (configuration: Configuration) => ReadonlyArray<B> {
+    return (configuration) => pipe(
+        configuration.attributes,
+        RM.filter(refinement),
+        RM.toReadonlyArray(Ord.trivial as OrdT<GlobalAttributeIdKey>),
+        RA.map(([_, value]) => value),
     );
 }
 
-// noinspection JSUnusedGlobalSymbols
-export function getComponentDecisions(c: Configuration, kind: DecisionKind): ReadonlyArray<Decision<ComponentDecisionState>> {
-    return pipe(
-        getComponentAttributes(c),
-        RA.filter(a => a.decision?.kind === kind),
-        RA.map((v: ComponentAttribute) => AttributeInterpreter.getComponentDecision(v)),
-        RA.filterMap(d => O.fromNullable(d))
-    );
-}
-
-// noinspection JSUnusedGlobalSymbols
 export function getChoiceAttributes(configuration: Configuration): ReadonlyArray<ChoiceAttribute> {
-    return pipe(
-        configuration.attributes,
-        RA.filter(choiceAttributeRefinement)
-    );
+    return getAttributes(choiceAttributeRefinement)(configuration);
 }
 
-// noinspection JSUnusedGlobalSymbols
 export function getComponentAttributes(configuration: Configuration): ReadonlyArray<ComponentAttribute> {
-    return pipe(
-        configuration.attributes,
-        RA.filter(componentAttributeRefinement)
-    );
+    return getAttributes(componentAttributeRefinement)(configuration);
 }
 
-// noinspection JSUnusedGlobalSymbols
 export function getNumericAttributes(configuration: Configuration): ReadonlyArray<NumericAttribute> {
-    return pipe(
-        configuration.attributes,
-        RA.filter(numericAttributeRefinement)
-    );
+    return getAttributes(numericAttributeRefinement)(configuration);
 }
 
-// noinspection JSUnusedGlobalSymbols
 export function getBooleanAttributes(configuration: Configuration): ReadonlyArray<BooleanAttribute> {
-    return pipe(
-        configuration.attributes,
-        RA.filter(booleanAttributeRefinement)
-    );
+    return getAttributes(booleanAttributeRefinement)(configuration);
 }
 
+export function getAttribute(configuration: Configuration, attributeIdOrKey: GlobalAttributeId | GlobalAttributeIdKey): Attribute | undefined
+export function getAttribute<A extends Attribute>(configuration: Configuration, attributeIdOrKey: GlobalAttributeId | GlobalAttributeIdKey, refinement: Refinement<Attribute, A>): A | undefined
+export function getAttribute<A extends Attribute>(configuration: Configuration, attributeIdOrKey: GlobalAttributeId | GlobalAttributeIdKey, refinement?: Refinement<Attribute, A>): Attribute | undefined {
+    const key = typeof attributeIdOrKey === "string" ? attributeIdOrKey : GlobalAttributeIdKeyBuilder(attributeIdOrKey);
+    const attribute = configuration.attributes.get(key);
 
-// noinspection JSUnusedGlobalSymbols
-export function getAttribute(configuration: Configuration, attributeId: GlobalAttributeId): Attribute | undefined {
-    return pipe(
-        getAttributeInternal(configuration, attributeId),
-        O.toUndefined
-    );
+    return attribute && (refinement ?? id)(attribute) ? attribute : undefined;
 }
 
-// noinspection JSUnusedGlobalSymbols
-export function getChoiceAttribute(configuration: Configuration, attributeId: GlobalAttributeId): ChoiceAttribute | undefined {
-    return pipe(
-        getChoiceAttributeInternal(configuration, attributeId),
-        O.toUndefined
-    );
+export function getChoiceAttribute(configuration: Configuration, attributeIdOrKey: GlobalAttributeId | GlobalAttributeIdKey): ChoiceAttribute | undefined {
+    return getAttribute(configuration, attributeIdOrKey, choiceAttributeRefinement);
 }
 
-// noinspection JSUnusedGlobalSymbols
-export function getChoiceValue(configuration: Configuration, attributeId: GlobalAttributeId, choiceValueId: ChoiceValueId): ChoiceValue | undefined {
-    return pipe(
-        getChoiceAttributeInternal(configuration, attributeId),
-        O.map(ca => ca.values),
-        O.chain(flow(RA.findFirst(choiceValue => choiceValue.id === choiceValueId))),
-        O.toUndefined
-    );
+export function getChoiceValue(configuration: Configuration, attributeIdOrKey: GlobalAttributeId | GlobalAttributeIdKey, choiceValueId: ChoiceValueId): ChoiceValue | undefined {
+    const attribute = getChoiceAttribute(configuration, attributeIdOrKey);
+
+    return (attribute?.values ?? RM.empty).get(choiceValueId);
 }
 
-// noinspection JSUnusedGlobalSymbols
-export function getNumericAttribute(configuration: Configuration, attributeId: GlobalAttributeId): NumericAttribute | undefined {
-    return pipe(
-        getAttributeInternal(configuration, attributeId),
-        O.filter(numericAttributeRefinement),
-        O.toUndefined
-    );
+export function getNumericAttribute(configuration: Configuration, attributeIdOrKey: GlobalAttributeId | GlobalAttributeIdKey): NumericAttribute | undefined {
+    return getAttribute(configuration, attributeIdOrKey, numericAttributeRefinement);
 }
 
-// noinspection JSUnusedGlobalSymbols
-export function getBooleanAttribute(configuration: Configuration, attributeId: GlobalAttributeId): BooleanAttribute | undefined {
-    return pipe(
-        getAttributeInternal(configuration, attributeId),
-        O.filter(booleanAttributeRefinement),
-        O.toUndefined
-    );
+export function getBooleanAttribute(configuration: Configuration, attributeIdOrKey: GlobalAttributeId | GlobalAttributeIdKey): BooleanAttribute | undefined {
+    return getAttribute(configuration, attributeIdOrKey, booleanAttributeRefinement);
 }
 
-// noinspection JSUnusedGlobalSymbols
-export function getComponentAttribute(configuration: Configuration, attributeId: GlobalAttributeId): ComponentAttribute | undefined {
-    return pipe(
-        getAttributeInternal(configuration, attributeId),
-        O.filter(componentAttributeRefinement),
-        O.toUndefined
-    );
-}
-
-function getAttributeInternal(configuration: Configuration, attributeId: GlobalAttributeId): O.Option<Attribute> {
-    return pipe(
-        configuration.attributes,
-        RA.findFirst(a => eqGlobalAttributeId.equals(a.id, attributeId))
-    );
-}
-
-function getChoiceAttributeInternal(configuration: Configuration, attributeId: GlobalAttributeId): O.Option<ChoiceAttribute> {
-    return pipe(
-        getAttributeInternal(configuration, attributeId),
-        O.filter(choiceAttributeRefinement)
-    );
+export function getComponentAttribute(configuration: Configuration, attributeIdOrKey: GlobalAttributeId | GlobalAttributeIdKey): ComponentAttribute | undefined {
+    return getAttribute(configuration, attributeIdOrKey, componentAttributeRefinement);
 }

@@ -27,6 +27,7 @@ export default defineConfig(() => ({
     ],
     test: {
         reporters: ["default", "junit"],
+        setupFiles: ['./tests/testSetup.js'],
         outputFile: './report/tests-results.xml',
         coverage: {
             provider: "istanbul",

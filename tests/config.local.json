@@ -1,7 +1,2 @@
 {
-  "credentials" : {
-    "engine" : {
-      "accessToken" : "Access token: 'Integration Tests: configurator-ts'"
-    }
-  }
 }

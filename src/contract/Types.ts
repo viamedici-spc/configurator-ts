@@ -1,143 +1,86 @@
-import {ConfigurationModelPackage} from "../apiClient/engine/models/generated/Engine";
+import {ExplainQuestionBuilder} from "./ExplainQuestionBuilder";
+import * as Engine from "../apiClient/engine/Engine";
 
-import {Bool, Eq, Num, Str} from "@viamedici-spc/fp-ts-extensions";
-import {getNullableEq, getNullTolerantReadOnlyArrayEq} from "../crossCutting/Eq";
-import {match} from "ts-pattern";
+export type LocalAttributeId = string;
+export type LocalRuleId = string;
+export type ChoiceValueId = string;
+export type ConfigurationModelId = string;
+export type ChannelId = string;
 
-type NonEmpty<T extends string = string> = T extends '' ? never : T;
-
-export type SessionId = string;
-export type LocalAttributeId = NonEmpty;
-export type LocalRuleId = NonEmpty;
-export type ChoiceValueId = NonEmpty;
-export type ConfigurationModelId = NonEmpty;
-export type ChannelId = NonEmpty;
-
-export type GlobalAttributeId = {
-    localId: LocalAttributeId,
-    sharedConfigurationModelId?: ConfigurationModelId | null,
-    componentPath?: LocalAttributeId[] | null
+export type SourceAttributeId = {
+    readonly configurationModel: ConfigurationModelId;
+    readonly localId: LocalAttributeId;
 };
 
-export const eqGlobalAttributeId = Eq.struct<GlobalAttributeId>({
-    localId: Str.Eq,
-    componentPath: getNullTolerantReadOnlyArrayEq(Str.Eq),
-    sharedConfigurationModelId: getNullableEq(Str.Eq)
-});
+export type GlobalAttributeIdKey = string;
+
+export type GlobalAttributeId = {
+    readonly localId: LocalAttributeId,
+    readonly sharedConfigurationModelId?: ConfigurationModelId,
+    readonly componentPath?: ReadonlyArray<LocalAttributeId>
+};
 
 export type GlobalConstraintId = {
     localId: LocalRuleId,
     configurationModelId: ConfigurationModelId
 };
 
-export const eqGlobalConstraintId = Eq.struct<GlobalConstraintId>({
-    localId: Str.Eq,
-    configurationModelId: Str.Eq
-});
-
-export const eqCausedByDecision = Eq.fromEquals<CausedByDecision>((x: CausedByDecision, y: CausedByDecision) => {
-
-    return match({x, y})
-        .with({
-            x: {type: AttributeType.Choice},
-            y: {type: AttributeType.Choice}
-        }, (v) => eqCausedByChoiceValueDecision.equals(v.x, v.y))
-        .with({
-            x: {type: AttributeType.Component},
-            y: {type: AttributeType.Component}
-        }, (v) => eqCausedByComponentDecision.equals(v.x, v.y))
-        .with({
-            x: {type: AttributeType.Numeric},
-            y: {type: AttributeType.Numeric}
-        }, (v) => eqCausedByNumericDecision.equals(v.x, v.y))
-        .with({
-            x: {type: AttributeType.Boolean},
-            y: {type: AttributeType.Boolean}
-        }, (v) => eqCausedByBooleanDecision.equals(v.x, v.y))
-        .otherwise(() => false) as boolean;
-});
-
-const eqCausedByChoiceValueDecision = Eq.struct<CausedByChoiceValueDecision>({
-    type: Str.Eq,
-    attributeId: eqGlobalAttributeId,
-    state: Str.Eq,
-    choiceValueId: Str.Eq
-});
-
-const eqCausedByComponentDecision = Eq.struct<CausedByComponentDecision>({
-    type: Str.Eq,
-    attributeId: eqGlobalAttributeId,
-    state: Str.Eq,
-});
-
-const eqCausedByNumericDecision = Eq.struct<CausedByNumericDecision>({
-    type: Str.Eq,
-    attributeId: eqGlobalAttributeId,
-    state: Num.Eq,
-});
-
-const eqCausedByBooleanDecision = Eq.struct<CausedByBooleanDecision>({
-    type: Str.Eq,
-    attributeId: eqGlobalAttributeId,
-    state: Bool.Eq,
-});
-
 // ---------------------------------------------------------------------------------------------------------------------
-type ExplicitDecisionBase = {
+type BaseExplicitDecision = {
     readonly type: AttributeType
     readonly attributeId: GlobalAttributeId
 };
 
-export type ExplicitDecision = ExplicitDecisionBase
+export type ExplicitDecision = BaseExplicitDecision
     & (ExplicitChoiceDecision | ExplicitNumericDecision | ExplicitBooleanDecision | ExplicitComponentDecision);
 
-export type ExplicitNumericDecision = ExplicitDecisionBase & {
+export type ExplicitNumericDecision = BaseExplicitDecision & {
     readonly type: AttributeType.Numeric,
     readonly state: number | null | undefined
 };
 
-export type ExplicitBooleanDecision = ExplicitDecisionBase & {
+export type ExplicitBooleanDecision = BaseExplicitDecision & {
     readonly type: AttributeType.Boolean,
     readonly state: boolean | null | undefined
 };
 
-export type ExplicitChoiceDecision = ExplicitDecisionBase & {
+export type ExplicitChoiceDecision = BaseExplicitDecision & {
     readonly type: AttributeType.Choice,
     readonly choiceValueId: ChoiceValueId,
     readonly state: ChoiceValueDecisionState | null | undefined
 };
 
-export type ExplicitComponentDecision = ExplicitDecisionBase & {
+export type ExplicitComponentDecision = BaseExplicitDecision & {
     readonly type: AttributeType.Component,
     readonly state: ComponentDecisionState | null | undefined
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
-type CausedByDecisionBase = {
+type BaseCausedByDecision = {
     readonly type: AttributeType
     readonly attributeId: GlobalAttributeId
 };
 
-export type CausedByDecision = CausedByDecisionBase
+export type CausedByDecision = BaseCausedByDecision
     & (CausedByChoiceValueDecision | CausedByNumericDecision | CausedByBooleanDecision | CausedByComponentDecision);
 
-export type CausedByNumericDecision = CausedByDecisionBase & {
+export type CausedByNumericDecision = BaseCausedByDecision & {
     readonly type: AttributeType.Numeric,
     readonly state: number
 };
 
-export type CausedByBooleanDecision = CausedByDecisionBase & {
+export type CausedByBooleanDecision = BaseCausedByDecision & {
     readonly type: AttributeType.Boolean,
     readonly state: boolean
 };
 
-export type CausedByChoiceValueDecision = CausedByDecisionBase & {
+export type CausedByChoiceValueDecision = BaseCausedByDecision & {
     readonly type: AttributeType.Choice,
-    readonly choiceValueId: string,
+    readonly choiceValueId: ChoiceValueId,
     readonly state: ChoiceValueDecisionState
 };
 
-export type CausedByComponentDecision = CausedByDecisionBase & {
+export type CausedByComponentDecision = BaseCausedByDecision & {
     readonly type: AttributeType.Component,
     readonly state: ComponentDecisionState
 };
@@ -228,7 +171,7 @@ export type FullExplainAnswer = DecisionsExplainAnswer & ConstraintsExplainAnswe
 
 export type DecisionExplanation = {
     causedByDecisions: ReadonlyArray<CausedByDecision>;
-    solution?: ExplainSolution | null;
+    solution: ExplainSolution;
 }
 
 export type ConstraintExplanation = {
@@ -241,16 +184,10 @@ export type ExplainSolution = {
     readonly mode: SetManyMode
 }
 
-export enum ConstraintType {
-    Rule = "Rule",
-    Cardinality = "Cardinality",
-    Component = "Component",
-}
-
 // ---------------------------------------------------------------------------------------------------------------------
 export type Configuration = {
     readonly isSatisfied: boolean;
-    readonly attributes: ReadonlyArray<Attribute>;
+    readonly attributes: ReadonlyMap<GlobalAttributeIdKey, Attribute>;
 }
 
 export type DecisionsToRespect = {
@@ -260,12 +197,30 @@ export type DecisionsToRespect = {
 
 export type AttributeRelations = ReadonlyArray<DecisionsToRespect>;
 
+export type ClientSideSessionInitialisationOptions = {
+    readonly accessToken: string;
+};
+export type ServerSideSessionInitialisationOptions = {
+    readonly sessionCreateUrl: string;
+};
+
 export type SessionContext = {
+    readonly apiBaseUrl?: string;
+    readonly sessionInitialisationOptions: ClientSideSessionInitialisationOptions | ServerSideSessionInitialisationOptions;
     readonly configurationModelSource: ConfigurationModelSource;
     readonly attributeRelations?: AttributeRelations | null;
     readonly usageRuleParameters?: Record<string, string> | null;
     readonly allowedInExplain?: AllowedInExplain | null;
+    readonly optimisticDecisionOptions?: OptimisticDecisionOptions | null;
+    readonly provideSourceId?: boolean | null;
 }
+
+export type OptimisticDecisionOptions = {
+    readonly makeDecision?: boolean | null;
+    readonly setMany?: boolean | null;
+    readonly applySolution?: boolean | null;
+    readonly restoreConfiguration?: boolean | null;
+};
 
 export type AllowedInExplain = {
     rules?: AllowedRulesInExplain | null
@@ -299,35 +254,18 @@ export enum ConfigurationModelSourceType {
     Package = "Package"
 }
 
-type ConfigurationModelSourceBase = {
-    type: ConfigurationModelSourceType;
-}
-
-export type ConfigurationModelSource =
-    ConfigurationModelSourceBase
-    & (ConfigurationModelFromChannel | ConfigurationModelFromPackage);
-
-
-export type ConfigurationModelFromChannel = ConfigurationModelSourceBase & {
+export type ConfigurationModelFromChannel = {
     type: ConfigurationModelSourceType.Channel;
-    channel: string;
+    channel: ChannelId;
     deploymentName: string;
 }
 
-export type ConfigurationModelFromPackage = ConfigurationModelSourceBase & {
+export type ConfigurationModelFromPackage = {
     type: ConfigurationModelSourceType.Package;
-    configurationModelPackage: ConfigurationModelPackage;
+    configurationModelPackage: Engine.ConfigurationModelPackage;
 }
 
-export type SessionCreated = {
-    readonly sessionId: string;
-    readonly timeout: SessionTimeout;
-}
-
-export type SessionTimeout = {
-    absolute: string;
-    slidingInSeconds: number;
-}
+export type ConfigurationModelSource = ConfigurationModelFromChannel | ConfigurationModelFromPackage;
 
 export type Attribute = BooleanAttribute | NumericAttribute | ChoiceAttribute | ComponentAttribute;
 
@@ -342,6 +280,12 @@ export type BaseAttribute = {
     readonly type: AttributeType;
 
     readonly id: GlobalAttributeId;
+    readonly key: GlobalAttributeIdKey;
+
+    /**
+     * @remarks To enable the sourceId, set provideSourceId to true in SessionContext. Otherwise, it stays undefined.
+     */
+    readonly sourceId?: SourceAttributeId;
     readonly isSatisfied: boolean;
     readonly canContributeToConfigurationSatisfaction: boolean;
 }
@@ -373,14 +317,14 @@ export type ComponentAttribute = BaseAttribute & {
 
     readonly decision: Decision<ComponentDecisionState> | null;
     readonly inclusion: Inclusion;
-    readonly selection?: Selection;
+    readonly selection: Selection | null;
     readonly possibleDecisionStates: ReadonlyArray<ComponentDecisionState>;
 }
 
 export type ChoiceAttribute = BaseAttribute & {
     readonly type: AttributeType.Choice;
 
-    readonly values: ReadonlyArray<ChoiceValue>;
+    readonly values: ReadonlyMap<ChoiceValueId, ChoiceValue>;
     readonly cardinality: Cardinality;
 }
 
@@ -425,40 +369,82 @@ export type Range = {
     readonly max: number
 }
 
-type SetManyModeBase = {
-    type: string
+export type BaseCollectedDecision<T extends number | boolean | ChoiceValueDecisionState | ComponentDecisionState> =
+    Decision<T>
+    & {
+    readonly attributeType: AttributeType;
+
+    readonly attributeId: GlobalAttributeId;
+    readonly attributeKey: GlobalAttributeIdKey;
+};
+
+export type CollectedBooleanDecision = BaseCollectedDecision<boolean> & {
+    readonly attributeType: AttributeType.Boolean;
+};
+
+export type CollectedNumericDecision = BaseCollectedDecision<number> & {
+    readonly attributeType: AttributeType.Numeric;
+};
+
+export type CollectedComponentDecision = BaseCollectedDecision<ComponentDecisionState> & {
+    readonly attributeType: AttributeType.Component;
+};
+
+export type CollectedChoiceDecision = BaseCollectedDecision<ChoiceValueDecisionState> & {
+    readonly attributeType: AttributeType.Choice;
+    readonly choiceValueId: ChoiceValueId;
 }
 
-export type SetManyMode =
-    SetManyModeBase
-    & (SetManyDefaultMode | SetManyKeepExistingDecisionsMode | SetManyDropExistingDecisionsMode);
+export type CollectedDecision =
+    CollectedBooleanDecision
+    | CollectedNumericDecision
+    | CollectedComponentDecision
+    | CollectedChoiceDecision;
 
-export type SetManyDefaultMode = SetManyModeBase & {
-    type: "Default"
-}
+export type CollectedImplicitDecision = CollectedDecision & { kind: DecisionKind.Implicit };
+export type CollectedExplicitDecision = CollectedDecision & { kind: DecisionKind.Explicit };
 
-export type SetManyDropExistingDecisionsMode = SetManyModeBase & {
+export type SetManyMode = SetManyKeepExistingDecisionsMode | SetManyDropExistingDecisionsMode;
+
+export type SetManyDropExistingDecisionsMode = {
     type: "DropExistingDecisions",
     conflictHandling: ConflictResolution
 }
 
-export type SetManyKeepExistingDecisionsMode = SetManyModeBase & {
+export type SetManyKeepExistingDecisionsMode = {
     type: "KeepExistingDecisions"
 }
 
-export type ConflictResolutionBase = {
-    type: string
-}
+export type ConflictResolution = ManualConflictResolution | AutomaticConflictResolution;
 
-export type ConflictResolution = ConflictResolutionBase & (ManualConflictResolution | AutomaticConflictResolution);
-
-export type ManualConflictResolution = ConflictResolutionBase & {
-    includeConstraintsInConflictExplanation: boolean;
+export type ManualConflictResolution = {
     type: "Manual";
+    includeConstraintsInConflictExplanation: boolean;
 }
 
-export type AutomaticConflictResolution = ConflictResolutionBase & {
+export type AutomaticConflictResolution = {
     type: "Automatic";
 }
 
-export type ChangeSet = "TODO";
+export type ConfigurationChanges = {
+    readonly isSatisfied: boolean | null,
+    readonly attributes: {
+        readonly added: ReadonlyArray<Attribute>,
+        readonly changed: ReadonlyArray<Attribute>,
+        readonly removed: ReadonlyArray<GlobalAttributeId>
+    }
+}
+
+export type OnConfigurationChangedHandler = (configuration: Configuration, configurationChanges: ConfigurationChanges) => void;
+
+export type OnCanResetConfigurationChangedHandler = (canResetConfiguration: boolean) => void;
+
+export type ExplainQuestionParam = ExplainQuestion | ((b: ExplainQuestionBuilder) => ExplainQuestion);
+
+export type SetManyResult = {
+    readonly rejectedDecisions: ReadonlyArray<ExplicitDecision>
+};
+
+export type Subscription = {
+    readonly unsubscribe: () => void
+};
