@@ -1,24 +1,13 @@
 import ConfigurationRawData from "../model/ConfigurationRawData";
-import {Eq, flow, O, Ord, OrdT, pipe, RA, RM, some, Str} from "@viamedici-spc/fp-ts-extensions";
+import {flow, O, Ord, OrdT, pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
 import {
-    AttributeConsequence,
     AttributeDecision,
-    AttributeMeta,
-    BooleanAttributeConsequence,
     BooleanAttributeDecision,
-    ChoiceAttributeConsequence,
     ChoiceAttributeDecision,
-    ChoiceValueConsequence,
-    ChoiceValueDecision,
-    ComponentAttributeConsequence,
     ComponentAttributeDecision,
-    NumericAttributeConsequence,
     NumericAttributeDecision
 } from "../model/PartialAttribute";
-import * as Se from "fp-ts/Semigroup";
-import {Semigroup} from "fp-ts/Semigroup";
 import {match} from "ts-pattern";
-import {globalAttributeIdKeyEq} from "../../contract/Eqs";
 import {
     AttributeType, BaseCollectedDecision,
     ChoiceValueDecisionState,
@@ -34,54 +23,7 @@ import {
     ExplicitNumericDecision
 } from "../../contract/Types";
 import {none, Option} from "fp-ts/Option";
-
-const choiceValueByIdEq = pipe(
-    Str.Eq,
-    Eq.contramap((c: ChoiceValueDecision | ChoiceValueConsequence) => c.id)
-);
-
-const choiceAttributeDecisionSe: Semigroup<ChoiceAttributeDecision> = {
-    concat: (x, y) => ({
-        ...y,
-        values: RA.getUnionSemigroup<ChoiceValueDecision>(choiceValueByIdEq).concat(y.values, x.values)
-    })
-};
-const choiceAttributeConsequenceSe: Semigroup<ChoiceAttributeConsequence> = {
-    concat: (x, y) => ({
-        ...y,
-        values: RA.getUnionSemigroup<ChoiceValueConsequence>(choiceValueByIdEq).concat(y.values, x.values)
-    })
-};
-const otherAttributeDecisionSe: Semigroup<BooleanAttributeDecision | NumericAttributeDecision | ComponentAttributeDecision> = Se.last();
-const otherAttributeConsequenceSe: Semigroup<BooleanAttributeConsequence | NumericAttributeConsequence | ComponentAttributeConsequence> = Se.last();
-
-const attributeDecisionSe: Semigroup<AttributeDecision> = {
-    concat: (x, y) => match({x, y})
-        .with({x: {type: AttributeType.Numeric}, y: {type: AttributeType.Numeric}}, ({x, y}) =>
-            otherAttributeDecisionSe.concat(x, y))
-        .with({x: {type: AttributeType.Boolean}, y: {type: AttributeType.Boolean}}, ({x, y}) =>
-            otherAttributeDecisionSe.concat(x, y))
-        .with({x: {type: AttributeType.Component}, y: {type: AttributeType.Component}}, ({x, y}) =>
-            otherAttributeDecisionSe.concat(x, y))
-        .with({x: {type: AttributeType.Choice}, y: {type: AttributeType.Choice}}, ({x, y}) =>
-            choiceAttributeDecisionSe.concat(x, y))
-        .otherwise(() => y)
-};
-const attributeConsequenceSe: Semigroup<AttributeConsequence> = {
-    concat: (x, y) => match({x, y})
-        .with({x: {type: AttributeType.Numeric}, y: {type: AttributeType.Numeric}}, ({x, y}) =>
-            otherAttributeConsequenceSe.concat(x, y))
-        .with({x: {type: AttributeType.Boolean}, y: {type: AttributeType.Boolean}}, ({x, y}) =>
-            otherAttributeConsequenceSe.concat(x, y))
-        .with({x: {type: AttributeType.Component}, y: {type: AttributeType.Component}}, ({x, y}) =>
-            otherAttributeConsequenceSe.concat(x, y))
-        .with({x: {type: AttributeType.Choice}, y: {type: AttributeType.Choice}}, ({x, y}) =>
-            choiceAttributeConsequenceSe.concat(x, y))
-        .otherwise(() => y)
-};
-const attributeMetaMapSe = RM.getUnionSemigroup(globalAttributeIdKeyEq, Se.last<AttributeMeta>());
-const attributeDecisionMapSe = RM.getUnionSemigroup(globalAttributeIdKeyEq, attributeDecisionSe);
-const attributeConsequenceMapSe = RM.getUnionSemigroup(globalAttributeIdKeyEq, attributeConsequenceSe);
+import {attributeConsequenceMapSe, attributeDecisionMapSe, attributeMetaMapSe} from "../Semigroups";
 
 export function merge(rawData: ConfigurationRawData, partialData: Partial<ConfigurationRawData>): ConfigurationRawData {
     return pipe({

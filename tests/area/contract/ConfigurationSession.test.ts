@@ -10,16 +10,22 @@ import {
     ChoiceValueDecisionState,
     CollectedBooleanDecision,
     ConfigurationModelSourceType,
+    ConfiguratorError,
+    ConflictWithConsequence,
     Decision,
     DecisionKind,
     ExplicitBooleanDecision,
     ExplicitNumericDecision,
     FullExplainAnswer,
     ServerSideSessionInitialisationOptions,
+    SessionClosed,
     SessionContext,
+    SetManyDecisionsConflict,
     SetManyDropExistingDecisionsMode,
     SetManyKeepExistingDecisionsMode,
-    SetManyMode
+    SetManyMode,
+    StoredConfiguration,
+    StoredConfigurationInvalid
 } from "../../../src";
 import config from "../../config";
 import getConfigurationSessionExpectations from "../../setup/ConfigurationSessionExpectations";
@@ -31,13 +37,6 @@ import ConfigurationSession from "../../../src/ConfigurationSession";
 import pDefer from "p-defer";
 import GlobalAttributeIdKeyBuilder from "../../../src/crossCutting/GlobalAttributeIdKeyBuilder";
 import {hashAttribute} from "../../../src/crossCutting/AttributeHashing";
-import {
-    ConfiguratorError,
-    ConflictWithConsequence,
-    SessionClosed,
-    SetManyDecisionsConflict,
-    StoredConfigurationInvalid
-} from "../../../src";
 import {E, TE} from "@viamedici-spc/fp-ts-extensions";
 import {
     configurationEq,
@@ -47,7 +46,6 @@ import {
     hashedConfigurationEq,
     setManyDecisionsConflictEq
 } from "../../../src/contract/Eqs";
-import {StoredConfiguration} from "../../../src";
 import * as ConfigurationRawDataL from "../../../src/domain/logic/ConfigurationRawData";
 
 const getSessionContext = (deploymentName: string): SessionContext => ({
@@ -899,5 +897,32 @@ describe("ConfigurationSession", () => {
         session.getDecisions();
         expect(getCollectedDecisionsMock).toBeCalledTimes(1);
         expect(getCollectedDecisionsMock).toHaveBeenLastCalledWith(session.sessionState.configurationRawData);
+    });
+
+    it("Decision results in multiple changes for a single choice attribute", async () => {
+        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1"));
+        const expectations = getConfigurationSessionExpectations(session);
+
+        await session.makeDecision({
+            type: AttributeType.Choice,
+            attributeId: {localId: "Ch2"},
+            choiceValueId: "Value1",
+            state: ChoiceValueDecisionState.Included
+        });
+
+        expectations.expectChoiceAttribute({localId: "Ch2"}, (_, e) => {
+            e.expectChoiceValue("Value1", v => {
+                expect(v.decision).toEqual({
+                    kind: DecisionKind.Explicit,
+                    state: ChoiceValueDecisionState.Included
+                } satisfies Decision<ChoiceValueDecisionState>);
+            });
+            e.expectChoiceValue("Value2", v => {
+                expect(v.decision).toEqual({
+                    kind: DecisionKind.Implicit,
+                    state: ChoiceValueDecisionState.Included
+                } satisfies Decision<ChoiceValueDecisionState>);
+            });
+        });
     });
 });

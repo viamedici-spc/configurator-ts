@@ -28,7 +28,7 @@ import {
 import {pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
 import GlobalAttributeIdKeyBuilder from "../../crossCutting/GlobalAttributeIdKeyBuilder";
 import {none, Option} from "fp-ts/Option";
-import {match, P} from "ts-pattern";
+import {match} from "ts-pattern";
 import {ConfiguratorError, SetManyDecisionsConflict} from "../../contract/ConfiguratorError";
 import {
     AttributeConsequence,
@@ -52,7 +52,7 @@ import {
 import {fromSingleOrArray, SingleOrArray} from "../../crossCutting/ReadonlyArrayExtensions";
 import {explicitDecisionByIdEq, globalAttributeIdKeyEq} from "../../contract/Eqs";
 import ConfigurationRawData from "../model/ConfigurationRawData";
-import * as Se from "fp-ts/Semigroup";
+import {attributeConsequenceSe, attributeDecisionSe, attributeMetaSe} from "../Semigroups";
 
 function getGlobalAttributeIdKey(attributeId: Engine.GlobalAttributeId): GlobalAttributeIdKey {
     return pipe(
@@ -159,7 +159,7 @@ function getAttributeDecisions(decisions: Engine.Decisions): ReadonlyMap<GlobalA
             ...choiceAttributeDecisions,
         ] as ReadonlyArray<AttributeDecision>,
         RA.map(a => [a.key, a] as [GlobalAttributeIdKey, AttributeDecision]),
-        RM.fromFoldable(globalAttributeIdKeyEq, Se.first<AttributeDecision>(), RA.Foldable),
+        RM.fromFoldable(globalAttributeIdKeyEq, attributeDecisionSe, RA.Foldable),
     );
 }
 
@@ -231,7 +231,7 @@ function getAttributeConsequences(consequences: Engine.Consequences): ReadonlyMa
             ...choiceAttributeConsequences,
         ] as ReadonlyArray<AttributeConsequence>,
         RA.map(a => [a.key, a] as [GlobalAttributeIdKey, AttributeConsequence]),
-        RM.fromFoldable(globalAttributeIdKeyEq, Se.first<AttributeConsequence>(), RA.Foldable),
+        RM.fromFoldable(globalAttributeIdKeyEq, attributeConsequenceSe, RA.Foldable),
     );
 }
 
@@ -249,7 +249,7 @@ function getAttributeMeta(meta: Engine.CompleteMeta | null): ReadonlyMap<GlobalA
             } satisfies AttributeMeta))
         )),
         RA.map(a => [a.key, a] as [GlobalAttributeIdKey, AttributeMeta]),
-        RM.fromFoldable(globalAttributeIdKeyEq, Se.first<AttributeMeta>(), RA.Foldable),
+        RM.fromFoldable(globalAttributeIdKeyEq, attributeMetaSe, RA.Foldable),
     );
 }
 
