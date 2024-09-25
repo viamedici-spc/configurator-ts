@@ -1,5 +1,6 @@
 import {defineConfig} from "vite";
 import dts from "vite-plugin-dts";
+import {externalizeDeps} from "vite-plugin-externalize-deps";
 
 export default defineConfig(() => ({
     build: {
@@ -15,12 +16,9 @@ export default defineConfig(() => ({
             // That's the reason why we don't specify type = "module". This would also break Node.js than because of directory imports.
             fileName: (format, entry) => entry + "." + (format === "es" ? "js" : format === "cjs" ? "cjs" : "XXX")
         },
-        rollupOptions: {
-            // Make sure to externalize deps that shouldn't be bundled into the library
-            external: [/^@viamedici-spc\/fp-ts-extensions.*/, /^fp-ts.*/, /^fast-equals.*/, /^ts-pattern.*/, /^dyna-guid.*/, /^@morphic-ts\/batteries.*/, /^memoizee.*/, /^p-defer.*/, /^spark-md5.*/, /^xstate.*/, /^tslib.*/],
-        },
     },
     plugins: [
+        externalizeDeps(),
         dts({rollupTypes: true})
     ],
     test: {
