@@ -198,32 +198,108 @@ export type DecisionsToRespect = {
 export type AttributeRelations = ReadonlyArray<DecisionsToRespect>;
 
 export type ClientSideSessionInitialisationOptions = {
+    /**
+     * The access token used for authenticating with the Headless Configuration Engine (HCE) API.
+     */
     readonly accessToken: string;
 };
+
 export type ServerSideSessionInitialisationOptions = {
+    /**
+     * The API endpoint of your backend, which will be contacted to create the session.
+     * @remarks You can modify and enrich the session context during the server-side session creation process.
+     */
     readonly sessionCreateUrl: string;
 };
 
 export type SessionContext = {
+    /**
+     * The base URL for the Headless Configuration Engine (HCE) API.
+     * @default SPC production environment
+     */
     readonly apiBaseUrl?: string;
+
+    /**
+     * Defines whether the session should be created client-side or server-side.
+     * Use {@link ClientSideSessionInitialisationOptions} for client-side session creation with all parameters.
+     * Use {@link ServerSideSessionInitialisationOptions} for server-side session creation, especially when dealing with security-sensitive parameters (e.g. access token).
+     */
     readonly sessionInitialisationOptions: ClientSideSessionInitialisationOptions | ServerSideSessionInitialisationOptions;
+
+    /**
+     * Specifies the source of the configuration model.
+     * Use {@link ConfigurationModelFromChannel} if you want to use a deployed configuration model.
+     * Use {@link ConfigurationModelFromPackage} if you want to side-load a configuration model from the client.
+     */
     readonly configurationModelSource: ConfigurationModelSource;
+
+    /**
+     * Defines which attributes should be respected when making a decision.
+     */
     readonly attributeRelations?: AttributeRelations | null;
+
+    /**
+     * The parameter values used for the configuration model's usage rules.
+     */
     readonly usageRuleParameters?: Record<string, string> | null;
+
+    /**
+     * Specifies which elements are allowed to be included in the result when explaining a circumstance.
+     * This is usually a security-sensitive option, so it is recommended to use server-side session creation for this.
+     */
     readonly allowedInExplain?: AllowedInExplain | null;
+
+    /**
+     * Defines which methods the optimistic decisions feature should be enabled for.
+     * @default Optimistic decisions are enabled for `makeDecision`, `setMany`, and `applySolution` by default.
+     */
     readonly optimisticDecisionOptions?: OptimisticDecisionOptions | null;
+
+    /**
+     * Determines whether the source IDs of attributes should be provided.
+     * @default false
+     * @remarks When true, an additional API request will be made during session initialization to retrieve the source IDs.
+     */
     readonly provideSourceId?: boolean | null;
-}
+};
 
 export type OptimisticDecisionOptions = {
+    /**
+     * Enables the optimistic decisions feature for `makeDecision`.
+     * @default true
+     */
     readonly makeDecision?: boolean | null;
+
+    /**
+     * Enables the optimistic decisions feature for `setMany`.
+     * @default true
+     */
     readonly setMany?: boolean | null;
+
+    /**
+     * Enables the optimistic decisions feature for `applySolution`.
+     * @default true
+     */
     readonly applySolution?: boolean | null;
+
+    /**
+     * Enables the optimistic decisions feature for `restoreConfiguration`.
+     * @default false
+     */
     readonly restoreConfiguration?: boolean | null;
+
+    /**
+     * Enables the optimistic decisions feature for `resetConfiguration`.
+     * @default false
+     */
+    readonly resetConfiguration?: boolean | null;
 };
 
 export type AllowedInExplain = {
-    rules?: AllowedRulesInExplain | null
+    /**
+     * Specifies whether all, none, or specific rules are allowed in the explanation result.
+     */
+    rules?: AllowedRulesInExplain | null;
 };
 
 export enum AllowedRulesInExplainType {
@@ -256,12 +332,24 @@ export enum ConfigurationModelSourceType {
 
 export type ConfigurationModelFromChannel = {
     type: ConfigurationModelSourceType.Channel;
+
+    /**
+     * Channel name specified for the configuration model deployment.
+     */
     channel: ChannelId;
+
+    /**
+     * Name of the configuration model deployment.
+     */
     deploymentName: string;
 }
 
 export type ConfigurationModelFromPackage = {
     type: ConfigurationModelSourceType.Package;
+
+    /**
+     * A self-contained package that describes the configuration model.
+     */
     configurationModelPackage: Engine.ConfigurationModelPackage;
 }
 

@@ -127,7 +127,7 @@ export default class ConfigurationSession implements IConfigurationSession {
     async resetConfiguration(): Promise<void> {
         const workItem = pipe(
             Session.setMany([], {type: "DropExistingDecisions", conflictHandling: {type: "Automatic"}}),
-            I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.restoreConfiguration ?? false)
+            I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.resetConfiguration ?? false)
         );
         this.actor.send({type: "EnqueueWork", workItem: workItem});
 
@@ -204,7 +204,7 @@ export default class ConfigurationSession implements IConfigurationSession {
 
         const workItem = pipe(
             Session.setMany(decisions, mode),
-            I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.setMany ?? false)
+            I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.setMany ?? true)
         );
         this.actor.send({type: "EnqueueWork", workItem: workItem});
 

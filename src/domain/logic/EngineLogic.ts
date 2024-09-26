@@ -65,7 +65,7 @@ export function createSession(sessionContext: SessionContext): TaskEither<Config
             const consequences = request(() => hcaApiClient.consequence.consequenceGet({
                 headers: getHeadersForSession(state)
             }));
-            const meta = (state.sessionContext.provideSourceId ?? true)
+            const meta = (state.sessionContext.provideSourceId ?? false)
                 ? request(() => hcaApiClient.meta.metaGet({
                     headers: getHeadersForSession(state)
                 }))
