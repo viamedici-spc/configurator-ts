@@ -925,4 +925,20 @@ describe("ConfigurationSession", () => {
             });
         });
     });
+
+    it("Closing the session sends a DELETE request", async () => {
+        const globalFetch = global.fetch;
+        const fetchMock = vi.fn<typeof global.fetch>((input, init) => globalFetch(input, init));
+        global.fetch = fetchMock;
+
+        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+        await expect(session.close()).resolves.toBeNil();
+
+        // Expect that a DELETE request was send to close the session.
+        expect(fetchMock.mock.calls).toSatisfyAny(call => {
+            const [input, init] = (call as Parameters<typeof globalFetch>);
+
+            return typeof input === "string" && input.includes("session") && init?.method === "DELETE";
+        });
+    });
 });

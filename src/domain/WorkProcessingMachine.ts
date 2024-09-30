@@ -7,7 +7,7 @@ import {
     log,
     setup
 } from "xstate";
-import {ConfigurationSessionState} from "./model/ConfigurationSessionState";
+import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "./model/ConfigurationSessionState";
 import {
     ErrorWithSessionState,
     PureError,
@@ -228,16 +228,6 @@ const workProcessingMachine = setup({
             },
             Shutdown: {
                 target: "#shutdown",
-                actions: [
-                    "cancelAllRunningWork",
-                    enqueueActions(({context, enqueue}) => {
-                        const error = E.left({type: "TaskCancelled"} satisfies TaskCancelled);
-                        context.work.forEach(w => {
-                            enqueue({type: "answerAndRemoveWork", params: {workItemId: w.itemId, result: error}});
-                        });
-                    }),
-                    "emitState"
-                ]
             }
         },
         initial: "processing",
@@ -407,7 +397,30 @@ const workProcessingMachine = setup({
             },
             shutdown: {
                 type: "final",
-                id: "shutdown"
+                id: "shutdown",
+                entry: [
+                    "cancelAllRunningWork",
+                    enqueueActions(({context, enqueue}) => {
+                        const error = E.left({type: "TaskCancelled"} satisfies TaskCancelled);
+                        context.work.forEach(w => {
+                            enqueue({type: "answerAndRemoveWork", params: {workItemId: w.itemId, result: error}});
+                        });
+
+                        if (context.sessionState.sessionId) {
+                            const fullQualifiedSessionState: FullQualifiedConfigurationSessionState = {
+                                ...context.sessionState,
+                                sessionId: context.sessionState.sessionId
+                            };
+                            enqueue(() => {
+                                Engine.closeSession(fullQualifiedSessionState)()
+                                    .then(() => {
+                                    }, () => {
+                                    });
+                            });
+                        }
+                    }),
+                    "emitState"
+                ]
             }
         }
     });

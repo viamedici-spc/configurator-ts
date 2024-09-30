@@ -2,7 +2,7 @@
 /// <reference types="../../jest-extended" />
 
 import {afterAll, beforeEach, describe, expect, it, MockedFunction, vi} from "vitest";
-import {E, pipe, RM} from "@viamedici-spc/fp-ts-extensions";
+import {E, pipe, RM, TE} from "@viamedici-spc/fp-ts-extensions";
 import {
     createWorkProcessingMachine,
     MachineState,
@@ -23,7 +23,7 @@ import {
 import {expectToBeRight} from "../../setup/EitherExtensions";
 import {WorkItem} from "../../../src/domain/model/WorkItem";
 import pDefer from "p-defer";
-import {createSessionWithData} from "../../../src/domain/logic/EngineLogic";
+import {closeSession, createSessionWithData} from "../../../src/domain/logic/EngineLogic";
 import waitForExpect from "wait-for-expect";
 import GlobalAttributeIdKeyBuilder from "../../../src/crossCutting/GlobalAttributeIdKeyBuilder";
 import {
@@ -37,6 +37,7 @@ import {createStatePreservingWorkItem} from "../../../src/domain/logic/WorkItem"
 vi.mock("../../../src/domain/logic/EngineLogic");
 
 const createSessionWithDataMock: MockedFunction<typeof createSessionWithData> = createSessionWithData as any;
+const closeSessionMock: MockedFunction<typeof closeSession> = closeSession as any;
 const globalFetch = global.fetch;
 
 describe("WorkProcessingMachine", () => {
@@ -59,6 +60,7 @@ describe("WorkProcessingMachine", () => {
             resolveDeferredPromises(s.deferredPromiseCompletions);
         });
         expectation = getWorkProcessingMachineExpectations(sut);
+        closeSessionMock.mockImplementation(() => pipe(TE.right({}), TE.asUnit));
     });
     afterAll(() => {
         if (sut) {
