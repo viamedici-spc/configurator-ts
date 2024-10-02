@@ -7,106 +7,169 @@ import {
 } from "./Types";
 import * as Engine from "../apiClient/engine/Engine";
 
-export type RequestTimeout = Engine.RequestTimeout;
-export type RequestFailure = Engine.RequestFailure;
-export type SerializationError = Engine.SerializationError;
-export type MissingTenantIdClaim = Engine.MissingTenantIdClaim;
-export type MissingSessionIdClaim = Engine.MissingSessionIdClaim;
-export type TenantAccessForbidden = Engine.TenantAccessForbidden;
-export type SessionIdInvalid = Engine.SessionIdInvalid;
-export type AuthenticationFailure = Engine.AuthenticationFailure;
-export type SideLoadingForbidden = Engine.SideLoadingForbidden;
-export type UsageRuleRestriction = Engine.UsageRuleRestriction;
-export type ConfigurationModelInvalid = Engine.ConfigurationModelInvalid;
-export type SolutionNotFeasible = Engine.SolutionNotFeasible;
-export type ConfigurationModelNotFound = Engine.ConfigurationModelNotFound;
-export type SolverInitializationFailure = Engine.SolverInitializationFailure;
-export type ConfigurationModelLoadFailure = Engine.ConfigurationModelLoadFailure;
-export type ConfigurationInitializationFailure = Engine.ConfigurationInitializationFailure;
-export type SolverPoolInitializationFailure = Engine.SolverPoolInitializationFailure;
-export type SetDecisionConflict = Engine.SetDecisionConflict;
-export type SolveOperationTimeout = Engine.SolveOperationTimeout;
-export type ExplainConflict = Engine.ExplainConflict;
-export type ExplainFailure = Engine.ExplainFailure;
-export type SnapshotInvalid = Engine.SnapshotInvalid;
-export type SnapshotNotFound = Engine.SnapshotNotFound;
+export enum ConfiguratorErrorType {
+    RequestTimeout = "RequestTimeout",
+    RequestFailure = "RequestFailure",
+    SerializationError = "SerializationError",
+    MissingTenantIdClaim = "MissingTenantIdClaim",
+    MissingSessionIdClaim = "MissingSessionIdClaim",
+    TenantAccessForbidden = "TenantAccessForbidden",
+    SessionIdInvalid = "SessionIdInvalid",
+    AuthenticationFailure = "AuthenticationFailure",
+    SideLoadingForbidden = "SideLoadingForbidden",
+    UsageRuleRestriction = "UsageRuleRestriction",
+    ConfigurationModelInvalid = "ConfigurationModelInvalid",
+    SolutionNotFeasible = "SolutionNotFeasible",
+    ConfigurationModelNotFound = "ConfigurationModelNotFound",
+    SolverInitializationFailure = "SolverInitializationFailure",
+    ConfigurationModelLoadFailure = "ConfigurationModelLoadFailure",
+    ConfigurationInitializationFailure = "ConfigurationInitializationFailure",
+    SolverPoolInitializationFailure = "SolverPoolInitializationFailure",
+    SetDecisionConflict = "SetDecisionConflict",
+    SolveOperationTimeout = "SolveOperationTimeout",
+    ExplainConflict = "ExplainConflict",
+    ExplainFailure = "ExplainFailure",
+    SnapshotInvalid = "SnapshotInvalid",
+    SnapshotNotFound = "SnapshotNotFound",
+    ConfigurationModelNotFeasible = "ConfigurationModelNotFeasible",
+    SetManyDecisionsConflict = "SetManyDecisionsConflict",
+    SpecifiedDeploymentForbidden = "SpecifiedDeploymentForbidden",
+    AttributeNotFound = "AttributeNotFound",
+    ChoiceAttributeNotFound = "ChoiceAttributeNotFound",
+    ComponentAttributeNotFound = "ComponentAttributeNotFound",
+    NumericAttributeNotFound = "NumericAttributeNotFound",
+    BooleanAttributeNotFound = "BooleanAttributeNotFound",
+    ChoiceValueNotFound = "ChoiceValueNotFound",
+    NumericDecisionOutOfRange = "NumericDecisionOutOfRange",
+    ConflictWithConsequence = "ConflictWithConsequence",
+    DecisionsToRespectInvalid = "DecisionsToRespectInvalid",
+    SessionNotFound = "SessionNotFound",
+    ServerError = "ServerError",
+    ConnectionError = "ConnectionError",
+    TaskCancelled = "TaskCancelled",
+    SessionClosed = "SessionClosed",
+    StoredConfigurationInvalid = "StoredConfigurationInvalid",
+}
 
-export type ConfigurationModelNotFeasible = Omit<Engine.ConfigurationModelNotFeasible, "constraintExplanations"> & {
+type ReplaceType<E extends { type: string }, T extends ConfiguratorErrorType> = Omit<E, "type"> & { readonly type: T };
+
+export type RequestTimeout = ReplaceType<Engine.RequestTimeout, ConfiguratorErrorType.RequestTimeout>;
+export type RequestFailure = ReplaceType<Engine.RequestFailure, ConfiguratorErrorType.RequestFailure>;
+export type SerializationError = ReplaceType<Engine.SerializationError, ConfiguratorErrorType.SerializationError>;
+export type MissingTenantIdClaim = ReplaceType<Engine.MissingTenantIdClaim, ConfiguratorErrorType.MissingTenantIdClaim>;
+export type MissingSessionIdClaim = ReplaceType<Engine.MissingSessionIdClaim, ConfiguratorErrorType.MissingSessionIdClaim>;
+export type TenantAccessForbidden = ReplaceType<Engine.TenantAccessForbidden, ConfiguratorErrorType.TenantAccessForbidden>;
+export type SessionIdInvalid = ReplaceType<Engine.SessionIdInvalid, ConfiguratorErrorType.SessionIdInvalid>;
+export type AuthenticationFailure = ReplaceType<Engine.AuthenticationFailure, ConfiguratorErrorType.AuthenticationFailure>;
+export type SideLoadingForbidden = ReplaceType<Engine.SideLoadingForbidden, ConfiguratorErrorType.SideLoadingForbidden>;
+export type UsageRuleRestriction = ReplaceType<Engine.UsageRuleRestriction, ConfiguratorErrorType.UsageRuleRestriction>;
+export type ConfigurationModelInvalid = ReplaceType<Engine.ConfigurationModelInvalid, ConfiguratorErrorType.ConfigurationModelInvalid>;
+export type SolutionNotFeasible = ReplaceType<Engine.SolutionNotFeasible, ConfiguratorErrorType.SolutionNotFeasible>;
+export type ConfigurationModelNotFound = ReplaceType<Engine.ConfigurationModelNotFound, ConfiguratorErrorType.ConfigurationModelNotFound>;
+export type SolverInitializationFailure = ReplaceType<Engine.SolverInitializationFailure, ConfiguratorErrorType.SolverInitializationFailure>;
+export type ConfigurationModelLoadFailure = ReplaceType<Engine.ConfigurationModelLoadFailure, ConfiguratorErrorType.ConfigurationModelLoadFailure>;
+export type ConfigurationInitializationFailure = ReplaceType<Engine.ConfigurationInitializationFailure, ConfiguratorErrorType.ConfigurationInitializationFailure>;
+export type SolverPoolInitializationFailure = ReplaceType<Engine.SolverPoolInitializationFailure, ConfiguratorErrorType.SolverPoolInitializationFailure>;
+export type SetDecisionConflict = ReplaceType<Engine.SetDecisionConflict, ConfiguratorErrorType.SetDecisionConflict>;
+export type SolveOperationTimeout = ReplaceType<Engine.SolveOperationTimeout, ConfiguratorErrorType.SolveOperationTimeout>;
+export type ExplainConflict = ReplaceType<Engine.ExplainConflict, ConfiguratorErrorType.ExplainConflict>;
+export type ExplainFailure = ReplaceType<Engine.ExplainFailure, ConfiguratorErrorType.ExplainFailure>;
+export type SnapshotInvalid = ReplaceType<Engine.SnapshotInvalid, ConfiguratorErrorType.SnapshotInvalid>;
+export type SnapshotNotFound = ReplaceType<Engine.SnapshotNotFound, ConfiguratorErrorType.SnapshotNotFound>;
+
+export type ConfigurationModelNotFeasible =
+    Omit<Engine.ConfigurationModelNotFeasible, "type" | "constraintExplanations">
+    & {
+    readonly type: ConfiguratorErrorType.ConfigurationModelNotFeasible;
     readonly constraintExplanations: ReadonlyArray<ConstraintExplanation>;
 };
 
 export type SetManyDecisionsConflict =
     Omit<Engine.PutManyDecisionsConflict, "type" | "decisionExplanations" | "constraintExplanations">
     & {
-    readonly type: "SetManyDecisionsConflict";
+    readonly type: ConfiguratorErrorType.SetManyDecisionsConflict;
     readonly decisionExplanations: ReadonlyArray<DecisionExplanation>;
     readonly constraintExplanations: ReadonlyArray<ConstraintExplanation>;
 };
 
-export type SpecifiedDeploymentForbidden = Omit<Engine.SpecifiedDeploymentForbidden, "channel"> & {
+export type SpecifiedDeploymentForbidden =
+    Omit<Engine.SpecifiedDeploymentForbidden, "type" | "channel">
+    & {
+    readonly type: ConfiguratorErrorType.SpecifiedDeploymentForbidden;
     readonly channel: ChannelId;
 };
 
-export type AttributeNotFound = Omit<Engine.AttributeNotFound, "globalAttributeId"> & {
+export type AttributeNotFound = Omit<Engine.AttributeNotFound, "type" | "globalAttributeId"> & {
+    readonly type: ConfiguratorErrorType.AttributeNotFound;
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type ChoiceAttributeNotFound = Omit<Engine.ChoiceAttributeNotFound, "globalAttributeId"> & {
+export type ChoiceAttributeNotFound = Omit<Engine.ChoiceAttributeNotFound, "type" | "globalAttributeId"> & {
+    readonly type: ConfiguratorErrorType.ChoiceAttributeNotFound;
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type ComponentAttributeNotFound = Omit<Engine.ComponentAttributeNotFound, "globalAttributeId"> & {
+export type ComponentAttributeNotFound = Omit<Engine.ComponentAttributeNotFound, "type" | "globalAttributeId"> & {
+    readonly type: ConfiguratorErrorType.ComponentAttributeNotFound;
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type NumericAttributeNotFound = Omit<Engine.NumericAttributeNotFound, "globalAttributeId"> & {
+export type NumericAttributeNotFound = Omit<Engine.NumericAttributeNotFound, "type" | "globalAttributeId"> & {
+    readonly type: ConfiguratorErrorType.NumericAttributeNotFound;
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type BooleanAttributeNotFound = Omit<Engine.BooleanAttributeNotFound, "globalAttributeId"> & {
+export type BooleanAttributeNotFound = Omit<Engine.BooleanAttributeNotFound, "type" | "globalAttributeId"> & {
+    readonly type: ConfiguratorErrorType.BooleanAttributeNotFound;
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type ChoiceValueNotFound = Omit<Engine.ChoiceValueNotFound, "globalChoiceValueId"> & {
+export type ChoiceValueNotFound = Omit<Engine.ChoiceValueNotFound, "type" | "globalChoiceValueId"> & {
+    readonly type: ConfiguratorErrorType.ChoiceValueNotFound;
     readonly globalAttributeId: GlobalAttributeId;
     readonly choiceValueId: ChoiceValueId;
 };
 
-export type NumericDecisionOutOfRange = Omit<Engine.NumericDecisionOutOfRange, "globalAttributeId"> & {
+export type NumericDecisionOutOfRange = Omit<Engine.NumericDecisionOutOfRange, "type" | "globalAttributeId"> & {
+    readonly type: ConfiguratorErrorType.NumericDecisionOutOfRange;
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type ConflictWithConsequence = Omit<Engine.ConflictWithConsequence, "globalAttributeId" | "choiceValueId"> & {
+export type ConflictWithConsequence =
+    Omit<Engine.ConflictWithConsequence, "type" | "globalAttributeId" | "choiceValueId">
+    & {
+    readonly type: ConfiguratorErrorType.ConflictWithConsequence;
     readonly globalAttributeId: GlobalAttributeId;
     readonly choiceValueId?: ChoiceValueId | null;
 };
 
-export type DecisionsToRespectInvalid = Omit<Engine.DecisionsToRespectInvalid, "globalAttributeId"> & {
+export type DecisionsToRespectInvalid = Omit<Engine.DecisionsToRespectInvalid, "type" | "globalAttributeId"> & {
+    readonly type: ConfiguratorErrorType.DecisionsToRespectInvalid;
     readonly globalAttributeId: GlobalAttributeId;
 };
 
 export type SessionNotFound = {
-    readonly type: "SessionNotFound";
+    readonly type: ConfiguratorErrorType.SessionNotFound;
 };
 
 export type ServerError = {
-    readonly type: "ServerError"
+    readonly type: ConfiguratorErrorType.ServerError;
 }
 
 export type ConnectionError = {
-    readonly type: "ConnectionError"
+    readonly type: ConfiguratorErrorType.ConnectionError;
 }
 
 export type TaskCancelled = {
-    readonly type: "TaskCancelled"
+    readonly type: ConfiguratorErrorType.TaskCancelled;
 }
 
 export type SessionClosed = {
-    readonly type: "SessionClosed"
+    readonly type: ConfiguratorErrorType.SessionClosed;
 }
 
 export type StoredConfigurationInvalid = {
-    readonly type: "StoredConfigurationInvalid"
+    readonly type: ConfiguratorErrorType.StoredConfigurationInvalid;
 }
 
 export type ConfiguratorError =

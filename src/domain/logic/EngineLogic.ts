@@ -4,7 +4,7 @@ import {
     ExplicitDecision, SessionContext, SetManyMode, SetManyResult
 } from "../../contract/Types";
 import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
-import {ConnectionError, ConfiguratorError, ServerError} from "../../contract/ConfiguratorError";
+import {ConnectionError, ConfiguratorError, ServerError, ConfiguratorErrorType} from "../../contract/ConfiguratorError";
 import {E, I, identity, O, pipe, RA, T, TaskEither, TE} from "@viamedici-spc/fp-ts-extensions";
 import {getApiClient, getServerSideSessionCreationApiClient} from "../EngineApiClient";
 import * as DtoE from "../mapper/DomainToEngineMapping";
@@ -260,7 +260,7 @@ function request<T, E>(request: () => Promise<Engine.HttpResponse<T, E>>, custom
         T.map<Engine.HttpResponse<T, E>, E.Either<ConfiguratorError, T>>(r => {
             if (r == null || (r.data == null && r.error == null)) {
                 return E.left({
-                    type: "ConnectionError"
+                    type: ConfiguratorErrorType.ConnectionError
                 } satisfies ConnectionError);
             }
 
@@ -286,7 +286,7 @@ function request<T, E>(request: () => Promise<Engine.HttpResponse<T, E>>, custom
 
             console.log("Received unknown error format:", r.error);
             return E.left({
-                type: "ServerError"
+                type: ConfiguratorErrorType.ServerError
             } satisfies ServerError);
         })
     );

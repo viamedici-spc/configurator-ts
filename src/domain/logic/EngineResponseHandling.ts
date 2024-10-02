@@ -29,7 +29,7 @@ import {pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
 import GlobalAttributeIdKeyBuilder from "../../crossCutting/GlobalAttributeIdKeyBuilder";
 import {none, Option} from "fp-ts/Option";
 import {match} from "ts-pattern";
-import {ConfiguratorError, SetManyDecisionsConflict} from "../../contract/ConfiguratorError";
+import {ConfiguratorError, ConfiguratorErrorType, SetManyDecisionsConflict} from "../../contract/ConfiguratorError";
 import {
     AttributeConsequence,
     AttributeDecision,
@@ -283,7 +283,7 @@ export function processPutManyDecisionsConflict(decisions: ReadonlyArray<Explici
         const decisionExplanations = buildDecisionExplanations(error.decisionExplanations ?? [], decisions, mode);
 
         return some({
-            type: "SetManyDecisionsConflict",
+            type: ConfiguratorErrorType.SetManyDecisionsConflict,
             title: error.title ?? "",
             detail: error.detail ?? "",
             decisionExplanations: decisionExplanations,

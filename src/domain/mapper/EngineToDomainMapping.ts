@@ -12,7 +12,8 @@ import {
     ComponentAttribute,
     ComponentDecisionState,
     ConstraintExplanation,
-    DecisionKind, ExplicitBooleanDecision,
+    DecisionKind,
+    ExplicitBooleanDecision,
     ExplicitChoiceDecision,
     ExplicitComponentDecision,
     ExplicitDecision,
@@ -25,29 +26,45 @@ import {
 } from "../../contract/Types";
 import {
     AttributeNotFound,
+    AuthenticationFailure,
     BooleanAttributeNotFound,
     ChoiceAttributeNotFound,
     ChoiceValueNotFound,
     ComponentAttributeNotFound,
+    ConfigurationModelInvalid,
+    ConfigurationModelLoadFailure,
     ConfigurationModelNotFeasible,
+    ConfigurationModelNotFound,
+    ConfiguratorError,
+    ConfiguratorErrorType,
     ConflictWithConsequence,
-    DecisionsToRespectInvalid,
+    DecisionsToRespectInvalid, ExplainConflict, ExplainFailure,
+    MissingSessionIdClaim,
+    MissingTenantIdClaim,
     NumericAttributeNotFound,
     NumericDecisionOutOfRange,
-    ConfiguratorError,
+    RequestFailure,
+    RequestTimeout,
+    SerializationError,
     ServerError,
-    SessionNotFound,
-    SpecifiedDeploymentForbidden
+    SessionIdInvalid,
+    SessionNotFound, SetDecisionConflict,
+    SideLoadingForbidden, SnapshotInvalid, SnapshotNotFound,
+    SolutionNotFeasible, SolveOperationTimeout,
+    SolverInitializationFailure,
+    SolverPoolInitializationFailure,
+    SpecifiedDeploymentForbidden,
+    TenantAccessForbidden,
+    UsageRuleRestriction
 } from "../../contract/ConfiguratorError";
 import {pipe, RA} from "@viamedici-spc/fp-ts-extensions";
+import {ConfigurationInitializationFailure} from "../../apiClient/engine/Engine";
 
 const serverError: ServerError = {
-    type: "ServerError"
+    type: ConfiguratorErrorType.ServerError
 };
 
 export function mapConfiguratorError(problemDetails: Engine.ProblemDetails): ConfiguratorError {
-    // TODO: May handle all types explicit to remove Unspecified from the Problems.
-
     return match(problemDetails)
         .returnType<ConfiguratorError>()
         .with({type: "ConfigurationModelNotFeasible"}, mapConfigurationModelNotFeasible)
@@ -66,46 +83,59 @@ export function mapConfiguratorError(problemDetails: Engine.ProblemDetails): Con
         .with({type: "PutManyDecisionsConflict"}, () => serverError)
         .with({type: "AssignedChannelNotFound"}, () => serverError)
         .with({type: "InternalServerError"}, () => serverError)
-        .with({type: "RequestTimeout"}, p => p as Engine.RequestTimeout)
-        .with({type: "RequestFailure"}, p => p as Engine.RequestFailure)
-        .with({type: "SerializationError"}, p => p as Engine.SerializationError)
-        .with({type: "MissingTenantIdClaim"}, p => p as Engine.MissingTenantIdClaim)
-        .with({type: "MissingSessionIdClaim"}, p => p as Engine.MissingSessionIdClaim)
-        .with({type: "TenantAccessForbidden"}, p => p as Engine.TenantAccessForbidden)
-        .with({type: "SessionIdInvalid"}, p => p as Engine.SessionIdInvalid)
-        .with({type: "AuthenticationFailure"}, p => p as Engine.AuthenticationFailure)
-        .with({type: "SideLoadingForbidden"}, p => p as Engine.SideLoadingForbidden)
-        .with({type: "UsageRuleRestriction"}, p => p as Engine.UsageRuleRestriction)
-        .with({type: "ConfigurationModelInvalid"}, p => p as Engine.ConfigurationModelInvalid)
-        .with({type: "SolutionNotFeasible"}, p => p as Engine.SolutionNotFeasible)
-        .with({type: "ConfigurationModelNotFound"}, p => p as Engine.ConfigurationModelNotFound)
-        .with({type: "SolverInitializationFailure"}, p => p as Engine.SolverInitializationFailure)
-        .with({type: "ConfigurationModelLoadFailure"}, p => p as Engine.ConfigurationModelLoadFailure)
-        .with({type: "ConfigurationInitializationFailure"}, p => p as Engine.ConfigurationInitializationFailure)
-        .with({type: "SolverPoolInitializationFailure"}, p => p as Engine.SolverPoolInitializationFailure)
-        .with({type: "SetDecisionConflict"}, p => p as Engine.SetDecisionConflict)
-        .with({type: "SolveOperationTimeout"}, p => p as Engine.SolveOperationTimeout)
-        .with({type: "ExplainConflict"}, p => p as Engine.ExplainConflict)
-        .with({type: "ExplainFailure"}, p => p as Engine.ExplainFailure)
-        .with({type: "SnapshotInvalid"}, p => p as Engine.SnapshotInvalid)
-        .with({type: "SnapshotNotFound"}, p => p as Engine.SnapshotNotFound)
+        .with({type: "RequestTimeout"}, p => changeType(p, ConfiguratorErrorType.RequestTimeout) satisfies RequestTimeout)
+        .with({type: "RequestFailure"}, p => changeType(p, ConfiguratorErrorType.RequestFailure) satisfies RequestFailure)
+        .with({type: "SerializationError"}, p => changeType(p, ConfiguratorErrorType.SerializationError) satisfies SerializationError)
+        .with({type: "MissingTenantIdClaim"}, p => changeType(p, ConfiguratorErrorType.MissingTenantIdClaim) satisfies MissingTenantIdClaim)
+        .with({type: "MissingSessionIdClaim"}, p => changeType(p, ConfiguratorErrorType.MissingSessionIdClaim) satisfies MissingSessionIdClaim)
+        .with({type: "TenantAccessForbidden"}, p => changeType(p, ConfiguratorErrorType.TenantAccessForbidden) satisfies TenantAccessForbidden)
+        .with({type: "SessionIdInvalid"}, p => changeType(p, ConfiguratorErrorType.SessionIdInvalid) satisfies SessionIdInvalid)
+        .with({type: "AuthenticationFailure"}, p => changeType(p, ConfiguratorErrorType.AuthenticationFailure) satisfies AuthenticationFailure)
+        .with({type: "SideLoadingForbidden"}, p => changeType(p, ConfiguratorErrorType.SideLoadingForbidden) satisfies SideLoadingForbidden)
+        .with({type: "UsageRuleRestriction"}, p => changeType(p, ConfiguratorErrorType.UsageRuleRestriction) satisfies UsageRuleRestriction)
+        .with({type: "ConfigurationModelInvalid"}, p => changeType(p, ConfiguratorErrorType.ConfigurationModelInvalid) satisfies ConfigurationModelInvalid)
+        .with({type: "SolutionNotFeasible"}, p => changeType(p, ConfiguratorErrorType.SolutionNotFeasible) satisfies SolutionNotFeasible)
+        .with({type: "ConfigurationModelNotFound"}, p => changeType(p, ConfiguratorErrorType.ConfigurationModelNotFound) satisfies ConfigurationModelNotFound)
+        .with({type: "SolverInitializationFailure"}, p => changeType(p, ConfiguratorErrorType.SolverInitializationFailure) satisfies SolverInitializationFailure)
+        .with({type: "ConfigurationModelLoadFailure"}, p => changeType(p, ConfiguratorErrorType.ConfigurationModelLoadFailure) satisfies ConfigurationModelLoadFailure)
+        .with({type: "ConfigurationInitializationFailure"}, p => changeType(p, ConfiguratorErrorType.ConfigurationInitializationFailure) satisfies ConfigurationInitializationFailure)
+        .with({type: "SolverPoolInitializationFailure"}, p => changeType(p, ConfiguratorErrorType.SolverPoolInitializationFailure) satisfies SolverPoolInitializationFailure)
+        .with({type: "SetDecisionConflict"}, p => changeType(p, ConfiguratorErrorType.SetDecisionConflict) satisfies SetDecisionConflict)
+        .with({type: "SolveOperationTimeout"}, p => changeType(p, ConfiguratorErrorType.SolveOperationTimeout) satisfies SolveOperationTimeout)
+        .with({type: "ExplainConflict"}, p => changeType(p, ConfiguratorErrorType.ExplainConflict) satisfies ExplainConflict)
+        .with({type: "ExplainFailure"}, p => changeType(p, ConfiguratorErrorType.ExplainFailure) satisfies ExplainFailure)
+        .with({type: "SnapshotInvalid"}, p => changeType(p, ConfiguratorErrorType.SnapshotInvalid) satisfies SnapshotInvalid)
+        .with({type: "SnapshotNotFound"}, p => changeType(p, ConfiguratorErrorType.SnapshotNotFound) satisfies SnapshotNotFound)
         .otherwise(() => serverError);
+}
+
+function changeType<E extends { type: string }, T extends ConfiguratorErrorType>
+(engine: E, errorType: T): Omit<E, "type"> & { type: T } {
+    return {
+        ...engine,
+        type: errorType
+    };
 }
 
 function mapConfigurationModelNotFeasible(problem: Engine.ConfigurationModelNotFeasible): ConfigurationModelNotFeasible {
     return {
         ...problem,
+        type: ConfiguratorErrorType.ConfigurationModelNotFeasible,
         constraintExplanations: pipe(problem.constraintExplanations ?? [], RA.map(mapConstraintExplanation))
     };
 }
 
 function mapSpecifiedDeploymentForbidden(problem: Engine.SpecifiedDeploymentForbidden): SpecifiedDeploymentForbidden {
-    return problem;
+    return {
+        ...problem,
+        type: ConfiguratorErrorType.SpecifiedDeploymentForbidden,
+    };
 }
 
 function mapAttributeNotFound(problem: Engine.AttributeNotFound): AttributeNotFound {
     return {
         ...problem,
+        type: ConfiguratorErrorType.AttributeNotFound,
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId)
     };
 }
@@ -113,6 +143,7 @@ function mapAttributeNotFound(problem: Engine.AttributeNotFound): AttributeNotFo
 function mapChoiceAttributeNotFound(problem: Engine.ChoiceAttributeNotFound): ChoiceAttributeNotFound {
     return {
         ...problem,
+        type: ConfiguratorErrorType.ChoiceAttributeNotFound,
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId)
     };
 }
@@ -120,6 +151,7 @@ function mapChoiceAttributeNotFound(problem: Engine.ChoiceAttributeNotFound): Ch
 function mapComponentAttributeNotFound(problem: Engine.ComponentAttributeNotFound): ComponentAttributeNotFound {
     return {
         ...problem,
+        type: ConfiguratorErrorType.ComponentAttributeNotFound,
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId)
     };
 }
@@ -127,6 +159,7 @@ function mapComponentAttributeNotFound(problem: Engine.ComponentAttributeNotFoun
 function mapNumericAttributeNotFound(problem: Engine.NumericAttributeNotFound): NumericAttributeNotFound {
     return {
         ...problem,
+        type: ConfiguratorErrorType.NumericAttributeNotFound,
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId)
     };
 }
@@ -134,6 +167,7 @@ function mapNumericAttributeNotFound(problem: Engine.NumericAttributeNotFound): 
 function mapBooleanAttributeNotFound(problem: Engine.BooleanAttributeNotFound): BooleanAttributeNotFound {
     return {
         ...problem,
+        type: ConfiguratorErrorType.BooleanAttributeNotFound,
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId)
     };
 }
@@ -142,6 +176,7 @@ function mapChoiceValueNotFound(problem: Engine.ChoiceValueNotFound): ChoiceValu
     const {globalChoiceValueId, ...otherProps} = problem;
     return {
         ...otherProps,
+        type: ConfiguratorErrorType.ChoiceValueNotFound,
         globalAttributeId: mapGlobalAttributeId(globalChoiceValueId.attributeId),
         choiceValueId: globalChoiceValueId.choiceValueId
     };
@@ -150,6 +185,7 @@ function mapChoiceValueNotFound(problem: Engine.ChoiceValueNotFound): ChoiceValu
 function mapNumericDecisionOutOfRange(problem: Engine.NumericDecisionOutOfRange): NumericDecisionOutOfRange {
     return {
         ...problem,
+        type: ConfiguratorErrorType.NumericDecisionOutOfRange,
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId)
     };
 }
@@ -157,6 +193,7 @@ function mapNumericDecisionOutOfRange(problem: Engine.NumericDecisionOutOfRange)
 function mapConflictWithConsequence(problem: Engine.ConflictWithConsequence): ConflictWithConsequence {
     return {
         ...problem,
+        type: ConfiguratorErrorType.ConflictWithConsequence,
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId),
     };
 }
@@ -164,13 +201,14 @@ function mapConflictWithConsequence(problem: Engine.ConflictWithConsequence): Co
 function mapDecisionsToRespectInvalid(problem: Engine.DecisionsToRespectInvalid): DecisionsToRespectInvalid {
     return {
         ...problem,
+        type: ConfiguratorErrorType.DecisionsToRespectInvalid,
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId),
     };
 }
 
-function mapSessionNotFound(problem: Engine.SessionNotFound): SessionNotFound {
+function mapSessionNotFound(): SessionNotFound {
     return {
-        type: problem.type
+        type: ConfiguratorErrorType.SessionNotFound
     };
 }
 

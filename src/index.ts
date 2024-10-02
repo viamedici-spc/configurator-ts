@@ -40,7 +40,8 @@ import {
     TaskCancelled,
     SessionClosed,
     StoredConfigurationInvalid,
-    ConfiguratorError
+    ConfiguratorError,
+    ConfiguratorErrorType
 } from "./contract/ConfiguratorError";
 import {
     LocalAttributeId,
@@ -211,6 +212,7 @@ export {
     type SessionClosed,
     type StoredConfigurationInvalid,
     type ConfiguratorError,
+    ConfiguratorErrorType,
 
     // Contract Definitions
     type LocalAttributeId,

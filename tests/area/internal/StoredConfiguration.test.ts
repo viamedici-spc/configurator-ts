@@ -1,7 +1,6 @@
 import {describe, expect, it} from "vitest";
-import {StoredConfiguration} from "../../../src";
+import {ConfiguratorErrorType, StoredConfiguration, StoredConfigurationInvalid} from "../../../src";
 import {expectToBeLeft, expectToBeRight} from "../../setup/EitherExtensions";
-import {StoredConfigurationInvalid} from "../../../src";
 import {loadConfiguration} from "../../../src/domain/logic/ConfigurationStoring";
 
 const malformedConfigurations: any[] = [
@@ -84,7 +83,7 @@ describe("StoredConfiguration", () => {
 
         const left = expectToBeLeft(loadConfiguration(configuration));
         expect(left).toEqual({
-            type: "StoredConfigurationInvalid"
+            type: ConfiguratorErrorType.StoredConfigurationInvalid
         } satisfies StoredConfigurationInvalid);
     });
 

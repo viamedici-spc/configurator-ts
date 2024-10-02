@@ -12,12 +12,12 @@ import {
     StatePreservingWorkItem
 } from "../model/WorkItem";
 import {guid} from "dyna-guid";
-import {ConfiguratorError, SessionNotFound} from "../../contract/ConfiguratorError";
+import {ConfiguratorError, ConfiguratorErrorType, SessionNotFound} from "../../contract/ConfiguratorError";
 import {match, P} from "ts-pattern";
 import {EngineErrorResult, EngineSuccessResultT} from "./EngineLogic";
 import {Endomorphism} from "fp-ts/Endomorphism";
 
-const sessionNotFoundError = TE.left({type: "SessionNotFound"} satisfies SessionNotFound);
+const sessionNotFoundError = TE.left({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
 
 export function createStateMutatingWorkItem<T extends ReadonlyArray<unknown>, R>(session: (...args: T) => (sessionState: ConfigurationSessionState) => TaskEither<EngineErrorResult, EngineSuccessResultT<R>>, optimisticDecisions: ((...args: T) => SingleOrArray<Endomorphism<Configuration>>) | null, allowSimultaneouslyTermination: boolean) {
     return (...args: T) => {

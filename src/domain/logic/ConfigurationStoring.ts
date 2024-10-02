@@ -15,7 +15,7 @@ import {
 import * as V1 from "../../contract/storedConfiguration/StoredConfigurationV1";
 import {Either} from "fp-ts/Either";
 import {
-    ConfiguratorError,
+    ConfiguratorError, ConfiguratorErrorType,
     StoredConfigurationInvalid,
 } from "../../contract/ConfiguratorError";
 import ConfigurationRawData from "../model/ConfigurationRawData";
@@ -77,7 +77,7 @@ export function storeConfiguration(rawData: ConfigurationRawData): StoredConfigu
 
 export function loadConfiguration(storedConfiguration: StoredConfiguration): Either<ConfiguratorError, ReadonlyArray<ExplicitDecision>> {
     if (E.isLeft(StoredConfiguration_.create(storedConfiguration))) {
-        return E.left({type: "StoredConfigurationInvalid"} satisfies StoredConfigurationInvalid);
+        return E.left({type: ConfiguratorErrorType.StoredConfigurationInvalid} satisfies StoredConfigurationInvalid);
     }
 
     return pipe(

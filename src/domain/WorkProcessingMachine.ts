@@ -1,12 +1,4 @@
-import {
-    ActorRefFromLogic,
-    assign,
-    createActor,
-    DoneActorEvent, enqueueActions,
-    fromPromise,
-    log,
-    setup
-} from "xstate";
+import {ActorRefFromLogic, assign, createActor, DoneActorEvent, enqueueActions, fromPromise, log, setup} from "xstate";
 import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "./model/ConfigurationSessionState";
 import {
     ErrorWithSessionState,
@@ -17,13 +9,13 @@ import {
 } from "./model/WorkItem";
 import {E, O, Ord, OrdT, pipe, RA, RM, RNEA, Str, T, Task, TE} from "@viamedici-spc/fp-ts-extensions";
 import {Either} from "fp-ts/Either";
-import {ConfiguratorError, SessionNotFound, TaskCancelled} from "../contract/ConfiguratorError";
+import {ConfiguratorError, ConfiguratorErrorType, SessionNotFound, TaskCancelled} from "../contract/ConfiguratorError";
 import * as Engine from "./logic/EngineLogic";
+import {EngineSuccessResultT} from "./logic/EngineLogic";
 import {DeferredPromise} from "p-defer";
 import {TaskType} from "../crossCutting/TaskExtensions";
 import {Configuration} from "../contract/Types";
 import {toHashedConfiguration} from "./logic/Configuration";
-import {EngineSuccessResultT} from "./logic/EngineLogic";
 
 export type EnqueueWorkEvent = {
     type: "EnqueueWork",
@@ -86,9 +78,10 @@ const runTask = fromPromise<RunTaskResult, RunTaskInput>(({input}) => {
 const isStatePreservingWorkItem = (w: WorkItem<any>): w is StatePreservingWorkItem<any> => w.type === "StatePreserving";
 const isStateMutatingWorkItem = (w: WorkItem<any>): w is StateMutatingWorkItem<any> => w.type === "StateMutating";
 
-const SessionNotFoundProblem: SessionNotFound = {
-    type: "SessionNotFound"
+const sessionNotFoundError: SessionNotFound = {
+    type: ConfiguratorErrorType.SessionNotFound
 };
+const taskCancelledError: TaskCancelled = {type: ConfiguratorErrorType.TaskCancelled};
 
 const workProcessingMachine = setup({
     types: {
@@ -348,7 +341,7 @@ const workProcessingMachine = setup({
                         workToCancel.forEach(w => {
                             enqueue({
                                 type: "answerAndRemoveWork",
-                                params: {workItemId: w, result: E.left(SessionNotFoundProblem)}
+                                params: {workItemId: w, result: E.left(sessionNotFoundError)}
                             });
                         });
                     }),
@@ -378,7 +371,7 @@ const workProcessingMachine = setup({
                                         simultaneouslyCancelableWork.forEach(w => {
                                             enqueue({
                                                 type: "answerAndRemoveWork",
-                                                params: {workItemId: w.itemId, result: E.left(SessionNotFoundProblem)}
+                                                params: {workItemId: w.itemId, result: E.left(sessionNotFoundError)}
                                             });
                                         });
                                     })
@@ -401,7 +394,7 @@ const workProcessingMachine = setup({
                 entry: [
                     "cancelAllRunningWork",
                     enqueueActions(({context, enqueue}) => {
-                        const error = E.left({type: "TaskCancelled"} satisfies TaskCancelled);
+                        const error = E.left(taskCancelledError);
                         context.work.forEach(w => {
                             enqueue({type: "answerAndRemoveWork", params: {workItemId: w.itemId, result: error}});
                         });

@@ -14,7 +14,15 @@ import {
     sessionStateWithOneMandatoryNumeric
 } from "../../data/SessionStates";
 import {createStateMutatingWorkItemDummy, createStatePreservingWorkItemDummy} from "../../data/WorkItem";
-import {ServerError, SessionNotFound, TaskCancelled} from "../../../src";
+import {
+    Attribute,
+    AttributeType,
+    ConfiguratorErrorType,
+    globalAttributeIdKeyEq,
+    ServerError,
+    SessionNotFound,
+    TaskCancelled
+} from "../../../src";
 import getWorkProcessingMachineExpectations from "../../setup/WorkProcessingMachineExpectations";
 import {
     ConfigurationSessionState,
@@ -26,12 +34,7 @@ import pDefer from "p-defer";
 import {closeSession, createSessionWithData} from "../../../src/domain/logic/EngineLogic";
 import waitForExpect from "wait-for-expect";
 import GlobalAttributeIdKeyBuilder from "../../../src/crossCutting/GlobalAttributeIdKeyBuilder";
-import {
-    Attribute,
-    AttributeType,
-} from "../../../src";
 import {getComponentAttribute, getNumericAttribute} from "../../data/AttributeGeneration";
-import {globalAttributeIdKeyEq} from "../../../src";
 import {createStatePreservingWorkItem} from "../../../src/domain/logic/WorkItem";
 
 vi.mock("../../../src/domain/logic/EngineLogic");
@@ -107,10 +110,10 @@ describe("WorkProcessingMachine", () => {
         w1.resolveExecute(E.right(1));
         await expect(w1.resultPromise).resolves.toBe(1);
 
-        w2.resolveExecute(E.left({type: "ServerError"} satisfies ServerError));
+        w2.resolveExecute(E.left({type: ConfiguratorErrorType.ServerError} satisfies ServerError));
         w3.resolveExecute(E.right(3));
 
-        await expect(w2.resultPromise).rejects.toStrictEqual({type: "ServerError"} satisfies ServerError);
+        await expect(w2.resultPromise).rejects.toStrictEqual({type: ConfiguratorErrorType.ServerError} satisfies ServerError);
         await expect(w3.resultPromise).resolves.toBe(3);
 
         // Every work have to be executed only once.
@@ -284,7 +287,7 @@ describe("WorkProcessingMachine", () => {
 
             w1.resolveExecute(E.left({
                 sessionState: sessionStateWithOneMandatoryNumeric,
-                error: {type: "SessionNotFound"} satisfies SessionNotFound
+                error: {type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound
             }));
 
             // Create session must have been called.
@@ -347,7 +350,7 @@ describe("WorkProcessingMachine", () => {
             expectation.expectWorkToBeExecuted(w2.workItem.itemId, 1);
             expectation.expectWorkToBeExecuted(w3.workItem.itemId, 1);
 
-            const error = E.left({type: "SessionNotFound"} satisfies SessionNotFound);
+            const error = E.left({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
             if (workToCancel & work1) {
                 w1.resolveExecute(error);
             }
@@ -407,7 +410,7 @@ describe("WorkProcessingMachine", () => {
 
             createSessionWithDataMock.mockImplementation(() => async () => {
                 await releaseCreateSessionPromise.promise;
-                return E.left({type: "ServerError"});
+                return E.left({type: ConfiguratorErrorType.ServerError});
             });
 
             sut.start();
@@ -428,7 +431,7 @@ describe("WorkProcessingMachine", () => {
 
             w1.resolveExecute(E.left({
                 sessionState: sessionStateWithOneMandatoryNumeric,
-                error: {type: "SessionNotFound"} satisfies SessionNotFound
+                error: {type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound
             }));
 
             // Create session must have been called.
@@ -451,8 +454,8 @@ describe("WorkProcessingMachine", () => {
 
             // w1 and w2 become rejected. w2 is reject because allowSimultaneouslyTermination was set to true.
             // If there was any error during session recovery, the error is always changed to SessionNotFound.
-            await expect(w1.resultPromise).rejects.toEqual({type: "SessionNotFound"} satisfies SessionNotFound);
-            await expect(w2.resultPromise).rejects.toEqual({type: "SessionNotFound"} satisfies SessionNotFound);
+            await expect(w1.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
+            await expect(w2.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
 
             // The third and fourth work should remain.
             expectation.expectWorkInOrder([w3.workItem, w4.workItem]);
@@ -482,7 +485,7 @@ describe("WorkProcessingMachine", () => {
             expectation.expectWorkToBeExecuted(w1.workItem.itemId, 1);
             expectation.expectWorkToBeExecuted(w2.workItem.itemId, 1);
 
-            w2.resolveExecute(E.left({type: "SessionNotFound"} satisfies SessionNotFound));
+            w2.resolveExecute(E.left({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound));
 
             // Create session must have been called.
             await waitForExpect(() => {
@@ -502,8 +505,8 @@ describe("WorkProcessingMachine", () => {
 
             // w1 and w2 become rejected. w1 is reject because StatePreserving work is always rejected if parallel running work is rejected with SessionNotFound.
             // If there was any error during session recovery, the error is always changed to SessionNotFound.
-            await expect(w1.resultPromise).rejects.toEqual({type: "SessionNotFound"} satisfies SessionNotFound);
-            await expect(w2.resultPromise).rejects.toEqual({type: "SessionNotFound"} satisfies SessionNotFound);
+            await expect(w1.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
+            await expect(w2.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
 
             // w3 and w4 should remain because w3 doesn't allow simultaneously termination.
             expectation.expectWorkInOrder([w3.workItem, w4.workItem]);
@@ -573,23 +576,23 @@ describe("WorkProcessingMachine", () => {
         // Rejecting w1 to w3 should change nothing to the configuration because w4 still overlay the attributes
         // Reject w1
         emittedMachineState.mockClear();
-        w1.resolveExecute(E.left({sessionState: null, error: {type: "ServerError"} satisfies ServerError}));
+        w1.resolveExecute(E.left({sessionState: null, error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError}));
         await expect(w1.resultPromise).rejects.toBeTruthy();
         expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Component);
         // Reject w2
         emittedMachineState.mockClear();
-        w2.resolveExecute(E.left({sessionState: null, error: {type: "ServerError"} satisfies ServerError}));
+        w2.resolveExecute(E.left({sessionState: null, error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError}));
         await expect(w2.resultPromise).rejects.toBeTruthy();
         expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Component);
         // Reject w3
         emittedMachineState.mockClear();
-        w3.resolveExecute(E.left({sessionState: null, error: {type: "ServerError"} satisfies ServerError}));
+        w3.resolveExecute(E.left({sessionState: null, error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError}));
         await expect(w3.resultPromise).rejects.toBeTruthy();
         expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Component);
 
         // Rejecting w4 should restore the initial Boolean attribute
         emittedMachineState.mockClear();
-        w4.resolveExecute(E.left({sessionState: null, error: {type: "ServerError"} satisfies ServerError}));
+        w4.resolveExecute(E.left({sessionState: null, error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError}));
         await expect(w4.resultPromise).rejects.toBeTruthy();
         expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Boolean);
     });
@@ -606,9 +609,9 @@ describe("WorkProcessingMachine", () => {
 
         sut.send({type: "Shutdown"});
 
-        expect(w1.resultPromise).rejects.toEqual({type: "TaskCancelled"} satisfies TaskCancelled);
-        expect(w2.resultPromise).rejects.toEqual({type: "TaskCancelled"} satisfies TaskCancelled);
-        expect(w3.resultPromise).rejects.toEqual({type: "TaskCancelled"} satisfies TaskCancelled);
+        expect(w1.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.TaskCancelled} satisfies TaskCancelled);
+        expect(w2.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.TaskCancelled} satisfies TaskCancelled);
+        expect(w3.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.TaskCancelled} satisfies TaskCancelled);
     });
 
     it("Errors during executing reject promise", async () => {

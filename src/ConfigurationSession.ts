@@ -27,7 +27,7 @@ import {E, flow, I, O, pipe, RA} from "@viamedici-spc/fp-ts-extensions";
 import * as RT from "fp-ts/ReadonlyTuple";
 import {createWorkProcessingMachine, MachineState, resolveDeferredPromises} from "./domain/WorkProcessingMachine";
 import {explainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
-import {SessionClosed} from "./contract/ConfiguratorError";
+import {ConfiguratorErrorType, SessionClosed} from "./contract/ConfiguratorError";
 import {StoredConfigurationV1} from "./contract/storedConfiguration/StoredConfigurationV1";
 import {loadConfiguration} from "./domain/logic/ConfigurationStoring";
 import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
@@ -276,7 +276,7 @@ export default class ConfigurationSession implements IConfigurationSession {
 
     private throwIfSessionClosed(): void {
         if (this.actor.getSnapshot().status !== "active") {
-            throw {type: "SessionClosed"} satisfies SessionClosed;
+            throw {type: ConfiguratorErrorType.SessionClosed} satisfies SessionClosed;
         }
     }
 };

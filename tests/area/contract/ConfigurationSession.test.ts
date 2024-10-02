@@ -11,7 +11,7 @@ import {
     CollectedBooleanDecision,
     ConfigurationModelSourceType,
     ConfiguratorError,
-    ConflictWithConsequence,
+    ConfiguratorErrorType,
     Decision,
     DecisionKind,
     ExplicitBooleanDecision,
@@ -351,11 +351,11 @@ describe("ConfigurationSession", () => {
     it("Throws if session is used after closing", async () => {
         const expectSessionClosed = (p: Parameters<typeof E.tryCatch>[0]) => {
             const error = expectToBeLeft(E.tryCatch(p, e => e as ConfiguratorError));
-            expect(error).toEqual({type: "SessionClosed"} satisfies SessionClosed);
+            expect(error).toEqual({type: ConfiguratorErrorType.SessionClosed} satisfies SessionClosed);
         };
         const expectSessionClosedAsync = async (p: Parameters<typeof TE.tryCatch>[0]) => {
             const error = expectToBeLeft(await TE.tryCatch(p, e => e as ConfiguratorError)());
-            expect(error).toEqual({type: "SessionClosed"} satisfies SessionClosed);
+            expect(error).toEqual({type: ConfiguratorErrorType.SessionClosed} satisfies SessionClosed);
         };
 
         const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
@@ -540,7 +540,7 @@ describe("ConfigurationSession", () => {
                 const setMany = session.setMany([desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision], setManyMode);
 
                 const expected: SetManyDecisionsConflict = {
-                    type: "SetManyDecisionsConflict",
+                    type: ConfiguratorErrorType.SetManyDecisionsConflict,
                     title: "",
                     detail: "",
                     decisionExplanations: [
@@ -848,7 +848,7 @@ describe("ConfigurationSession", () => {
             await expect(session.restoreConfiguration({
                 schemaVersion: 2,
                 decisions: []
-            } as any as StoredConfiguration)).rejects.toEqual({type: "StoredConfigurationInvalid"} satisfies StoredConfigurationInvalid);
+            } as any as StoredConfiguration)).rejects.toEqual({type: ConfiguratorErrorType.StoredConfigurationInvalid} satisfies StoredConfigurationInvalid);
         });
     });
 
