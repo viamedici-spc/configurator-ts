@@ -22,6 +22,7 @@ import ConfigurationRawData from "../model/ConfigurationRawData";
 import {match} from "ts-pattern";
 import * as Se from "fp-ts/Semigroup";
 import {Endomorphism} from "fp-ts/Endomorphism";
+import Logger from "../../contract/Logger";
 
 const attributesLens = pipe(
     ML.id<Configuration>(),
@@ -130,7 +131,7 @@ export function updateAttribute(attributeId: GlobalAttributeIdKey, updateFn: (at
             return updatedAttribute != a ? removeAttributeHash(updatedAttribute) : a;
         }),
         O.doIfNone(() => () => {
-            console.log("Didn't found attribute while tying to update it. GlobalAttributeIdKey", attributeId);
+            Logger.warn("Didn't found attribute while tying to update it. GlobalAttributeIdKey", attributeId);
         }),
         O.getOrElse(() => attributes)
     );
@@ -173,7 +174,7 @@ export function applyPartialAttribute(partial: PartialAttribute): Endomorphism<C
                                 ...x
                             })),
                             O.doIfNone(() => () => {
-                                console.log("Didn't found choice value while tying to update it. GlobalAttributeIdKey:", partial.key, "Choice Value id:", x.id);
+                                Logger.warn("Didn't found choice value while tying to update it. GlobalAttributeIdKey:", partial.key, "Choice Value id:", x.id);
                             }),
                             O.getOrElse(() => xs)
                         ))
@@ -199,7 +200,7 @@ export function applyPartialAttribute(partial: PartialAttribute): Endomorphism<C
                 } satisfies ComponentAttribute;
             }
 
-            console.log("Types of attribute and partial attribute mismatch. AttributeType:", a.type, "PartialAttributeType", partial.type);
+            Logger.warn("Types of attribute and partial attribute mismatch. AttributeType:", a.type, "PartialAttributeType", partial.type);
             return a;
         } else {
             return {

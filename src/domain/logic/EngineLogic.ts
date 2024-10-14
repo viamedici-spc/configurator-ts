@@ -22,6 +22,7 @@ import {none, Option} from "fp-ts/Option";
 import {getAllExplicitDecisions, merge} from "./ConfigurationRawData";
 import ConfigurationRawData from "../model/ConfigurationRawData";
 import {shouldSkipSetMany, shouldSkipMakeDecision} from "../Guards";
+import Logger from "../../contract/Logger";
 
 export type EngineSuccessResultT<T> = {
     sessionState: FullQualifiedConfigurationSessionState;
@@ -284,7 +285,7 @@ function request<T, E>(request: () => Promise<Engine.HttpResponse<T, E>>, custom
                 }
             }
 
-            console.log("Received unknown error format:", r.error);
+            Logger.error("Received unknown error format:", r.error);
             return E.left({
                 type: ConfiguratorErrorType.ServerError
             } satisfies ServerError);

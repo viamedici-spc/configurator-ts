@@ -149,8 +149,11 @@ import IConfigurationSession from "./IConfigurationSession";
 import ISessionFactory from "./ISessionFactory";
 import GlobalAttributeIdKeyBuilder from "./crossCutting/GlobalAttributeIdKeyBuilder";
 import {globalAttributeIdEq, globalAttributeIdKeyEq, globalConstraintIdEq, sessionContextEq} from "./contract/Eqs";
+import Logger from "./contract/Logger";
 
 export {
+    Logger,
+
     type IConfigurationSession,
     type ISessionFactory,
     SessionFactory,
