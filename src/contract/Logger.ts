@@ -2,10 +2,12 @@
 
 import memoizee from "memoizee";
 
-type LogLevel = "info" | "warning" | "error" | "silent";
+type LogLevel = "debug" | "info" | "warning" | "error" | "silent";
 let logLevel: LogLevel = import.meta.env?.PROD ? "error" : "info";
 const getValidLogLevels = memoizee((logLevel: LogLevel) => {
     switch (logLevel) {
+        case "debug":
+            return ["debug", "info", "warning", "error"];
         case "info":
             return ["info", "warning", "error"];
         case "warning":
@@ -23,6 +25,9 @@ const log = (level: Exclude<LogLevel, "silent">) => (...args: Parameters<typeof 
     }
 
     switch (level) {
+        case "debug":
+            console.debug(...args);
+            break;
         case "info":
             console.info(...args);
             break;
@@ -39,6 +44,7 @@ const Logger = {
     setLogLevel: (level: LogLevel) => {
         logLevel = level;
     },
+    debug: log("debug"),
     info: log("info"),
     warn: log("warning"),
     error: log("error"),
