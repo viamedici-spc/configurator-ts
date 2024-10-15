@@ -49,7 +49,6 @@ import {
     fromRawData, integrateRawData,
     toHashedConfiguration
 } from "./Configuration";
-import {fromSingleOrArray, SingleOrArray} from "../../crossCutting/ReadonlyArrayExtensions";
 import {explicitDecisionByIdEq, globalAttributeIdKeyEq} from "../../contract/Eqs";
 import ConfigurationRawData from "../model/ConfigurationRawData";
 import {attributeConsequenceSe, attributeDecisionSe, attributeMetaSe} from "../Semigroups";
@@ -342,7 +341,7 @@ export function processConstraintsExplainResult(response: ReadonlyArray<Engine.C
     };
 }
 
-function buildDecisionExplanations(explanations: ReadonlyArray<Engine.DecisionExplanation>, decisions: SingleOrArray<ExplicitDecision>, mode: SetManyMode) {
+function buildDecisionExplanations(explanations: ReadonlyArray<Engine.DecisionExplanation>, decisions: RA.SingleOrArray<ExplicitDecision>, mode: SetManyMode) {
     return pipe(
         explanations,
         RA.map(mapDecisionExplanation),
@@ -395,7 +394,7 @@ function buildDecisionExplanations(explanations: ReadonlyArray<Engine.DecisionEx
             );
 
             // Concat the undo decisions with original wanted decisions. Undo decisions have priority over the other.
-            const solutionDecisions = RA.getUnionSemigroup(explicitDecisionByIdEq).concat(undoDecisions, fromSingleOrArray(decisions));
+            const solutionDecisions = RA.getUnionSemigroup(explicitDecisionByIdEq).concat(undoDecisions, RA.fromSingleOrArray(decisions));
 
             return {
                 causedByDecisions: causedByDecisions,

@@ -13,7 +13,6 @@ import {ConfiguratorError, ConfiguratorErrorType, SessionNotFound, TaskCancelled
 import * as Engine from "./logic/EngineLogic";
 import {EngineSuccessResultT} from "./logic/EngineLogic";
 import {DeferredPromise} from "p-defer";
-import {TaskType} from "../crossCutting/TaskExtensions";
 import {Configuration} from "../contract/Types";
 import {toHashedConfiguration} from "./logic/Configuration";
 
@@ -52,8 +51,8 @@ export const resolveDeferredPromises = (deferredPromiseCompletions: ReadonlyArra
 
 type StateMutatingExecuteResult = ReturnType<StateMutatingWorkItem<any>["execute"]>
 type StatePreservingExecuteResult = ReturnType<StatePreservingWorkItem<any>["execute"]>
-type StateMutatingExecuteResultEither = TaskType<StateMutatingExecuteResult>
-type StatePreservingExecuteResultEither = TaskType<StatePreservingExecuteResult>
+type StateMutatingExecuteResultEither = T.TaskType<StateMutatingExecuteResult>
+type StatePreservingExecuteResultEither = T.TaskType<StatePreservingExecuteResult>
 type RunTaskInput = {
     workItemId: string,
     run: () => Task<StateMutatingExecuteResultEither | StatePreservingExecuteResultEither>

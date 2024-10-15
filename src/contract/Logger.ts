@@ -3,7 +3,7 @@
 import memoizee from "memoizee";
 
 type LogLevel = "debug" | "info" | "warning" | "error" | "silent";
-let logLevel: LogLevel = import.meta.env?.PROD ? "error" : "info";
+let logLevel: LogLevel = import.meta.env?.PROD ? "error" : "debug";
 const getValidLogLevels = memoizee((logLevel: LogLevel) => {
     switch (logLevel) {
         case "debug":

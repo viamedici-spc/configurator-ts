@@ -1,9 +1,8 @@
 import * as Engine from "./EngineLogic";
 import pDefer from "p-defer";
-import {flow, pipe, TaskEither, TE} from "@viamedici-spc/fp-ts-extensions";
+import {flow, pipe, RA, TaskEither, TE} from "@viamedici-spc/fp-ts-extensions";
 import {Configuration} from "../../contract/Types";
 import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
-import {fromSingleOrArray, SingleOrArray} from "../../crossCutting/ReadonlyArrayExtensions";
 import {reduceUpdateFunctions} from "../../crossCutting/UpdateFunctionHelper";
 import {
     ErrorWithSessionState,
@@ -19,7 +18,7 @@ import {Endomorphism} from "fp-ts/Endomorphism";
 
 const sessionNotFoundError = TE.left({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
 
-export function createStateMutatingWorkItem<T extends ReadonlyArray<unknown>, R>(session: (...args: T) => (sessionState: ConfigurationSessionState) => TaskEither<EngineErrorResult, EngineSuccessResultT<R>>, optimisticDecisions: ((...args: T) => SingleOrArray<Endomorphism<Configuration>>) | null, allowSimultaneouslyTermination: boolean) {
+export function createStateMutatingWorkItem<T extends ReadonlyArray<unknown>, R>(session: (...args: T) => (sessionState: ConfigurationSessionState) => TaskEither<EngineErrorResult, EngineSuccessResultT<R>>, optimisticDecisions: ((...args: T) => RA.SingleOrArray<Endomorphism<Configuration>>) | null, allowSimultaneouslyTermination: boolean) {
     return (...args: T) => {
         const apSession = session(...args);
         const apOptimisticDecisions = optimisticDecisions ? optimisticDecisions(...args) : null;
@@ -36,7 +35,7 @@ export function createStateMutatingWorkItem<T extends ReadonlyArray<unknown>, R>
                 } satisfies ErrorWithSessionState))),
                 optimisticAttributeUpdater: (useOptimisticDecisions && apOptimisticDecisions) ? pipe(
                     apOptimisticDecisions,
-                    fromSingleOrArray,
+                    RA.fromSingleOrArray,
                     reduceUpdateFunctions
                 ) : null
             } satisfies StateMutatingWorkItem<R>;

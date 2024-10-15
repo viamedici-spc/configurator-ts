@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@morphic-ts/batteries": "^3.0.0",
-    "@viamedici-spc/fp-ts-extensions": "^1.1.0",
+    "@viamedici-spc/fp-ts-extensions": "1.2.0-additions-20241015123458",
     "dyna-guid": "^2.1.2",
     "fast-equals": "^2.0.0",
     "fp-ts": "^2.16.5",

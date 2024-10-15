@@ -9,7 +9,6 @@ import {
 } from "../../contract/Types";
 import {HashedAttribute, isHashedAttribute} from "../model/HashedAttribute";
 import {hashAttribute} from "../../crossCutting/AttributeHashing";
-import {fromSingleOrArray, SingleOrArray} from "../../crossCutting/ReadonlyArrayExtensions";
 import {reduceUpdateFunctions} from "../../crossCutting/UpdateFunctionHelper";
 import {none, Option} from "fp-ts/Option";
 import HashedConfiguration from "../model/HashedConfiguration";
@@ -114,11 +113,11 @@ export function integrateRawData(partial: Partial<ConfigurationRawData>): Endomo
     };
 }
 
-export function updateAttributes(updates: SingleOrArray<(attributes: Configuration["attributes"]) => Configuration["attributes"]>): Endomorphism<Configuration> {
+export function updateAttributes(updates: RA.SingleOrArray<(attributes: Configuration["attributes"]) => Configuration["attributes"]>): Endomorphism<Configuration> {
     return pipe(
         attributesLens,
         ML.modify(pipe(
-            updates, fromSingleOrArray, reduceUpdateFunctions
+            updates, RA.fromSingleOrArray, reduceUpdateFunctions
         )),
     );
 }
@@ -149,10 +148,10 @@ export function mapAttributesOptional(updateFn: (attribute: Attribute) => Option
     );
 }
 
-export function applyPartialAttributes(partials: SingleOrArray<PartialAttribute>): Endomorphism<Configuration> {
+export function applyPartialAttributes(partials: RA.SingleOrArray<PartialAttribute>): Endomorphism<Configuration> {
     return pipe(
         partials,
-        fromSingleOrArray,
+        RA.fromSingleOrArray,
         RA.map(applyPartialAttribute),
         updateAttributes
     );
