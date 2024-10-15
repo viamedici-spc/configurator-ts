@@ -8,8 +8,7 @@ import {
     StatePreservingWorkItem
 } from "../../src/domain/model/WorkItem";
 import {Mock} from "vitest";
-import {TaskType} from "../../src/crossCutting/TaskExtensions";
-import {E, pipe} from "@viamedici-spc/fp-ts-extensions";
+import {E, pipe, T} from "@viamedici-spc/fp-ts-extensions";
 import {Either} from "fp-ts/Either";
 import {ConfiguratorError} from "../../src";
 import {EngineErrorResult, EngineSuccessResultT} from "../../src/domain/logic/EngineLogic";
@@ -20,7 +19,7 @@ export function createStatePreservingWorkItemDummy<T>(): {
     resultPromise: Promise<T>,
     executeMock: Mock<StatePreservingWorkItem<T>["execute"]>
 } {
-    let executeResultPromise: DeferredPromise<TaskType<ReturnType<StatePreservingWorkItem<T>["execute"]>>> | null = null;
+    let executeResultPromise: DeferredPromise<T.TaskType<ReturnType<StatePreservingWorkItem<T>["execute"]>>> | null = null;
     const executeMock = vi.fn<StatePreservingWorkItem<T>["execute"]>(() => {
         executeResultPromise = pDefer();
         return () => {
@@ -57,7 +56,7 @@ export function createStateMutatingWorkItemDummy<T>(allowSimultaneouslyTerminati
     resultPromise: Promise<T>,
     executeMock: Mock<StateMutatingWorkItem<T>["execute"]>
 } {
-    let executeResultPromise: DeferredPromise<TaskType<ReturnType<StateMutatingWorkItem<T>["execute"]>>> | null = null;
+    let executeResultPromise: DeferredPromise<T.TaskType<ReturnType<StateMutatingWorkItem<T>["execute"]>>> | null = null;
     const executeMock = vi.fn<StateMutatingWorkItem<T>["execute"]>(() => {
         executeResultPromise = pDefer();
         return () => {
