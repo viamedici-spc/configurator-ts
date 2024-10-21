@@ -125,6 +125,8 @@ export default class ConfigurationSession implements IConfigurationSession {
     }
 
     async resetConfiguration(): Promise<void> {
+        this.throwIfSessionClosed();
+
         const workItem = pipe(
             Session.setMany([], {type: "DropExistingDecisions", conflictHandling: {type: "Automatic"}}),
             I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.resetConfiguration ?? false)
