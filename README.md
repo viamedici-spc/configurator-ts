@@ -16,8 +16,8 @@ Configuration Engine_ (HCE).
 It offers all the features of the HCE through a strongly typed API, eliminating the need to
 interact directly with the HCE's REST API.
 
-This library is intended for use in a browser environment and is not compatible with server environments like **Node.js
-**.
+This library is intended for use in a browser environment and is not compatible with server environments
+like **Node.js**.
 
 ## Framework Independence
 
@@ -101,7 +101,7 @@ await session.makeDecision({
     attributeId: {localId: "Painting Color"},
     choiceValueId: "Green",
     state: ChoiceValueDecisionState.Included,
-} as ExplicitChoiceDecision)
+} satisfies ExplicitChoiceDecision)
 ```
 
 ## License
