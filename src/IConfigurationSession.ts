@@ -101,12 +101,13 @@ export default interface IConfigurationSession {
      * @remarks Ensure that the session was initialized with the same SessionContext as when the configuration was stored,
      * otherwise not all decisions may be restored.
      * @param storedConfiguration The configuration to be restored.
+     * @param mode The mode defining how existing decisions should be handled.
      * @return The decisions that were rejected during restoration.
      * @throws {TaskCancelled} If the session is closed while the operation is pending or in progress.
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
-    restoreConfiguration(storedConfiguration: StoredConfiguration): Promise<SetManyResult>;
+    restoreConfiguration(storedConfiguration: StoredConfiguration, mode: SetManyMode): Promise<SetManyResult>;
 
     /**
      * Retrieves all explicit decisions in the current Configuration.

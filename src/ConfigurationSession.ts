@@ -28,7 +28,6 @@ import * as RT from "fp-ts/ReadonlyTuple";
 import {createWorkProcessingMachine, MachineState, resolveDeferredPromises} from "./domain/WorkProcessingMachine";
 import {explainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
 import {ConfiguratorErrorType, SessionClosed} from "./contract/ConfiguratorError";
-import {StoredConfigurationV1} from "./contract/storedConfiguration/StoredConfigurationV1";
 import {loadConfiguration} from "./domain/logic/ConfigurationStoring";
 import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
 import {getCollectedDecisions, hasAnyExplicitDecision} from "./domain/logic/ConfigurationRawData";
@@ -98,7 +97,7 @@ export default class ConfigurationSession implements IConfigurationSession {
         return await workItem.deferredPromise.promise;
     }
 
-    async restoreConfiguration(storedConfiguration: StoredConfigurationV1): Promise<SetManyResult> {
+    async restoreConfiguration(storedConfiguration: StoredConfiguration, mode: SetManyMode): Promise<SetManyResult> {
         this.throwIfSessionClosed();
 
         const loadedConfiguration = loadConfiguration(storedConfiguration);
@@ -107,10 +106,7 @@ export default class ConfigurationSession implements IConfigurationSession {
         }
 
         const workItem = pipe(
-            Session.setMany(loadedConfiguration.right, {
-                type: "DropExistingDecisions",
-                conflictHandling: {type: "Automatic"}
-            }),
+            Session.setMany(loadedConfiguration.right, mode),
             I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.restoreConfiguration ?? false)
         );
         this.actor.send({type: "EnqueueWork", workItem: workItem});

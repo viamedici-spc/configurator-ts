@@ -782,7 +782,10 @@ describe("ConfigurationSession", () => {
             });
 
             // Restore the session to the previously stored state.
-            await session.restoreConfiguration(storedConfiguration);
+            await session.restoreConfiguration(storedConfiguration, {
+                type: "DropExistingDecisions",
+                conflictHandling: {type: "Automatic"}
+            });
 
             // Expect that every decision state the same, except for ChoiceDecision that was made after storing the configuration.
             expectations.expectRawDataToBeSameAsConfiguration();
@@ -834,7 +837,10 @@ describe("ConfigurationSession", () => {
             const session2 = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
 
             // Restore the session2 to the previously stored state.
-            await session2.restoreConfiguration(storedConfiguration);
+            await session2.restoreConfiguration(storedConfiguration, {
+                type: "DropExistingDecisions",
+                conflictHandling: {type: "Automatic"}
+            });
 
             // Session2 must have the same state as Session1
             expect(configurationRawDataEq.equals(session1.sessionState.configurationRawData, session2.sessionState.configurationRawData)).toBeTruthy();
@@ -848,7 +854,10 @@ describe("ConfigurationSession", () => {
             await expect(session.restoreConfiguration({
                 schemaVersion: 2,
                 decisions: []
-            } as any as StoredConfiguration)).rejects.toEqual({type: ConfiguratorErrorType.StoredConfigurationInvalid} satisfies StoredConfigurationInvalid);
+            } as any as StoredConfiguration, {
+                type: "DropExistingDecisions",
+                conflictHandling: {type: "Automatic"}
+            })).rejects.toEqual({type: ConfiguratorErrorType.StoredConfigurationInvalid} satisfies StoredConfigurationInvalid);
         });
     });
 
