@@ -1,10 +1,10 @@
 /// <reference types="vite/client" />
 
-import memoizee from "memoizee";
+import memize from "memize";
 
 type LogLevel = "debug" | "info" | "warning" | "error" | "silent";
 let logLevel: LogLevel = import.meta.env?.PROD ? "error" : "debug";
-const getValidLogLevels = memoizee((logLevel: LogLevel) => {
+const getValidLogLevels = memize((logLevel: LogLevel) => {
     switch (logLevel) {
         case "debug":
             return ["debug", "info", "warning", "error"];

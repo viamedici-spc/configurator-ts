@@ -1,5 +1,5 @@
 import {Option} from "fp-ts/Option";
-import memoize from "memoizee";
+import memize from "memize";
 
 export default class GenericChangesHandler<V, C> {
     protected previousValue: V | null = null;
@@ -7,7 +7,7 @@ export default class GenericChangesHandler<V, C> {
     protected readonly calculateChangeSetFn: (previousValue: V | null, currentValue: V | null) => Option<C>;
 
     constructor(calculateChangeSetFn: (previousValue: V | null, currentValue: V | null) => Option<C>) {
-        this.calculateChangeSetFn = memoize(calculateChangeSetFn);
+        this.calculateChangeSetFn = memize(calculateChangeSetFn);
     }
 
     public setValue(value: V): void {

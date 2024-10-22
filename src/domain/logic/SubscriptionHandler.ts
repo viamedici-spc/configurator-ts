@@ -3,7 +3,7 @@ import {Subscription} from "../../contract/Types";
 import GenericChangesHandler from "./GenericChangesHandler";
 import {O} from "@viamedici-spc/fp-ts-extensions";
 import {Option} from "fp-ts/Option";
-import memoize from "memoizee";
+import memize from "memize";
 
 export default class SubscriptionHandler<V, T extends ReadonlyArray<unknown>> {
     private readonly listeners = new Map<string, (...args: T) => void>;
@@ -12,7 +12,7 @@ export default class SubscriptionHandler<V, T extends ReadonlyArray<unknown>> {
     private currentValue: V | null = null;
 
     constructor(calculateChangeSetFn: (previousValue: V | null, currentValue: V | null) => Option<T>) {
-        this.calculateChangeSetFn = memoize(calculateChangeSetFn);
+        this.calculateChangeSetFn = memize(calculateChangeSetFn);
         this.changesHandler = new GenericChangesHandler(calculateChangeSetFn);
     }
 

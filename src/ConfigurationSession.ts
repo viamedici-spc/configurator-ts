@@ -43,20 +43,20 @@ import {
     calculateCanResetConfigurationChangedHandler
 } from "./domain/logic/HandlerChangeCalculation";
 import HashedConfiguration from "./domain/model/HashedConfiguration";
-import memoize from "memoizee";
 import GenericChangesHandler from "./domain/logic/GenericChangesHandler";
 import {emptyChanges} from "./domain/logic/ConfigurationChanges";
+import memize from "memize";
 
 export default class ConfigurationSession implements IConfigurationSession {
-    private readonly canResetConfigurationMemo = memoize(hasAnyExplicitDecision, {max: 5});
-    private readonly calculateConfigurationChangedHandlerMemo = memoize(calculateConfigurationChangedHandler, {max: 5});
-    private readonly getCollectedDecisionsMemo = memoize(getCollectedDecisions);
-    private readonly getImplicitCollectedDecisionsMemo = memoize(flow(this.getCollectedDecisionsMemo, RA.filter(collectedImplicitDecisionRefinement)));
-    private readonly getExplicitCollectedDecisionsMemo = memoize(flow(this.getCollectedDecisionsMemo, RA.filter(collectedExplicitDecisionRefinement)));
+    private readonly canResetConfigurationMemo = memize(hasAnyExplicitDecision, {maxSize: 5});
+    private readonly calculateConfigurationChangedHandlerMemo = memize(calculateConfigurationChangedHandler, {maxSize: 5});
+    private readonly getCollectedDecisionsMemo = memize(getCollectedDecisions);
+    private readonly getImplicitCollectedDecisionsMemo = memize(flow(this.getCollectedDecisionsMemo.bind(this), RA.filter(collectedImplicitDecisionRefinement)));
+    private readonly getExplicitCollectedDecisionsMemo = memize(flow(this.getCollectedDecisionsMemo.bind(this), RA.filter(collectedExplicitDecisionRefinement)));
 
-    private readonly sessionChangesHandler = new GenericChangesHandler<HashedConfiguration, Parameters<OnConfigurationChangedHandler>>(this.calculateConfigurationChangedHandlerMemo);
-    private readonly configurationChangedSubscriptionHandler = new SubscriptionHandler<HashedConfiguration, Parameters<OnConfigurationChangedHandler>>(this.calculateConfigurationChangedHandlerMemo);
-    private readonly canResetConfigurationSubscriptionHandler = new SubscriptionHandler<ConfigurationRawData, Parameters<OnCanResetConfigurationChangedHandler>>(calculateCanResetConfigurationChangedHandler(this.canResetConfigurationMemo));
+    private readonly sessionChangesHandler = new GenericChangesHandler<HashedConfiguration, Parameters<OnConfigurationChangedHandler>>(this.calculateConfigurationChangedHandlerMemo.bind(this));
+    private readonly configurationChangedSubscriptionHandler = new SubscriptionHandler<HashedConfiguration, Parameters<OnConfigurationChangedHandler>>(this.calculateConfigurationChangedHandlerMemo.bind(this));
+    private readonly canResetConfigurationSubscriptionHandler = new SubscriptionHandler<ConfigurationRawData, Parameters<OnCanResetConfigurationChangedHandler>>(calculateCanResetConfigurationChangedHandler(this.canResetConfigurationMemo.bind(this)));
     private readonly actor: ReturnType<typeof createWorkProcessingMachine>;
     private readonly subscription: Subscription;
 
@@ -80,9 +80,9 @@ export default class ConfigurationSession implements IConfigurationSession {
         this.throwIfSessionClosed();
 
         const fn = match(kind)
-            .with(DecisionKind.Explicit, () => this.getExplicitCollectedDecisionsMemo)
-            .with(DecisionKind.Implicit, () => this.getImplicitCollectedDecisionsMemo)
-            .with(P.nullish, () => this.getCollectedDecisionsMemo)
+            .with(DecisionKind.Explicit, () => this.getExplicitCollectedDecisionsMemo.bind(this))
+            .with(DecisionKind.Implicit, () => this.getImplicitCollectedDecisionsMemo.bind(this))
+            .with(P.nullish, () => this.getCollectedDecisionsMemo.bind(this))
             .exhaustive();
         return fn(this.sessionState.configurationRawData);
     }
