@@ -10,16 +10,16 @@ import {
     AttributeType,
     AutomaticConflictResolution,
     BooleanAttribute,
-    ChoiceAttribute,
+    ChoiceAttribute, ChoiceValue, ChoiceValueDecisionState,
     ClientSideSessionInitialisationOptions,
-    ComponentAttribute,
+    ComponentAttribute, ComponentDecisionState,
     Configuration, ConfigurationChanges,
     ConfigurationModelFromChannel,
     ConfigurationModelFromPackage,
     ConfigurationModelSource,
     ConfigurationModelSourceType,
     ConflictResolution,
-    ConstraintExplanation,
+    ConstraintExplanation, Decision,
     DecisionExplanation,
     DecisionsToRespect,
     ExplainSolution,
@@ -48,7 +48,7 @@ import {
     BooleanAttributeConsequence,
     BooleanAttributeDecision,
     ChoiceAttributeConsequence,
-    ChoiceAttributeDecision,
+    ChoiceAttributeDecision, ChoiceValueDecision,
     ComponentAttributeConsequence,
     ComponentAttributeDecision,
     NumericAttributeConsequence,
@@ -173,46 +173,54 @@ export const attributeMetaEq: EqT<AttributeMeta> = Eq.struct<AttributeMeta>({
     })
 });
 
+const nullableBooleanDecisionEq: EqT<Decision<boolean> | null> = Eq.eqNullable(Eq.struct<Decision<boolean>>({
+    state: Bool.Eq,
+    kind: Str.Eq
+}));
 export const booleanAttributeDecisionEq: EqT<BooleanAttributeDecision> = Eq.struct<BooleanAttributeDecision>({
     type: Str.Eq,
     id: globalAttributeIdEq,
     key: globalAttributeIdKeyEq,
-    decision: Eq.eqNullable(Eq.struct({
-        state: Bool.Eq,
-        kind: Str.Eq
-    }))
+    decision: nullableBooleanDecisionEq,
+    nonOptimisticDecision: nullableBooleanDecisionEq,
 });
 
+const nullableNumericDecisionEq: EqT<Decision<number> | null> = Eq.eqNullable(Eq.struct<Decision<number>>({
+    state: Num.Eq,
+    kind: Str.Eq
+}));
 export const numericAttributeDecisionEq: EqT<NumericAttributeDecision> = Eq.struct<NumericAttributeDecision>({
     type: Str.Eq,
     id: globalAttributeIdEq,
     key: globalAttributeIdKeyEq,
-    decision: Eq.eqNullable(Eq.struct({
-        state: Num.Eq,
-        kind: Str.Eq
-    }))
+    decision: nullableNumericDecisionEq,
+    nonOptimisticDecision: nullableNumericDecisionEq,
 });
 
+const nullableComponentDecisionEq: EqT<Decision<ComponentDecisionState> | null> = Eq.eqNullable(Eq.struct<Decision<ComponentDecisionState>>({
+    state: Str.Eq,
+    kind: Str.Eq
+}));
 export const componentAttributeDecisionEq: EqT<ComponentAttributeDecision> = Eq.struct<ComponentAttributeDecision>({
     type: Str.Eq,
     id: globalAttributeIdEq,
     key: globalAttributeIdKeyEq,
-    decision: Eq.eqNullable(Eq.struct({
-        state: Str.Eq,
-        kind: Str.Eq
-    }))
+    decision: nullableComponentDecisionEq,
+    nonOptimisticDecision: nullableComponentDecisionEq,
 });
 
+const nullableChoiceValueDecisionEq: EqT<Decision<ChoiceValueDecisionState> | null> = Eq.eqNullable(Eq.struct<Decision<ChoiceValueDecisionState>>({
+    state: Str.Eq,
+    kind: Str.Eq
+}));
 export const choiceAttributeDecisionEq: EqT<ChoiceAttributeDecision> = Eq.struct<ChoiceAttributeDecision>({
     type: Str.Eq,
     id: globalAttributeIdEq,
     key: globalAttributeIdKeyEq,
-    values: RA.getUnsortedArrayEq(Eq.struct({
+    values: RA.getUnsortedArrayEq(Eq.struct<ChoiceValueDecision>({
         id: Str.Eq,
-        decision: Eq.eqNullable(Eq.struct({
-            state: Str.Eq,
-            kind: Str.Eq
-        }))
+        decision: nullableChoiceValueDecisionEq,
+        nonOptimisticDecision: nullableChoiceValueDecisionEq,
     }))
 });
 
@@ -291,10 +299,8 @@ export const booleanAttributeEq: EqT<BooleanAttribute> = Eq.struct<BooleanAttrib
     ...baseAttribute,
     selection: Str.Eq,
     possibleDecisionStates: RA.getUnsortedArrayEq(Bool.Eq),
-    decision: Eq.eqNullable(Eq.struct({
-        state: Bool.Eq,
-        kind: Str.Eq
-    })),
+    decision: nullableBooleanDecisionEq,
+    nonOptimisticDecision: nullableBooleanDecisionEq,
 });
 
 export const numericAttributeEq: EqT<NumericAttribute> = Eq.struct<NumericAttribute>({
@@ -305,10 +311,8 @@ export const numericAttributeEq: EqT<NumericAttribute> = Eq.struct<NumericAttrib
         min: Num.Eq,
     }),
     decimalPlaces: Num.Eq,
-    decision: Eq.eqNullable(Eq.struct({
-        state: Num.Eq,
-        kind: Str.Eq
-    })),
+    decision: nullableNumericDecisionEq,
+    nonOptimisticDecision: nullableNumericDecisionEq,
 });
 
 export const componentAttributeEq: EqT<ComponentAttribute> = Eq.struct<ComponentAttribute>({
@@ -316,10 +320,8 @@ export const componentAttributeEq: EqT<ComponentAttribute> = Eq.struct<Component
     inclusion: Str.Eq,
     selection: Eq.eqNullable(Str.Eq),
     possibleDecisionStates: RA.getUnsortedArrayEq(Str.Eq),
-    decision: Eq.eqNullable(Eq.struct({
-        state: Str.Eq,
-        kind: Str.Eq
-    })),
+    decision: nullableComponentDecisionEq,
+    nonOptimisticDecision: nullableComponentDecisionEq,
 });
 
 export const choiceAttributeEq: EqT<ChoiceAttribute> = Eq.struct<ChoiceAttribute>({
@@ -328,13 +330,11 @@ export const choiceAttributeEq: EqT<ChoiceAttribute> = Eq.struct<ChoiceAttribute
         upperBound: Num.Eq,
         lowerBound: Num.Eq,
     }),
-    values: RM.getEq(Str.Eq, Eq.struct({
+    values: RM.getEq(Str.Eq, Eq.struct<ChoiceValue>({
         id: Str.Eq,
         possibleDecisionStates: RA.getUnsortedArrayEq(Str.Eq),
-        decision: Eq.eqNullable(Eq.struct({
-            state: Str.Eq,
-            kind: Str.Eq
-        })),
+        decision: nullableChoiceValueDecisionEq,
+        nonOptimisticDecision: nullableChoiceValueDecisionEq,
     }))
 });
 

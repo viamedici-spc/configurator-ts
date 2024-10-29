@@ -130,17 +130,20 @@ function getAttributeDecisions(decisions: Engine.Decisions): ReadonlyMap<GlobalA
 
     const booleanAttributeDecisions = transformDecisions(decisions.booleanDecisions, EtoD.mapBooleanDecision, (decision) => ({
         type: AttributeType.Boolean,
-        decision: decision
+        decision: decision,
+        nonOptimisticDecision: decision,
     })) satisfies ReadonlyArray<BooleanAttributeDecision>;
 
     const numericAttributeDecisions = transformDecisions(decisions.numericDecisions, EtoD.mapNumericDecision, (decision) => ({
         type: AttributeType.Numeric,
-        decision: decision
+        decision: decision,
+        nonOptimisticDecision: decision,
     })) satisfies ReadonlyArray<NumericAttributeDecision>;
 
     const componentAttributeDecisions = transformDecisions(decisions.componentDecisions, EtoD.mapComponentDecision, (decision) => ({
         type: AttributeType.Component,
-        decision: decision
+        decision: decision,
+        nonOptimisticDecision: decision,
     })) satisfies ReadonlyArray<ComponentAttributeDecision>;
 
     const choiceAttributeDecisions = transformDecisions(decisions.choiceValueDecisions, EtoD.mapChoiceValueDecision, (decision, engineDecision) => ({
@@ -148,6 +151,7 @@ function getAttributeDecisions(decisions: Engine.Decisions): ReadonlyMap<GlobalA
         values: RA.of({
             id: engineDecision.choiceValueId,
             decision: decision,
+            nonOptimisticDecision: decision,
         })
     })) satisfies ReadonlyArray<ChoiceAttributeDecision>;
 

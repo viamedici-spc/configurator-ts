@@ -5,7 +5,7 @@ import {
     PureError,
     StateMutatingWorkItem,
     StatePreservingWorkItem,
-    WorkItem
+    WorkItem, WorkQueueInfo
 } from "./model/WorkItem";
 import {E, O, Ord, OrdT, pipe, RA, RM, RNEA, Str, T, Task, TE} from "@viamedici-spc/fp-ts-extensions";
 import {Either} from "fp-ts/Either";
@@ -142,6 +142,10 @@ const workProcessingMachine = setup({
                 )),
                 O.getOrElse(() => RA.empty as ReadonlyArray<WorkItem<any>>)
             );
+            const queueInfo: WorkQueueInfo = {
+                queuedWork: context.work.length,
+                currentlyRunningWork: workToRun.length,
+            };
             workToRun.forEach(w => {
                 if (!RM.member(Str.Eq)(w.itemId, context.runningWork)) {
                     enqueue.assign({
@@ -155,7 +159,7 @@ const workProcessingMachine = setup({
                             RM.upsertAt(Str.Eq)(w.itemId, spawn("runTask", {
                                 input: {
                                     workItemId: w.itemId,
-                                    run: () => w.execute(context.sessionState)
+                                    run: () => w.execute(context.sessionState, queueInfo)
                                 }
                             }))
                         )
@@ -187,7 +191,9 @@ const workProcessingMachine = setup({
             }
         }),
         cancelAllRunningWork: enqueueActions(({context, enqueue}) => {
-            enqueue(log(`Cancelling ${context.runningWork.size} running work${context.runningWork.size !== 1 ? "s" : ""}`));
+            if (context.runningWork.size > 0) {
+                enqueue(log(`Cancelling ${context.runningWork.size} running work${context.runningWork.size !== 1 ? "s" : ""}`));
+            }
 
             context.runningWork.forEach(v => {
                 enqueue.stopChild(v);

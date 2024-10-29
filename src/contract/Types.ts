@@ -387,6 +387,7 @@ export type BooleanAttribute = BaseAttribute & {
     readonly type: AttributeType.Boolean;
 
     readonly decision: Decision<boolean> | null;
+    readonly nonOptimisticDecision: Decision<boolean> | null;
     readonly possibleDecisionStates: ReadonlyArray<boolean>;
     readonly selection: Selection;
 }
@@ -395,6 +396,7 @@ export type NumericAttribute = BaseAttribute & {
     readonly type: AttributeType.Numeric;
 
     readonly decision: Decision<number> | null;
+    readonly nonOptimisticDecision: Decision<number> | null;
     readonly range: Range;
     readonly decimalPlaces: number;
     readonly selection: Selection;
@@ -404,6 +406,7 @@ export type ComponentAttribute = BaseAttribute & {
     readonly type: AttributeType.Component;
 
     readonly decision: Decision<ComponentDecisionState> | null;
+    readonly nonOptimisticDecision: Decision<ComponentDecisionState> | null;
     readonly inclusion: Inclusion;
     readonly selection: Selection | null;
     readonly possibleDecisionStates: ReadonlyArray<ComponentDecisionState>;
@@ -419,6 +422,7 @@ export type ChoiceAttribute = BaseAttribute & {
 export type ChoiceValue = {
     readonly id: ChoiceValueId;
     readonly decision: Decision<ChoiceValueDecisionState> | null;
+    readonly nonOptimisticDecision: Decision<ChoiceValueDecisionState> | null;
     readonly possibleDecisionStates: ReadonlyArray<ChoiceValueDecisionState>;
 }
 
@@ -535,4 +539,11 @@ export type SetManyResult = {
 
 export type Subscription = {
     readonly unsubscribe: () => void
+};
+
+export type ScheduleTaskResult = {
+    /**
+     * The amount of tasks still waiting for execution.
+     */
+    readonly pendingTasks: number;
 };

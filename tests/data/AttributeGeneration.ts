@@ -29,6 +29,7 @@ export function getBooleanAttribute(globalOrLocalId: string | GlobalAttributeId,
         isSatisfied: false,
         canContributeToConfigurationSatisfaction: false,
         decision: null,
+        nonOptimisticDecision: null,
         selection: Selection.Mandatory,
         possibleDecisionStates: [true, false],
         ...partial ?? {},
@@ -56,6 +57,7 @@ export function getNumericAttribute(globalOrLocalId: string | GlobalAttributeId,
         isSatisfied: false,
         canContributeToConfigurationSatisfaction: false,
         decision: null,
+        nonOptimisticDecision: null,
         selection: Selection.Mandatory,
         decimalPlaces: 0,
         range: {
@@ -87,6 +89,7 @@ export function getComponentAttribute(globalOrLocalId: string | GlobalAttributeI
         isSatisfied: false,
         canContributeToConfigurationSatisfaction: false,
         decision: null,
+        nonOptimisticDecision: null,
         selection: Selection.Mandatory,
         inclusion: Inclusion.Optional,
         possibleDecisionStates: [ComponentDecisionState.Included, ComponentDecisionState.Excluded],
@@ -122,11 +125,13 @@ export function getChoiceAttribute(globalOrLocalId: string | GlobalAttributeId, 
             ["V1", {
                 id: "V1",
                 decision: null,
+                nonOptimisticDecision: null,
                 possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded]
             } satisfies ChoiceValue],
             ["V2", {
                 id: "V2",
                 decision: null,
+                nonOptimisticDecision: null,
                 possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded]
             } satisfies ChoiceValue]
         ]),

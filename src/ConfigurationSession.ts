@@ -17,7 +17,7 @@ import {
     SetManyMode,
     SetManyResult,
     Subscription as TSubscription,
-    OnCanResetConfigurationChangedHandler
+    OnCanResetConfigurationChangedHandler, ScheduleTaskResult
 } from "./contract/Types";
 import IConfigurationSession from "./IConfigurationSession";
 import {ConfigurationSessionState} from "./domain/model/ConfigurationSessionState";
@@ -73,18 +73,30 @@ export default class ConfigurationSession implements IConfigurationSession {
         this.actor.start();
     }
 
-    getDecisions(kind: DecisionKind.Explicit): readonly CollectedExplicitDecision[];
-    getDecisions(kind: DecisionKind.Implicit): readonly CollectedImplicitDecision[];
-    getDecisions(): readonly CollectedDecision[];
-    getDecisions(kind?: DecisionKind): readonly CollectedDecision[] {
-        this.throwIfSessionClosed();
+    getDecisions(kind: DecisionKind.Explicit): ReadonlyArray<CollectedExplicitDecision>;
+    getDecisions(kind: DecisionKind.Explicit, queue: true): Promise<ReadonlyArray<CollectedExplicitDecision>>;
+    getDecisions(kind: DecisionKind.Implicit): ReadonlyArray<CollectedImplicitDecision>;
+    getDecisions(kind: DecisionKind.Implicit, queue: true): Promise<ReadonlyArray<CollectedImplicitDecision>>;
+    getDecisions(): ReadonlyArray<CollectedDecision>;
+    getDecisions(queue: true): Promise<ReadonlyArray<CollectedDecision>>;
+    getDecisions(kindOrQueueOrUndefined?: DecisionKind | boolean, queueOrUndefined?: true): ReadonlyArray<CollectedDecision> | Promise<ReadonlyArray<CollectedDecision>> {
+        const execute = (kind: DecisionKind | undefined) => {
+            this.throwIfSessionClosed();
 
-        const fn = match(kind)
-            .with(DecisionKind.Explicit, () => this.getExplicitCollectedDecisionsMemo.bind(this))
-            .with(DecisionKind.Implicit, () => this.getImplicitCollectedDecisionsMemo.bind(this))
-            .with(P.nullish, () => this.getCollectedDecisionsMemo.bind(this))
-            .exhaustive();
-        return fn(this.sessionState.configurationRawData);
+            const fn = match(kind)
+                .with(DecisionKind.Explicit, () => this.getExplicitCollectedDecisionsMemo.bind(this))
+                .with(DecisionKind.Implicit, () => this.getImplicitCollectedDecisionsMemo.bind(this))
+                .with(P.nullish, () => this.getCollectedDecisionsMemo.bind(this))
+                .exhaustive();
+            return fn(this.sessionState.configurationRawData);
+        };
+
+        const kind = typeof kindOrQueueOrUndefined === "string" ? kindOrQueueOrUndefined : undefined;
+        const queue = typeof kindOrQueueOrUndefined === "boolean"
+            ? kindOrQueueOrUndefined
+            : queueOrUndefined;
+
+        return this.executeMaybeQueued(queue === true, () => execute(kind));
     }
 
     async storeConfiguration(): Promise<StoredConfiguration> {
@@ -114,10 +126,14 @@ export default class ConfigurationSession implements IConfigurationSession {
         return await workItem.deferredPromise.promise;
     }
 
-    get canResetConfiguration(): boolean {
-        this.throwIfSessionClosed();
+    canResetConfiguration(): boolean;
+    canResetConfiguration(queue: true): Promise<boolean>;
+    canResetConfiguration(queue?: true): Promise<boolean> | boolean {
+        return this.executeMaybeQueued(queue === true, () => {
+            this.throwIfSessionClosed();
 
-        return this.canResetConfigurationMemo(this.sessionState.configurationRawData);
+            return this.canResetConfigurationMemo(this.sessionState.configurationRawData);
+        });
     }
 
     async resetConfiguration(): Promise<void> {
@@ -144,16 +160,24 @@ export default class ConfigurationSession implements IConfigurationSession {
         return this.canResetConfigurationSubscriptionHandler.addListener(handler);
     }
 
-    getSessionContext(): SessionContext {
-        this.throwIfSessionClosed();
+    getSessionContext(): SessionContext
+    getSessionContext(queue: true): Promise<SessionContext>;
+    getSessionContext(queue?: true): Promise<SessionContext> | SessionContext {
+        return this.executeMaybeQueued(queue === true, () => {
+            this.throwIfSessionClosed();
 
-        return this.sessionState.sessionContext;
+            return this.sessionState.sessionContext;
+        });
     }
 
-    getConfiguration(): Configuration {
-        this.throwIfSessionClosed();
+    getConfiguration(): Configuration
+    getConfiguration(queue: true): Promise<Configuration>
+    getConfiguration(queue?: true): Promise<Configuration> | Configuration {
+        return this.executeMaybeQueued(queue === true, () => {
+            this.throwIfSessionClosed();
 
-        return this.sessionState.configuration;
+            return this.sessionState.configuration;
+        });
     }
 
     getConfigurationChanges(): ConfigurationChanges {
@@ -257,6 +281,26 @@ export default class ConfigurationSession implements IConfigurationSession {
         this.actor.send({type: "Shutdown"});
         await waitFor(this.actor, s => s.status !== "active");
         this.configurationChangedSubscriptionHandler.unsubscribeAllListeners();
+    }
+
+    async scheduleTask(signal?: AbortSignal | null): Promise<ScheduleTaskResult> {
+        this.throwIfSessionClosed();
+
+        const workItem = Session.scheduleTask(signal);
+
+        this.actor.send({type: "EnqueueWork", workItem: workItem});
+
+        return await workItem.deferredPromise.promise;
+    }
+
+    executeMaybeQueued<T>(queue: boolean, fn: () => T, signal?: AbortSignal | null): Promise<T> | T {
+        this.throwIfSessionClosed();
+
+        if (queue) {
+            return this.scheduleTask(signal)
+                .then(() => fn());
+        }
+        return fn();
     }
 
     private handleActorUpdate(state: Omit<MachineState, "type">) {

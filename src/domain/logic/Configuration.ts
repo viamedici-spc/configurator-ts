@@ -49,23 +49,26 @@ export function fromRawData(rawData: ConfigurationRawData): HashedConfiguration 
                 ...b,
                 canContributeToConfigurationSatisfaction: false,
                 decision: null,
+                nonOptimisticDecision: null,
             } satisfies BooleanAttribute))
             .with({type: AttributeType.Numeric}, n => ({
                 ...n,
                 canContributeToConfigurationSatisfaction: false,
                 decision: null,
+                nonOptimisticDecision: null,
             } satisfies NumericAttribute))
             .with({type: AttributeType.Component}, c => ({
                 ...c,
                 canContributeToConfigurationSatisfaction: false,
                 decision: null,
+                nonOptimisticDecision: null,
             } satisfies ComponentAttribute))
             .with({type: AttributeType.Choice}, c => ({
                 ...c,
                 canContributeToConfigurationSatisfaction: false,
                 values: pipe(
                     c.values,
-                    RA.map(v => ({...v, decision: null} satisfies ChoiceValue)),
+                    RA.map(v => ({...v, decision: null, nonOptimisticDecision: null} satisfies ChoiceValue)),
                     RA.map(v => [v.id, v] as [ChoiceValueId, ChoiceValue]),
                     RM.fromFoldable(Str.Eq, Se.first<ChoiceValue>(), RA.Foldable),
                 )

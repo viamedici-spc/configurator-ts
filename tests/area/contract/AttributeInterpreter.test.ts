@@ -75,11 +75,27 @@ describe("AttributeInterpreter", () => {
                 ["V1", {
                     id: "V1",
                     decision: null,
+                    nonOptimisticDecision: null,
                     possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded]
                 }],
-                ["V2", {id: "V2", decision: null, possibleDecisionStates: [ChoiceValueDecisionState.Included]}],
-                ["V3", {id: "V3", decision: null, possibleDecisionStates: [ChoiceValueDecisionState.Excluded]}],
-                ["V4", {id: "V4", decision: null, possibleDecisionStates: []}],
+                ["V2", {
+                    id: "V2",
+                    decision: null,
+                    nonOptimisticDecision: null,
+                    possibleDecisionStates: [ChoiceValueDecisionState.Included]
+                }],
+                ["V3", {
+                    id: "V3",
+                    decision: null,
+                    nonOptimisticDecision: null,
+                    possibleDecisionStates: [ChoiceValueDecisionState.Excluded]
+                }],
+                ["V4", {
+                    id: "V4",
+                    decision: null,
+                    nonOptimisticDecision: null,
+                    possibleDecisionStates: []
+                }],
             ])
         });
 
@@ -106,6 +122,10 @@ describe("AttributeInterpreter", () => {
                         kind: DecisionKind.Implicit,
                         state: ChoiceValueDecisionState.Included
                     },
+                    nonOptimisticDecision: {
+                        kind: DecisionKind.Implicit,
+                        state: ChoiceValueDecisionState.Included
+                    },
                     possibleDecisionStates: []
                 }],
                 ["V2", {
@@ -114,11 +134,16 @@ describe("AttributeInterpreter", () => {
                         kind: DecisionKind.Explicit,
                         state: ChoiceValueDecisionState.Included
                     },
+                    nonOptimisticDecision: {
+                        kind: DecisionKind.Explicit,
+                        state: ChoiceValueDecisionState.Included
+                    },
                     possibleDecisionStates: []
                 }],
                 ["V3", {
                     id: "V3",
                     decision: null,
+                    nonOptimisticDecision: null,
                     possibleDecisionStates: []
                 }],
             ])

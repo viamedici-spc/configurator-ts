@@ -6,6 +6,7 @@ import SessionFactory from "../../../src/SessionFactory";
 import {
     AllowedRulesInExplainType,
     AttributeType,
+    BooleanAttribute,
     CausedByBooleanDecision,
     ChoiceValueDecisionState,
     CollectedBooleanDecision,
@@ -17,6 +18,7 @@ import {
     ExplicitBooleanDecision,
     ExplicitNumericDecision,
     FullExplainAnswer,
+    NumericAttribute,
     ServerSideSessionInitialisationOptions,
     SessionClosed,
     SessionContext,
@@ -199,8 +201,8 @@ describe("ConfigurationSession", () => {
         const sessionIdToReject = session.sessionState.sessionId!;
         let gotRejected = false;
         const fetch = global.fetch;
-        const fetchMock = vi.fn<typeof global.fetch>((input, init) => {
-            if (typeof input === "string" && input.endsWith("decision") && init && init.method === "PUT" && init.headers["X-SESSION-ID"] === sessionIdToReject) {
+        global.fetch = (input: Parameters<typeof global.fetch>[0], init: Parameters<typeof global.fetch>[1]) => {
+            if (typeof input === "string" && input.endsWith("decision") && init && init.method === "PUT" && init.headers!["X-SESSION-ID"] === sessionIdToReject) {
                 gotRejected = true;
                 return Promise.resolve({
                     ok: false,
@@ -215,8 +217,7 @@ describe("ConfigurationSession", () => {
             }
 
             return fetch(input, init);
-        });
-        global.fetch = fetchMock;
+        };
 
         await session.makeDecision({
             type: AttributeType.Numeric,
@@ -296,12 +297,14 @@ describe("ConfigurationSession", () => {
             attributeId: {localId: "Bool1"},
             state: true
         });
-        // The decision must be applied optimistically.
         expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
+            // The decision must be applied optimistically.
             expect(a.decision).toEqual({
                 kind: DecisionKind.Explicit,
                 state: true
             } satisfies Decision<boolean>);
+            // The non-optimistic decision must be nil.
+            expect(a.nonOptimisticDecision).toBeNil();
         });
 
         const mkDec2 = session.makeDecision({
@@ -315,13 +318,15 @@ describe("ConfigurationSession", () => {
                 kind: DecisionKind.Explicit,
                 state: 10
             } satisfies Decision<number>);
+            // The non-optimistic decision must be nil.
+            expect(a.nonOptimisticDecision).toBeNil();
         });
 
         // Due to the optimistic decisions, the rawData cannot be converted to the same configuration.
         expect(() => expectations.expectRawDataToBeSameAsConfiguration()).toThrow();
 
-        const getBool1 = () => session.getConfiguration().attributes.get(GlobalAttributeIdKeyBuilder({localId: "Bool1"}))!;
-        const getNum1 = () => session.getConfiguration().attributes.get(GlobalAttributeIdKeyBuilder({localId: "Num1"}))!;
+        const getBool1 = () => session.getConfiguration().attributes.get(GlobalAttributeIdKeyBuilder({localId: "Bool1"}))! as BooleanAttribute;
+        const getNum1 = () => session.getConfiguration().attributes.get(GlobalAttributeIdKeyBuilder({localId: "Num1"}))! as NumericAttribute;
 
         const previousBool1 = getBool1();
         const previousNum1 = getNum1();
@@ -339,10 +344,18 @@ describe("ConfigurationSession", () => {
         const configurationChanges = session.getConfigurationChanges();
         expect(configurationChanges.isSatisfied).toBeNil();
         expect(configurationChanges.attributes.added).toHaveLength(0);
-        // The two attributes have changes because their satisfaction is changed.
+        // The two attributes have changes because their satisfaction is changed and the optimistic decision became applied.
         expect(configurationChanges.attributes.changed).toHaveLength(2);
-        expect(getBool1()).toEqual(hashAttribute({...previousBool1, isSatisfied: true}));
-        expect(getNum1()).toEqual(hashAttribute({...previousNum1, isSatisfied: true}));
+        expect(getBool1()).toEqual(hashAttribute({
+            ...previousBool1,
+            isSatisfied: true,
+            nonOptimisticDecision: previousBool1.decision
+        }));
+        expect(getNum1()).toEqual(hashAttribute({
+            ...previousNum1,
+            isSatisfied: true,
+            nonOptimisticDecision: previousNum1.decision
+        }));
         expect(configurationChanges.attributes.removed).toHaveLength(0);
 
         expectations.expectRawDataToBeSameAsConfiguration();
@@ -366,6 +379,8 @@ describe("ConfigurationSession", () => {
         expectSessionClosed(() => session.getConfigurationChanges());
         expectSessionClosed(() => session.clearConfigurationChanges());
         expectSessionClosed(() => session.addConfigurationChangedListener(null as any));
+        await expectSessionClosedAsync(() => session.getSessionContext(true));
+        await expectSessionClosedAsync(() => session.getConfiguration(true));
         await expectSessionClosedAsync(() => session.makeDecision(null as any));
         await expectSessionClosedAsync(() => session.setMany(null as any, null as any));
         await expectSessionClosedAsync(() => session.explain(null as any, null as any));
@@ -698,7 +713,8 @@ describe("ConfigurationSession", () => {
         const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1"));
 
         // Initially the configuration has no explicit decisions and can therefore not be reset.
-        expect(session.canResetConfiguration).toBeFalsy();
+        expect(session.canResetConfiguration()).toBeFalsy();
+        await expect(session.canResetConfiguration(true)).resolves.toBeFalsy();
 
         // Resetting the configuration if it can not be reset, must not throw an error.
         await session.resetConfiguration();
@@ -710,10 +726,12 @@ describe("ConfigurationSession", () => {
         });
 
         // After a decision is made, the configuration have to be resettable.
-        expect(session.canResetConfiguration).toBeTruthy();
+        expect(session.canResetConfiguration()).toBeTruthy();
+        await expect(session.canResetConfiguration(true)).resolves.toBeTruthy();
 
         await session.resetConfiguration();
-        expect(session.canResetConfiguration).toBeFalsy();
+        expect(session.canResetConfiguration()).toBeFalsy();
+        await expect(session.canResetConfiguration(true)).resolves.toBeFalsy();
     });
 
     describe("Store/Restore configuration", () => {
@@ -864,15 +882,39 @@ describe("ConfigurationSession", () => {
     it("getDecisions", async () => {
         const getCollectedDecisionsMock = vi.spyOn(ConfigurationRawDataL, "getCollectedDecisions");
 
+
         const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
         const expectations = getConfigurationSessionExpectations(session);
 
-        // Make a decision that results in an explicit and an implicit decision.
-        await session.makeDecision({
+        const suspendFetchDeferredPromise = pDefer();
+        const globalFetch = global.fetch;
+        global.fetch = async (input, init) => {
+            await suspendFetchDeferredPromise.promise;
+            return await globalFetch(input, init);
+        };
+
+        // Make a decision that will result in an explicit and an implicit decision.
+        const makeDecision = session.makeDecision({
             type: AttributeType.Boolean,
             attributeId: {localId: "Bool2"},
             state: true
         });
+
+        // Expect the decision to be applied optimistically.
+        expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
+            expect(a.decision).toEqual({
+                kind: DecisionKind.Explicit,
+                state: true
+            } satisfies Decision<boolean>);
+            expect(a.nonOptimisticDecision).toBeNil();
+        });
+
+        // Expect to no decisions because only non-optimistic decisions are returned.
+        expect(session.getDecisions()).toIncludeSameMembers([]);
+
+        // Release the fetch call and wait for the decision to be made.
+        suspendFetchDeferredPromise.resolve();
+        await makeDecision;
 
         expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
             expect(a.possibleDecisionStates).toIncludeSameMembers([false]);
@@ -880,9 +922,11 @@ describe("ConfigurationSession", () => {
                 kind: DecisionKind.Implicit,
                 state: false
             } satisfies Decision<boolean>);
+            expect(a.nonOptimisticDecision).toEqual({
+                kind: DecisionKind.Implicit,
+                state: false
+            } satisfies Decision<boolean>);
         });
-
-        expect(getCollectedDecisionsMock).toBeCalledTimes(0);
 
         const explicitCD: CollectedBooleanDecision = {
             attributeType: AttributeType.Boolean,
@@ -904,7 +948,7 @@ describe("ConfigurationSession", () => {
         expect(session.getDecisions(DecisionKind.Implicit)).toIncludeSameMembers([implicitCD]);
         expect(session.getDecisions(DecisionKind.Explicit)).toIncludeSameMembers([explicitCD]);
         session.getDecisions();
-        expect(getCollectedDecisionsMock).toBeCalledTimes(1);
+        expect(getCollectedDecisionsMock).toBeCalledTimes(2);
         expect(getCollectedDecisionsMock).toHaveBeenLastCalledWith(session.sessionState.configurationRawData);
     });
 
@@ -949,5 +993,51 @@ describe("ConfigurationSession", () => {
 
             return typeof input === "string" && input.includes("session") && init?.method === "DELETE";
         });
+    });
+
+    describe("ExecuteMaybeQueued", () => {
+        it("Non queued execution returns result directly", async () => {
+            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const result = session.executeMaybeQueued(false, () => 5);
+
+            expect(result).toBe(5);
+        });
+
+        it("Queued execution returns result as promise", async () => {
+            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const result = session.executeMaybeQueued(true, () => 5);
+
+            await expect(result).resolves.toBe(5);
+        });
+
+        it("Aborting the signal rejects the promise", async () => {
+            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const signal = AbortSignal.abort("AbortReason");
+
+            const callback = vi.fn(() => 5);
+            const result = session.executeMaybeQueued(true, callback, signal);
+
+            // The promise must be aborted and the callback must not be called.
+            await expect(result).rejects.toEqual("AbortReason");
+            expect(callback).toHaveBeenCalledTimes(0);
+        });
+    });
+
+    it("Queued operations return the same result as normal operations", async () => {
+        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+
+        // Make a decision to not be at the initial state
+        await session.makeDecision({
+            type: AttributeType.Boolean,
+            attributeId: {localId: "Bool2"},
+            state: true
+        });
+
+        await expect(session.getConfiguration(true)).resolves.toEqual(session.getConfiguration());
+        await expect(session.getSessionContext(true)).resolves.toEqual(session.getSessionContext());
+        await expect(session.getDecisions(true)).resolves.toEqual(session.getDecisions());
+        await expect(session.getDecisions(DecisionKind.Implicit, true)).resolves.toEqual(session.getDecisions(DecisionKind.Implicit));
+        await expect(session.getDecisions(DecisionKind.Explicit, true)).resolves.toEqual(session.getDecisions(DecisionKind.Explicit));
+        await expect(session.canResetConfiguration(true)).resolves.toEqual(session.canResetConfiguration());
     });
 });

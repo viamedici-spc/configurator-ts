@@ -15,7 +15,7 @@ import {
     CollectedDecision,
     DecisionKind,
     CollectedImplicitDecision,
-    CollectedExplicitDecision, OnCanResetConfigurationChangedHandler,
+    CollectedExplicitDecision, OnCanResetConfigurationChangedHandler, ScheduleTaskResult,
 } from "./contract/Types";
 import {ConfiguratorError, SessionClosed, TaskCancelled, SetManyDecisionsConflict} from "./contract/ConfiguratorError";
 import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
@@ -49,11 +49,27 @@ export default interface IConfigurationSession {
     getSessionContext(): SessionContext;
 
     /**
+     * Retrieves the current SessionContext associated with this session.
+     * @param queue Whether to queue this operation instead of executing it immediately.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     */
+    getSessionContext(queue: true): Promise<SessionContext>;
+
+    /**
      * Retrieves the full state of the Configuration.
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
     getConfiguration(): Configuration;
+
+    /**
+     * Retrieves the full state of the Configuration.
+     * @param queue Whether to queue this operation instead of executing it immediately.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     */
+    getConfiguration(queue: true): Promise<Configuration>;
 
     /**
      * Retrieves the changes made to the Configuration since the last time they were cleared.
@@ -76,7 +92,15 @@ export default interface IConfigurationSession {
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
-    get canResetConfiguration(): boolean;
+    canResetConfiguration(): boolean;
+
+    /**
+     * Determines if the Configuration can be reset, which is possible if decisions have been made.
+     * @param queue Whether to queue this operation instead of executing it immediately.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     */
+    canResetConfiguration(queue: true): Promise<boolean>;
 
     /**
      * Resets the Configuration to its initial state.
@@ -110,25 +134,53 @@ export default interface IConfigurationSession {
     restoreConfiguration(storedConfiguration: StoredConfiguration, mode: SetManyMode): Promise<SetManyResult>;
 
     /**
-     * Retrieves all explicit decisions in the current Configuration.
+     * Retrieves all explicit non-optimistic decisions in the current Configuration.
+     * @param kind The kind of decisions that should be returned.
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
     getDecisions(kind: DecisionKind.Explicit): ReadonlyArray<CollectedExplicitDecision>;
 
     /**
-     * Retrieves all implicit decisions in the current Configuration.
+     * Retrieves all explicit non-optimistic decisions in the current Configuration.
+     * @param kind The kind of decisions that should be returned.
+     * @param queue Whether to queue this operation instead of executing it immediately.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     */
+    getDecisions(kind: DecisionKind.Explicit, queue: true): Promise<ReadonlyArray<CollectedExplicitDecision>>;
+
+    /**
+     * Retrieves all implicit non-optimistic decisions in the current Configuration.
+     * @param kind The kind of decisions that should be returned.
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
     getDecisions(kind: DecisionKind.Implicit): ReadonlyArray<CollectedImplicitDecision>;
 
     /**
-     * Retrieves all implicit and explicit decisions in the current Configuration.
+     * Retrieves all implicit non-optimistic decisions in the current Configuration.
+     * @param kind The kind of decisions that should be returned.
+     * @param queue Whether to queue this operation instead of executing it immediately.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     */
+    getDecisions(kind: DecisionKind.Implicit, queue: true): Promise<ReadonlyArray<CollectedImplicitDecision>>;
+
+    /**
+     * Retrieves all implicit and explicit, non-optimistic decisions in the current Configuration.
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
     getDecisions(): ReadonlyArray<CollectedDecision>;
+
+    /**
+     * Retrieves all implicit and explicit, non-optimistic decisions in the current Configuration.
+     * @param queue Whether to queue this operation instead of executing it immediately.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     */
+    getDecisions(queue: true): Promise<ReadonlyArray<CollectedDecision>>;
 
     /**
      * Makes an explicit decision in the Configuration.
@@ -212,4 +264,14 @@ export default interface IConfigurationSession {
      * @remarks All pending or running operations will be rejected with {@link TaskCancelled}.
      */
     close(): Promise<void>;
+
+    /**
+     * Schedules a task to the end of the queue.
+     * @param signal An optional AbortSignal which lets the promise become immediately rejected if aborted.
+     * @throws {TaskCancelled} If the session is closed while the operation is pending or in progress.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     * @throws {AbortSignal.reason} If the {@link signal} is aborted.
+     */
+    scheduleTask(signal?: AbortSignal | null): Promise<ScheduleTaskResult>;
 }

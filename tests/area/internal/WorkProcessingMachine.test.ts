@@ -36,6 +36,8 @@ import waitForExpect from "wait-for-expect";
 import GlobalAttributeIdKeyBuilder from "../../../src/crossCutting/GlobalAttributeIdKeyBuilder";
 import {getComponentAttribute, getNumericAttribute} from "../../data/AttributeGeneration";
 import {createStatePreservingWorkItem} from "../../../src/domain/logic/WorkItem";
+import * as Session from "../../../src/domain/logic/SessionLogic";
+import {ScheduleTaskResult} from "../../../src/contract/Types";
 
 vi.mock("../../../src/domain/logic/EngineLogic");
 
@@ -79,18 +81,7 @@ describe("WorkProcessingMachine", () => {
         const w2 = createStatePreservingWorkItemDummy<number>();
         const w3 = createStatePreservingWorkItemDummy<number>();
 
-        sut.send({
-            type: "EnqueueWork",
-            workItem: w1.workItem
-        });
-        sut.send({
-            type: "EnqueueWork",
-            workItem: w2.workItem
-        });
-        sut.send({
-            type: "EnqueueWork",
-            workItem: w3.workItem
-        });
+        enqueueWork(w1.workItem, w2.workItem, w3.workItem);
 
         expectation.expectState("processing");
         // All enqueued work must be in the order of enqueuing.
@@ -142,18 +133,7 @@ describe("WorkProcessingMachine", () => {
         const w2 = createStateMutatingWorkItemDummy<number>(true);
         const w3 = createStateMutatingWorkItemDummy<number>(true);
 
-        sut.send({
-            type: "EnqueueWork",
-            workItem: w1.workItem
-        });
-        sut.send({
-            type: "EnqueueWork",
-            workItem: w2.workItem
-        });
-        sut.send({
-            type: "EnqueueWork",
-            workItem: w3.workItem
-        });
+        enqueueWork(w1.workItem, w2.workItem, w3.workItem);
 
         expectation.expectState("processing");
 
@@ -576,23 +556,35 @@ describe("WorkProcessingMachine", () => {
         // Rejecting w1 to w3 should change nothing to the configuration because w4 still overlay the attributes
         // Reject w1
         emittedMachineState.mockClear();
-        w1.resolveExecute(E.left({sessionState: null, error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError}));
+        w1.resolveExecute(E.left({
+            sessionState: null,
+            error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError
+        }));
         await expect(w1.resultPromise).rejects.toBeTruthy();
         expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Component);
         // Reject w2
         emittedMachineState.mockClear();
-        w2.resolveExecute(E.left({sessionState: null, error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError}));
+        w2.resolveExecute(E.left({
+            sessionState: null,
+            error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError
+        }));
         await expect(w2.resultPromise).rejects.toBeTruthy();
         expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Component);
         // Reject w3
         emittedMachineState.mockClear();
-        w3.resolveExecute(E.left({sessionState: null, error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError}));
+        w3.resolveExecute(E.left({
+            sessionState: null,
+            error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError
+        }));
         await expect(w3.resultPromise).rejects.toBeTruthy();
         expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Component);
 
         // Rejecting w4 should restore the initial Boolean attribute
         emittedMachineState.mockClear();
-        w4.resolveExecute(E.left({sessionState: null, error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError}));
+        w4.resolveExecute(E.left({
+            sessionState: null,
+            error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError
+        }));
         await expect(w4.resultPromise).rejects.toBeTruthy();
         expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Boolean);
     });
@@ -628,5 +620,62 @@ describe("WorkProcessingMachine", () => {
 
         await expect(w1.deferredPromise.promise).rejects.toThrowError("MappingError");
         await expect(w2.deferredPromise.promise).rejects.toThrowError("MappingError");
+    });
+
+    describe("ScheduleTask", () => {
+        it("Task resolves with right amount of pending tasks.", async () => {
+            sut.start();
+
+            const w1 = createStateMutatingWorkItemDummy<number>(true);
+            const w2 = Session.scheduleTask(null);
+            const w3 = createStateMutatingWorkItemDummy<number>(true);
+
+            enqueueWork(w1.workItem, w2, w3.workItem);
+            expectation.expectWorkInOrder([w1.workItem, w2, w3.workItem]);
+
+            expect(sut.getSnapshot().context.workExecutionAttemptAmount).toHaveLength(1);
+
+            // Resolve the first WorkItem
+            w1.resolveExecute(E.right({
+                sessionState: sessionStateWithOneMandatoryNumeric as FullQualifiedConfigurationSessionState,
+                result: 1
+            }));
+            await expect(w1.resultPromise).resolves.toBe(1);
+
+            // WorkItem 3 is still pending
+            await expect(w2.deferredPromise.promise).resolves.toEqual({pendingTasks: 1} satisfies ScheduleTaskResult);
+        });
+
+        it("Aborting the signal immediately rejects the promise.", async () => {
+            sut.start();
+
+            const abortController = new AbortController();
+            const w1 = createStateMutatingWorkItemDummy<number>(true);
+            const w2 = Session.scheduleTask(abortController.signal);
+
+            enqueueWork(w1.workItem, w2);
+            expectation.expectWorkInOrder([w1.workItem, w2]);
+
+            // W1 must be executing.
+            expect(sut.getSnapshot().context.workExecutionAttemptAmount).toHaveLength(1);
+
+            // Abort the task and check that the reason is passed.
+            abortController.abort("AbortReason");
+            await expect(w2.deferredPromise.promise).rejects.toEqual("AbortReason");
+
+            // The two WorkItems are still enqueued.
+            expectation.expectWorkInOrder([w1.workItem, w2]);
+
+            // If the first work is finished, the second work should also be removed from the queue because it was aborted previously.
+            w1.resolveExecute(E.right({
+                sessionState: sessionStateWithOneMandatoryNumeric as FullQualifiedConfigurationSessionState,
+                result: 1
+            }));
+            await expect(w1.resultPromise).resolves.toBe(1);
+
+            await waitForExpect(() => expectation.expectWorkInOrder([]));
+
+            sut.send({type: "Shutdown"});
+        });
     });
 });

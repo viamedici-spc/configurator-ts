@@ -6,13 +6,13 @@ import {
     NumericAttribute, SourceAttributeId
 } from "../../contract/Types";
 
-export type BooleanAttributeDecision = Pick<BooleanAttribute, "type" | "id" | "key" | "decision">;
-export type NumericAttributeDecision = Pick<NumericAttribute, "type" | "id" | "key" | "decision">;
-export type ComponentAttributeDecision = Pick<ComponentAttribute, "type" | "id" | "key" | "decision">;
+export type BooleanAttributeDecision = Pick<BooleanAttribute, "type" | "id" | "key" | "decision" | "nonOptimisticDecision">;
+export type NumericAttributeDecision = Pick<NumericAttribute, "type" | "id" | "key" | "decision" | "nonOptimisticDecision">;
+export type ComponentAttributeDecision = Pick<ComponentAttribute, "type" | "id" | "key" | "decision" | "nonOptimisticDecision">;
 export type ChoiceAttributeDecision = Pick<ChoiceAttribute, "type" | "id" | "key"> & {
     values: ReadonlyArray<ChoiceValueDecision>
 };
-export type ChoiceValueDecision = Pick<ChoiceValue, "id" | "decision">;
+export type ChoiceValueDecision = Pick<ChoiceValue, "id" | "decision" | "nonOptimisticDecision">;
 export type AttributeDecision =
     BooleanAttributeDecision
     | NumericAttributeDecision

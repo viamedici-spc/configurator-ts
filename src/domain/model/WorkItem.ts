@@ -14,6 +14,11 @@ export type ErrorWithSessionState = {
     type: "ErrorWithSessionState"
 } & EngineErrorResult;
 
+export type WorkQueueInfo = {
+    queuedWork: number;
+    currentlyRunningWork: number;
+};
+
 export type StateMutatingWorkItem<T> = {
     type: "StateMutating";
     itemId: string;
@@ -21,14 +26,14 @@ export type StateMutatingWorkItem<T> = {
     allowSimultaneouslyTermination: boolean;
     deferredPromise: DeferredPromise<T>;
     optimisticAttributeUpdater: Endomorphism<Configuration> | null,
-    execute: (sessionState: ConfigurationSessionState) => TaskEither<ErrorWithSessionState, EngineSuccessResultT<T>>,
+    execute: (sessionState: ConfigurationSessionState, workQueueInfo: WorkQueueInfo) => TaskEither<ErrorWithSessionState, EngineSuccessResultT<T>>,
 };
 
 export type StatePreservingWorkItem<T> = {
     type: "StatePreserving";
     itemId: string;
     deferredPromise: DeferredPromise<T>;
-    execute: (sessionState: ConfigurationSessionState) => TaskEither<PureError, T>,
+    execute: (sessionState: ConfigurationSessionState, workQueueInfo: WorkQueueInfo) => TaskEither<PureError, T>,
 };
 
 export type WorkItem<T> = StateMutatingWorkItem<T> | StatePreservingWorkItem<T>;
