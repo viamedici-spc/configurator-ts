@@ -5,19 +5,23 @@ import {
     ExplicitDecision,
     FullExplainAnswer,
     SessionContext,
-    SetManyMode,
     ExplainSolution,
     OnConfigurationChangedHandler,
     ConfigurationChanges,
     ExplainQuestionParam,
-    SetManyResult,
     Subscription,
     CollectedDecision,
     DecisionKind,
     CollectedImplicitDecision,
-    CollectedExplicitDecision, OnCanResetConfigurationChangedHandler, ScheduleTaskResult,
+    CollectedExplicitDecision,
+    OnCanResetConfigurationChangedHandler,
+    ScheduleTaskResult,
+    OnStoredConfigurationChangedHandler,
+    OnDecisionsChangedHandler,
+    MakeManyDecisionsResult,
+    MakeManyDecisionsMode
 } from "./contract/Types";
-import {ConfiguratorError, SessionClosed, TaskCancelled, SetManyDecisionsConflict} from "./contract/ConfiguratorError";
+import {ConfiguratorError, SessionClosed, TaskCancelled, MakeManyDecisionsConflict} from "./contract/ConfiguratorError";
 import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
 
 export default interface IConfigurationSession {
@@ -40,6 +44,48 @@ export default interface IConfigurationSession {
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
     addCanResetConfigurationChangedListener(handler: OnCanResetConfigurationChangedHandler): Subscription;
+
+    /**
+     * Adds a listener that reacts to changes of {@link storeConfiguration}.
+     * Once registered, the handler is immediately invoked with the current state.
+     * @param handler The handler to be invoked when storeConfiguration changed.
+     * @return A subscription that allows unsubscribing the handler from future changes.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     */
+    addStoredConfigurationChangedListener(handler: OnStoredConfigurationChangedHandler): Subscription;
+
+    /**
+     * Adds a listener that reacts to changes of {@link getDecisions}.
+     * Once registered, the handler is immediately invoked with the current state.
+     * @param kind The kind of decisions that should be listened to.
+     * @param handler The handler to be invoked when getDecisions changed.
+     * @return A subscription that allows unsubscribing the handler from future changes.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     */
+    addDecisionsChangedListener(kind: DecisionKind.Explicit, handler: OnDecisionsChangedHandler<CollectedExplicitDecision>): Subscription;
+
+    /**
+     * Adds a listener that reacts to changes of {@link getDecisions}.
+     * Once registered, the handler is immediately invoked with the current state.
+     * @param kind The kind of decisions that should be listened to.
+     * @param handler The handler to be invoked when getDecisions changed.
+     * @return A subscription that allows unsubscribing the handler from future changes.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     */
+    addDecisionsChangedListener(kind: DecisionKind.Implicit, handler: OnDecisionsChangedHandler<CollectedImplicitDecision>): Subscription;
+
+    /**
+     * Adds a listener that reacts to changes of {@link getDecisions}.
+     * Once registered, the handler is immediately invoked with the current state.
+     * @param handler The handler to be invoked when getDecisions changed.
+     * @return A subscription that allows unsubscribing the handler from future changes.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     */
+    addDecisionsChangedListener(handler: OnDecisionsChangedHandler<CollectedDecision>): Subscription;
 
     /**
      * Retrieves the current SessionContext associated with this session.
@@ -81,7 +127,7 @@ export default interface IConfigurationSession {
     getConfigurationChanges(): ConfigurationChanges;
 
     /**
-     * Clears all tracked configuration changes.
+     * Clears all tracked Configuration changes.
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
@@ -112,7 +158,7 @@ export default interface IConfigurationSession {
     resetConfiguration(): Promise<void>;
 
     /**
-     * Stores the current Configuration state.
+     * Stores the current non-optimistic Configuration state.
      * @remarks The method waits for any pending or ongoing operations to complete before storing the state.
      * @throws {TaskCancelled} If the session is closed while the operation is pending or in progress.
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
@@ -121,7 +167,7 @@ export default interface IConfigurationSession {
     storeConfiguration(): Promise<StoredConfiguration>;
 
     /**
-     * Overwrites the current Configuration state with a previously stored configuration.
+     * Overwrites the current Configuration state with a previously stored Configuration.
      * @remarks Ensure that the session was initialized with the same SessionContext as when the configuration was stored,
      * otherwise not all decisions may be restored.
      * @param storedConfiguration The configuration to be restored.
@@ -131,7 +177,7 @@ export default interface IConfigurationSession {
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
-    restoreConfiguration(storedConfiguration: StoredConfiguration, mode: SetManyMode): Promise<SetManyResult>;
+    restoreConfiguration(storedConfiguration: StoredConfiguration, mode: MakeManyDecisionsMode): Promise<MakeManyDecisionsResult>;
 
     /**
      * Retrieves all explicit non-optimistic decisions in the current Configuration.
@@ -192,27 +238,40 @@ export default interface IConfigurationSession {
     makeDecision(decision: ExplicitDecision): Promise<void>;
 
     /**
-     * Applies a solution that was generated either by explaining a circumstance or as the result of a rejected {@link setMany}.
+     * Applies a solution that was generated either by explaining a circumstance or as the result of a rejected {@link makeManyDecisions}.
      * @param solution The solution to be applied.
      * @return The decisions that were rejected, depending on how the solution was generated.
-     * @throws {SetManyDecisionsConflict} Depending on how the solution was created.
+     * @throws {MakeManyDecisionsConflict} Depending on how the solution was created.
      * @throws {TaskCancelled} If the session is closed while the operation is pending or in progress.
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
-    applySolution(solution: ExplainSolution): Promise<SetManyResult>;
+    applySolution(solution: ExplainSolution): Promise<MakeManyDecisionsResult>;
 
     /**
      * Sets multiple explicit decisions at once.
      * @param decisions The explicit decisions to be made.
      * @param mode The mode defining how existing decisions should be handled.
      * @return The decisions that were rejected when automatic conflict resolution was applied.
-     * @throws {SetManyDecisionsConflict} If decisions were rejected and manual conflict resolution was required.
+     * @throws {MakeManyDecisionsConflict} If decisions were rejected and manual conflict resolution was required.
+     * @throws {TaskCancelled} If the session is closed while the operation is pending or in progress.
+     * @throws {SessionClosed} If the session has already been closed using {@link close}.
+     * @throws {ConfiguratorError} If a general configuration error occurs.
+     * @deprecated Use {@link makeManyDecisions}
+     */
+    setMany(decisions: ReadonlyArray<ExplicitDecision>, mode: MakeManyDecisionsMode): Promise<MakeManyDecisionsResult>;
+
+    /**
+     * Makes multiple decisions in the Configuration.
+     * @param decisions The explicit decisions to be made.
+     * @param mode The mode defining how existing decisions should be handled.
+     * @return The decisions that were rejected when automatic conflict resolution was applied.
+     * @throws {MakeManyDecisionsConflict} If decisions were rejected and manual conflict resolution was required.
      * @throws {TaskCancelled} If the session is closed while the operation is pending or in progress.
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
-    setMany(decisions: ReadonlyArray<ExplicitDecision>, mode: SetManyMode): Promise<SetManyResult>;
+    makeManyDecisions(decisions: ReadonlyArray<ExplicitDecision>, mode: MakeManyDecisionsMode): Promise<MakeManyDecisionsResult>;
 
     /**
      * Sets the SessionContext of the session and attempts to migrate all existing decisions.

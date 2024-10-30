@@ -3,7 +3,7 @@ import {
     AttributeType, BooleanAttribute, ChoiceAttribute, ChoiceValue,
     ChoiceValueDecisionState, ComponentAttribute,
     ComponentDecisionState, Decision,
-    DecisionKind, ExplicitDecision, NumericAttribute, SetManyMode
+    DecisionKind, ExplicitDecision, MakeManyDecisionsMode, NumericAttribute,
 } from "../../contract/Types";
 import GlobalAttributeIdKeyBuilder from "../../crossCutting/GlobalAttributeIdKeyBuilder";
 import {match} from "ts-pattern";
@@ -15,7 +15,7 @@ export function makeDecision(decision: ExplicitDecision) {
     return updateAttributes(applyDecision(decision));
 }
 
-export function setMany(decisions: ReadonlyArray<ExplicitDecision>, mode: SetManyMode) {
+export function makeManyDecisions(decisions: ReadonlyArray<ExplicitDecision>, mode: MakeManyDecisionsMode) {
     const resetAllDecisions = () => updateAttributes(RM.map(a => match(a)
         .returnType<Attribute>()
         .with({type: AttributeType.Boolean}, b => ({...b, decision: null} satisfies BooleanAttribute))

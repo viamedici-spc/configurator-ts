@@ -37,9 +37,9 @@ import {
     OptimisticDecisionOptions,
     ServerSideSessionInitialisationOptions,
     SessionContext,
-    SetManyDropExistingDecisionsMode,
-    SetManyKeepExistingDecisionsMode,
-    SetManyMode
+    DropExistingDecisionsMode,
+    KeepExistingDecisionsMode,
+    MakeManyDecisionsMode
 } from "./Types";
 import {
     AttributeConsequence,
@@ -56,7 +56,7 @@ import {
 } from "../domain/model/PartialAttribute";
 import HashedConfiguration from "../domain/model/HashedConfiguration";
 import {HashedAttribute} from "../domain/model/HashedAttribute";
-import {SetManyDecisionsConflict} from "./ConfiguratorError";
+import {MakeManyDecisionsConflict} from "./ConfiguratorError";
 import {deepEqual} from "fast-equals";
 import ConfigurationRawData from "../domain/model/ConfigurationRawData";
 import {match} from "ts-pattern";
@@ -90,18 +90,18 @@ export const conflictResolutionEq: EqT<ConflictResolution> = Eq.union<ConflictRe
     .with((r): r is AutomaticConflictResolution => r.type === "Automatic", automaticConflictResolutionEq)
     .with((r): r is ManualConflictResolution => r.type === "Manual", manualConflictResolutionEq);
 
-export const setManyDropExistingDecisionsModeEq: EqT<SetManyDropExistingDecisionsMode> = Eq.struct<SetManyDropExistingDecisionsMode>({
+export const dropExistingDecisionsModeEq: EqT<DropExistingDecisionsMode> = Eq.struct<DropExistingDecisionsMode>({
     type: Str.Eq,
     conflictHandling: conflictResolutionEq
 });
 
-export const setManyKeepExistingDecisionsModeEq: EqT<SetManyKeepExistingDecisionsMode> = Eq.struct<SetManyKeepExistingDecisionsMode>({
+export const keepExistingDecisionsModeEq: EqT<KeepExistingDecisionsMode> = Eq.struct<KeepExistingDecisionsMode>({
     type: Str.Eq,
 });
 
-export const setManyModeEq: EqT<SetManyMode> = Eq.union<SetManyMode>()
-    .with((m): m is SetManyDropExistingDecisionsMode => m.type === "DropExistingDecisions", setManyDropExistingDecisionsModeEq)
-    .with((m): m is SetManyKeepExistingDecisionsMode => m.type === "KeepExistingDecisions", setManyKeepExistingDecisionsModeEq);
+export const makeManyDecisionsModeEq: EqT<MakeManyDecisionsMode> = Eq.union<MakeManyDecisionsMode>()
+    .with((m): m is DropExistingDecisionsMode => m.type === "DropExistingDecisions", dropExistingDecisionsModeEq)
+    .with((m): m is KeepExistingDecisionsMode => m.type === "KeepExistingDecisions", keepExistingDecisionsModeEq);
 
 export const explicitBooleanDecisionEq: EqT<ExplicitBooleanDecision> = Eq.struct<ExplicitBooleanDecision>({
     type: Str.Eq,
@@ -151,7 +151,7 @@ export const explicitDecisionByIdEq = pipe(
 );
 
 export const explainSolutionEq: EqT<ExplainSolution> = Eq.struct<ExplainSolution>({
-    mode: setManyModeEq,
+    mode: makeManyDecisionsModeEq,
     decisions: RA.getUnsortedArrayEq(explicitDecisionEq)
 });
 
@@ -361,7 +361,7 @@ export const fullExplainAnswerEq: EqT<FullExplainAnswer> = Eq.struct<FullExplain
     constraintExplanations: RA.getUnsortedArrayEq(constraintExplanationEq),
 });
 
-export const setManyDecisionsConflictEq: EqT<SetManyDecisionsConflict> = Eq.struct<SetManyDecisionsConflict>({
+export const makeManyDecisionsConflictEq: EqT<MakeManyDecisionsConflict> = Eq.struct<MakeManyDecisionsConflict>({
     type: Str.Eq,
     title: Str.Eq,
     detail: Str.Eq,
@@ -412,7 +412,7 @@ export const sessionContextEq: EqT<SessionContext> = Eq.struct<SessionContext>({
         restoreConfiguration: Eq.eqNullable(Bool.Eq),
         applySolution: Eq.eqNullable(Bool.Eq),
         makeDecision: Eq.eqNullable(Bool.Eq),
-        setMany: Eq.eqNullable(Bool.Eq)
+        makeManyDecisions: Eq.eqNullable(Bool.Eq)
     })),
     allowedInExplain: Eq.eqNullable(allowedInExplain),
     usageRuleParameters: Eq.eqNullable(RR.getEq(Str.Eq)),

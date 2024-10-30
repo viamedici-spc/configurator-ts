@@ -79,7 +79,7 @@ export function mapConfiguratorError(problemDetails: Engine.ProblemDetails): Con
         .with({type: "ConflictWithConsequence"}, mapConflictWithConsequence)
         .with({type: "DecisionsToRespectInvalid"}, mapDecisionsToRespectInvalid)
         .with({type: "SessionNotFound"}, mapSessionNotFound)
-        // This response is handled explicit by the SetMany method. If it occurs outside the SetMany scope, it is probably a ServerError.
+        // This response is handled explicit by the MakeManyDecisions method. If it occurs outside the MakeManyDecisions scope, it is probably a ServerError.
         .with({type: "PutManyDecisionsConflict"}, () => serverError)
         .with({type: "AssignedChannelNotFound"}, () => serverError)
         .with({type: "InternalServerError"}, () => serverError)

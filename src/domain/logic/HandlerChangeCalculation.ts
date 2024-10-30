@@ -1,14 +1,21 @@
 import {none, Option} from "fp-ts/Option";
 import {
-    Attribute, ConfigurationChanges, GlobalAttributeId,
+    Attribute,
+    CollectedDecision,
+    ConfigurationChanges,
+    GlobalAttributeId,
     GlobalAttributeIdKey,
-    OnCanResetConfigurationChangedHandler, OnConfigurationChangedHandler
+    OnCanResetConfigurationChangedHandler,
+    OnDecisionsChangedHandler,
+    OnConfigurationChangedHandler,
+    OnStoredConfigurationChangedHandler
 } from "../../contract/Types";
 import ConfigurationRawData from "../model/ConfigurationRawData";
 import {O, Ord, OrdT, P, pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
 import HashedConfiguration from "../model/HashedConfiguration";
 import {globalAttributeIdKeyEq} from "../../contract/Eqs";
 import {isEmpty} from "./ConfigurationChanges";
+import {StoredConfiguration} from "../../contract/storedConfiguration/StoredConfiguration";
 
 export function calculateCanResetConfigurationChangedHandler(canReset: (rawData: ConfigurationRawData) => boolean): (previous: ConfigurationRawData | null, current: ConfigurationRawData | null) => Option<Parameters<OnCanResetConfigurationChangedHandler>> {
     return (previous, current) => {
@@ -70,4 +77,24 @@ export function calculateConfigurationChangedHandler(previous: HashedConfigurati
         O.fromPredicate(P.not(isEmpty)),
         O.map(c => [current, c])
     );
+}
+
+export function calculateStoredConfigurationChangedHandler(getStoredConfiguration: (rawData: ConfigurationRawData) => StoredConfiguration): (previous: ConfigurationRawData | null, current: ConfigurationRawData | null) => Option<Parameters<OnStoredConfigurationChangedHandler>> {
+    return mappingBasedChangeHandler(getStoredConfiguration);
+}
+
+export function calculateCollectedDecisionsChangedHandler<T extends CollectedDecision>(getCollectedDecisions: (rawData: ConfigurationRawData) => ReadonlyArray<T>): (previous: ConfigurationRawData | null, current: ConfigurationRawData | null) => Option<Parameters<OnDecisionsChangedHandler<T>>> {
+    return mappingBasedChangeHandler(getCollectedDecisions);
+}
+
+function mappingBasedChangeHandler<TI, TO>(mapper: (rawData: TI) => TO): (previous: TI | null, current: TI | null) => Option<[TO]> {
+    return (previous, current) => {
+        if (current == null || previous === current) {
+            return none;
+        }
+
+        const mappingResult = mapper(current);
+
+        return some([mappingResult]);
+    };
 }

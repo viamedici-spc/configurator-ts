@@ -23,7 +23,6 @@ import {
     SnapshotInvalid,
     SnapshotNotFound,
     ConfigurationModelNotFeasible,
-    SetManyDecisionsConflict,
     SpecifiedDeploymentForbidden,
     AttributeNotFound,
     ChoiceAttributeNotFound,
@@ -41,7 +40,8 @@ import {
     SessionClosed,
     StoredConfigurationInvalid,
     ConfiguratorError,
-    ConfiguratorErrorType
+    ConfiguratorErrorType,
+    MakeManyDecisionsConflict
 } from "./contract/ConfiguratorError";
 import {
     LocalAttributeId,
@@ -122,9 +122,6 @@ import {
     CollectedDecision,
     CollectedImplicitDecision,
     CollectedExplicitDecision,
-    SetManyMode,
-    SetManyDropExistingDecisionsMode,
-    SetManyKeepExistingDecisionsMode,
     ConflictResolution,
     ManualConflictResolution,
     AutomaticConflictResolution,
@@ -133,7 +130,14 @@ import {
     ExplainQuestionParam,
     SetManyResult,
     Subscription,
-    OnCanResetConfigurationChangedHandler
+    OnCanResetConfigurationChangedHandler,
+    OnStoredConfigurationChangedHandler,
+    OnDecisionsChangedHandler,
+    ScheduleTaskResult,
+    MakeManyDecisionsMode,
+    DropExistingDecisionsMode,
+    KeepExistingDecisionsMode,
+    MakeManyDecisionsResult
 } from "./contract/Types";
 import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
 import * as StoredConfigurationV1 from "./contract/storedConfiguration/StoredConfigurationV1";
@@ -197,7 +201,7 @@ export {
     type SnapshotInvalid,
     type SnapshotNotFound,
     type ConfigurationModelNotFeasible,
-    type SetManyDecisionsConflict,
+    type MakeManyDecisionsConflict,
     type SpecifiedDeploymentForbidden,
     type AttributeNotFound,
     type ChoiceAttributeNotFound,
@@ -297,18 +301,22 @@ export {
     type CollectedDecision,
     type CollectedImplicitDecision,
     type CollectedExplicitDecision,
-    type SetManyMode,
-    type SetManyDropExistingDecisionsMode,
-    type SetManyKeepExistingDecisionsMode,
+    type SetManyResult,
+    type MakeManyDecisionsResult,
+    type MakeManyDecisionsMode,
+    type DropExistingDecisionsMode,
+    type KeepExistingDecisionsMode,
     type ConflictResolution,
     type ManualConflictResolution,
     type AutomaticConflictResolution,
     type ConfigurationChanges,
     type OnConfigurationChangedHandler,
     type OnCanResetConfigurationChangedHandler,
+    type OnStoredConfigurationChangedHandler,
+    type OnDecisionsChangedHandler,
     type ExplainQuestionParam,
-    type SetManyResult,
     type Subscription,
+    type ScheduleTaskResult,
 
     // Interpreter
     ConfigurationInterpreter,

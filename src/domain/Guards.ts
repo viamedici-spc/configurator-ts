@@ -1,7 +1,7 @@
 import {
     ExplicitDecision,
-    SetManyDropExistingDecisionsMode,
-    SetManyKeepExistingDecisionsMode
+    DropExistingDecisionsMode,
+    KeepExistingDecisionsMode
 } from "../contract/Types";
 import GlobalAttributeIdKeyBuilder from "../crossCutting/GlobalAttributeIdKeyBuilder";
 import {getExplicitDecisionsForAttribute} from "./logic/ConfigurationRawData";
@@ -28,6 +28,6 @@ export function shouldSkipMakeDecision(explicitDecision: ExplicitDecision, rawDa
     return doesDecisionAlreadyExist;
 }
 
-export function shouldSkipSetMany(manyDecisions: ReadonlyArray<ExplicitDecision>, mode: SetManyKeepExistingDecisionsMode["type"] | SetManyDropExistingDecisionsMode["type"]): boolean {
+export function shouldSkipMakeManyDecisions(manyDecisions: ReadonlyArray<ExplicitDecision>, mode: KeepExistingDecisionsMode["type"] | DropExistingDecisionsMode["type"]): boolean {
     return RA.isEmpty(manyDecisions) && mode === "KeepExistingDecisions";
 }

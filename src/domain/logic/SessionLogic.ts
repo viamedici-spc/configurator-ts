@@ -1,9 +1,8 @@
 import * as Engine from "./EngineLogic";
-import * as Storing from "./ConfigurationStoring";
 import * as OD from "./OptimisticDecisions";
-import {E, pipe, TE} from "@viamedici-spc/fp-ts-extensions";
+import {E, pipe} from "@viamedici-spc/fp-ts-extensions";
 import {asLeftUnit, asUnit, createStateMutatingWorkItem, createStatePreservingWorkItem, guardSession} from "./WorkItem";
-import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
+import {FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
 import {EngineSuccessResultT} from "./EngineLogic";
 import {ScheduleTaskResult} from "../../contract/Types";
 import {WorkItem, WorkQueueInfo} from "../model/WorkItem";
@@ -15,11 +14,11 @@ export const makeDecision = pipe(
     asLeftUnit,
     f => createStateMutatingWorkItem(f, OD.makeDecision, true),
 );
-export const setMany = pipe(
-    Engine.setMany,
+export const makeManyDecisions = pipe(
+    Engine.makeManyDecisions,
     guardSession,
     asLeftUnit,
-    f => createStateMutatingWorkItem(f, OD.setMany, true),
+    f => createStateMutatingWorkItem(f, OD.makeManyDecisions, true),
 );
 export const setSessionContext = pipe(
     Engine.setSessionContext,
@@ -36,10 +35,7 @@ export const explain = pipe(
     guardSession,
     createStatePreservingWorkItem
 );
-export const storeConfiguration = pipe(
-    () => (sessionState: ConfigurationSessionState) => TE.right(Storing.storeConfiguration(sessionState.configurationRawData)),
-    createStatePreservingWorkItem
-);
+
 export const scheduleTask = (signal: AbortSignal | null | undefined): WorkItem<ScheduleTaskResult> => {
     const execute = () =>
         (sessionState: FullQualifiedConfigurationSessionState, workQueueInfo: WorkQueueInfo) =>

@@ -12,9 +12,9 @@ import {
     ExplicitComponentDecision,
     ExplicitDecision,
     ExplicitNumericDecision,
-    GlobalAttributeId,
+    GlobalAttributeId, MakeManyDecisionsMode,
     SessionContext,
-    SetManyMode, WhyIsNotSatisfied, WhyIsStateNotPossible
+    WhyIsNotSatisfied, WhyIsStateNotPossible
 } from "../../contract/Types";
 import {pipe, RA} from "@viamedici-spc/fp-ts-extensions";
 import {Refinement} from "fp-ts/Refinement";
@@ -141,7 +141,7 @@ export function mapSessionContext(sessionContext: SessionContext): Engine.Create
     };
 }
 
-export function mapManyDecisions(decisions: ReadonlyArray<ExplicitDecision>, mode: SetManyMode): Engine.ExplicitDecisions {
+export function mapManyDecisions(decisions: ReadonlyArray<ExplicitDecision>, mode: MakeManyDecisionsMode): Engine.ExplicitDecisions {
     const getDecisions = <D extends ExplicitDecision, E>(refinement: Refinement<ExplicitDecision, D>, mapper: (d: D) => E) => pipe(
         decisions,
         RA.filter(refinement),

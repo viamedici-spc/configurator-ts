@@ -1,7 +1,7 @@
 import {
     ExplainAnswer,
     ExplainQuestion, ExplainQuestionType,
-    ExplicitDecision, SessionContext, SetManyMode, SetManyResult
+    ExplicitDecision, MakeManyDecisionsResult, MakeManyDecisionsMode, SessionContext
 } from "../../contract/Types";
 import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
 import {ConnectionError, ConfiguratorError, ServerError, ConfiguratorErrorType} from "../../contract/ConfiguratorError";
@@ -21,7 +21,7 @@ import {
 import {none, Option} from "fp-ts/Option";
 import {getAllExplicitDecisions, merge} from "./ConfigurationRawData";
 import ConfigurationRawData from "../model/ConfigurationRawData";
-import {shouldSkipSetMany, shouldSkipMakeDecision} from "../Guards";
+import {shouldSkipMakeDecision, shouldSkipMakeManyDecisions} from "../Guards";
 import Logger from "../../contract/Logger";
 
 export type EngineSuccessResultT<T> = {
@@ -89,18 +89,18 @@ export function createSession(sessionContext: SessionContext): TaskEither<Config
     );
 }
 
-export function setMany(decisions: ReadonlyArray<ExplicitDecision>, mode: SetManyMode): (sessionState: FullQualifiedConfigurationSessionState) => TaskEither<ConfiguratorError, EngineSuccessResultT<SetManyResult>> {
+export function makeManyDecisions(decisions: ReadonlyArray<ExplicitDecision>, mode: MakeManyDecisionsMode): (sessionState: FullQualifiedConfigurationSessionState) => TaskEither<ConfiguratorError, EngineSuccessResultT<MakeManyDecisionsResult>> {
     const body = DtoE.mapManyDecisions(decisions, mode);
 
     return sessionState => {
         // Skip the Api call if the decision was already applied.
-        if (shouldSkipSetMany(decisions, mode.type)) {
+        if (shouldSkipMakeManyDecisions(decisions, mode.type)) {
             return TE.right({
                 sessionState: sessionState,
                 result: {
                     rejectedDecisions: []
                 }
-            } satisfies EngineSuccessResultT<SetManyResult>);
+            } satisfies EngineSuccessResultT<MakeManyDecisionsResult>);
         }
 
         const apiClient = getApiClient(sessionState.sessionContext.apiBaseUrl);
@@ -118,7 +118,7 @@ export function setMany(decisions: ReadonlyArray<ExplicitDecision>, mode: SetMan
                         configuration: t.configuration
                     } satisfies ConfigurationSessionState,
                     result: t.result
-                } satisfies EngineSuccessResultT<SetManyResult>))
+                } satisfies EngineSuccessResultT<MakeManyDecisionsResult>))
             ))
         );
     };
@@ -241,7 +241,7 @@ export function createSessionWithData(sessionContext: SessionContext, configurat
             if (RA.isNonEmpty(explicitDecisions)) {
                 return pipe(
                     state,
-                    setMany(explicitDecisions, {
+                    makeManyDecisions(explicitDecisions, {
                         type: "DropExistingDecisions",
                         conflictHandling: {type: "Automatic"}
                     }),

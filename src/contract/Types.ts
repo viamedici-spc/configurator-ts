@@ -1,5 +1,6 @@
 import {ExplainQuestionBuilder} from "./ExplainQuestionBuilder";
 import * as Engine from "../apiClient/engine/Engine";
+import {StoredConfiguration} from "./storedConfiguration/StoredConfiguration";
 
 export type LocalAttributeId = string;
 export type LocalRuleId = string;
@@ -181,7 +182,7 @@ export type ConstraintExplanation = {
 
 export type ExplainSolution = {
     readonly decisions: ReadonlyArray<ExplicitDecision>;
-    readonly mode: SetManyMode
+    readonly mode: MakeManyDecisionsMode
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -251,7 +252,7 @@ export type SessionContext = {
 
     /**
      * Defines which methods the optimistic decisions feature should be enabled for.
-     * @default Optimistic decisions are enabled for `makeDecision`, `setMany`, and `applySolution` by default.
+     * @default Optimistic decisions are enabled for `makeDecision`, `makeManyDecisions`, and `applySolution` by default.
      */
     readonly optimisticDecisionOptions?: OptimisticDecisionOptions | null;
 
@@ -271,10 +272,10 @@ export type OptimisticDecisionOptions = {
     readonly makeDecision?: boolean | null;
 
     /**
-     * Enables the optimistic decisions feature for `setMany`.
+     * Enables the optimistic decisions feature for `makeManyDecisions`.
      * @default true
      */
-    readonly setMany?: boolean | null;
+    readonly makeManyDecisions?: boolean | null;
 
     /**
      * Enables the optimistic decisions feature for `applySolution`.
@@ -496,14 +497,14 @@ export type CollectedDecision =
 export type CollectedImplicitDecision = CollectedDecision & { kind: DecisionKind.Implicit };
 export type CollectedExplicitDecision = CollectedDecision & { kind: DecisionKind.Explicit };
 
-export type SetManyMode = SetManyKeepExistingDecisionsMode | SetManyDropExistingDecisionsMode;
+export type MakeManyDecisionsMode = DropExistingDecisionsMode | KeepExistingDecisionsMode;
 
-export type SetManyDropExistingDecisionsMode = {
+export type DropExistingDecisionsMode = {
     type: "DropExistingDecisions",
     conflictHandling: ConflictResolution
 }
 
-export type SetManyKeepExistingDecisionsMode = {
+export type KeepExistingDecisionsMode = {
     type: "KeepExistingDecisions"
 }
 
@@ -531,9 +532,15 @@ export type OnConfigurationChangedHandler = (configuration: Configuration, confi
 
 export type OnCanResetConfigurationChangedHandler = (canResetConfiguration: boolean) => void;
 
+export type OnStoredConfigurationChangedHandler = (storedConfiguration: StoredConfiguration) => void;
+
+export type OnDecisionsChangedHandler<T extends CollectedDecision> = (decisions: ReadonlyArray<T>) => void;
+
 export type ExplainQuestionParam = ExplainQuestion | ((b: ExplainQuestionBuilder) => ExplainQuestion);
 
-export type SetManyResult = {
+export type SetManyResult = MakeManyDecisionsResult;
+
+export type MakeManyDecisionsResult = {
     readonly rejectedDecisions: ReadonlyArray<ExplicitDecision>
 };
 

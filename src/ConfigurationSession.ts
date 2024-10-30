@@ -14,10 +14,12 @@ import {
     CollectedImplicitDecision,
     OnConfigurationChangedHandler,
     SessionContext,
-    SetManyMode,
     SetManyResult,
     Subscription as TSubscription,
-    OnCanResetConfigurationChangedHandler, ScheduleTaskResult
+    OnCanResetConfigurationChangedHandler,
+    ScheduleTaskResult,
+    OnStoredConfigurationChangedHandler,
+    OnDecisionsChangedHandler, MakeManyDecisionsResult, MakeManyDecisionsMode
 } from "./contract/Types";
 import IConfigurationSession from "./IConfigurationSession";
 import {ConfigurationSessionState} from "./domain/model/ConfigurationSessionState";
@@ -28,7 +30,7 @@ import * as RT from "fp-ts/ReadonlyTuple";
 import {createWorkProcessingMachine, MachineState, resolveDeferredPromises} from "./domain/WorkProcessingMachine";
 import {explainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
 import {ConfiguratorErrorType, SessionClosed} from "./contract/ConfiguratorError";
-import {loadConfiguration} from "./domain/logic/ConfigurationStoring";
+import {loadConfiguration, storeConfiguration} from "./domain/logic/ConfigurationStoring";
 import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
 import {getCollectedDecisions, hasAnyExplicitDecision} from "./domain/logic/ConfigurationRawData";
 import {
@@ -40,7 +42,9 @@ import SubscriptionHandler from "./domain/logic/SubscriptionHandler";
 import ConfigurationRawData from "./domain/model/ConfigurationRawData";
 import {
     calculateConfigurationChangedHandler,
-    calculateCanResetConfigurationChangedHandler
+    calculateCanResetConfigurationChangedHandler,
+    calculateStoredConfigurationChangedHandler,
+    calculateCollectedDecisionsChangedHandler
 } from "./domain/logic/HandlerChangeCalculation";
 import HashedConfiguration from "./domain/model/HashedConfiguration";
 import GenericChangesHandler from "./domain/logic/GenericChangesHandler";
@@ -51,12 +55,30 @@ export default class ConfigurationSession implements IConfigurationSession {
     private readonly canResetConfigurationMemo = memize(hasAnyExplicitDecision, {maxSize: 5});
     private readonly calculateConfigurationChangedHandlerMemo = memize(calculateConfigurationChangedHandler, {maxSize: 5});
     private readonly getCollectedDecisionsMemo = memize(getCollectedDecisions);
-    private readonly getImplicitCollectedDecisionsMemo = memize(flow(this.getCollectedDecisionsMemo.bind(this), RA.filter(collectedImplicitDecisionRefinement)));
-    private readonly getExplicitCollectedDecisionsMemo = memize(flow(this.getCollectedDecisionsMemo.bind(this), RA.filter(collectedExplicitDecisionRefinement)));
+    private readonly getCollectedImplicitDecisionsMemo = memize(flow(this.getCollectedDecisionsMemo.bind(this), RA.filter(collectedImplicitDecisionRefinement)));
+    private readonly getCollectedExplicitDecisionsMemo = memize(flow(this.getCollectedDecisionsMemo.bind(this), RA.filter(collectedExplicitDecisionRefinement)));
+    private readonly getStoredConfigurationMemo = memize(flow(this.getCollectedExplicitDecisionsMemo.bind(this), storeConfiguration));
 
     private readonly sessionChangesHandler = new GenericChangesHandler<HashedConfiguration, Parameters<OnConfigurationChangedHandler>>(this.calculateConfigurationChangedHandlerMemo.bind(this));
     private readonly configurationChangedSubscriptionHandler = new SubscriptionHandler<HashedConfiguration, Parameters<OnConfigurationChangedHandler>>(this.calculateConfigurationChangedHandlerMemo.bind(this));
     private readonly canResetConfigurationSubscriptionHandler = new SubscriptionHandler<ConfigurationRawData, Parameters<OnCanResetConfigurationChangedHandler>>(calculateCanResetConfigurationChangedHandler(this.canResetConfigurationMemo.bind(this)));
+    private readonly storedConfigurationSubscriptionHandler = new SubscriptionHandler<ConfigurationRawData, Parameters<OnStoredConfigurationChangedHandler>>(calculateStoredConfigurationChangedHandler(this.getStoredConfigurationMemo.bind(this)));
+    private readonly decisionsSubscriptionHandler = new SubscriptionHandler<ConfigurationRawData, Parameters<OnDecisionsChangedHandler<CollectedDecision>>>(calculateCollectedDecisionsChangedHandler(this.getCollectedDecisionsMemo.bind(this)));
+    private readonly explicitDecisionsSubscriptionHandler = new SubscriptionHandler<ConfigurationRawData, Parameters<OnDecisionsChangedHandler<CollectedExplicitDecision>>>(calculateCollectedDecisionsChangedHandler(this.getCollectedExplicitDecisionsMemo.bind(this)));
+    private readonly implicitDecisionsSubscriptionHandler = new SubscriptionHandler<ConfigurationRawData, Parameters<OnDecisionsChangedHandler<CollectedImplicitDecision>>>(calculateCollectedDecisionsChangedHandler(this.getCollectedImplicitDecisionsMemo.bind(this)));
+
+    private readonly hashedConfigurationInputHandler: ReadonlyArray<(hashedConfiguration: HashedConfiguration) => void> = [
+        this.sessionChangesHandler.setValue.bind(this.sessionChangesHandler),
+        this.configurationChangedSubscriptionHandler.notifyListeners.bind(this.configurationChangedSubscriptionHandler),
+    ];
+    private readonly rawDataInputHandlers: ReadonlyArray<SubscriptionHandler<ConfigurationRawData, any>> = [
+        this.canResetConfigurationSubscriptionHandler,
+        this.storedConfigurationSubscriptionHandler,
+        this.decisionsSubscriptionHandler,
+        this.explicitDecisionsSubscriptionHandler,
+        this.implicitDecisionsSubscriptionHandler,
+    ];
+
     private readonly actor: ReturnType<typeof createWorkProcessingMachine>;
     private readonly subscription: Subscription;
 
@@ -84,8 +106,8 @@ export default class ConfigurationSession implements IConfigurationSession {
             this.throwIfSessionClosed();
 
             const fn = match(kind)
-                .with(DecisionKind.Explicit, () => this.getExplicitCollectedDecisionsMemo.bind(this))
-                .with(DecisionKind.Implicit, () => this.getImplicitCollectedDecisionsMemo.bind(this))
+                .with(DecisionKind.Explicit, () => this.getCollectedExplicitDecisionsMemo.bind(this))
+                .with(DecisionKind.Implicit, () => this.getCollectedImplicitDecisionsMemo.bind(this))
                 .with(P.nullish, () => this.getCollectedDecisionsMemo.bind(this))
                 .exhaustive();
             return fn(this.sessionState.configurationRawData);
@@ -100,16 +122,14 @@ export default class ConfigurationSession implements IConfigurationSession {
     }
 
     async storeConfiguration(): Promise<StoredConfiguration> {
-        this.throwIfSessionClosed();
+        return this.executeMaybeQueued(true, () => {
+            this.throwIfSessionClosed();
 
-        const workItem = Session.storeConfiguration();
-
-        this.actor.send({type: "EnqueueWork", workItem: workItem});
-
-        return await workItem.deferredPromise.promise;
+            return this.getStoredConfigurationMemo(this.sessionState.configurationRawData);
+        });
     }
 
-    async restoreConfiguration(storedConfiguration: StoredConfiguration, mode: SetManyMode): Promise<SetManyResult> {
+    async restoreConfiguration(storedConfiguration: StoredConfiguration, mode: MakeManyDecisionsMode): Promise<MakeManyDecisionsResult> {
         this.throwIfSessionClosed();
 
         const loadedConfiguration = loadConfiguration(storedConfiguration);
@@ -118,7 +138,7 @@ export default class ConfigurationSession implements IConfigurationSession {
         }
 
         const workItem = pipe(
-            Session.setMany(loadedConfiguration.right, mode),
+            Session.makeManyDecisions(loadedConfiguration.right, mode),
             I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.restoreConfiguration ?? false)
         );
         this.actor.send({type: "EnqueueWork", workItem: workItem});
@@ -140,7 +160,7 @@ export default class ConfigurationSession implements IConfigurationSession {
         this.throwIfSessionClosed();
 
         const workItem = pipe(
-            Session.setMany([], {type: "DropExistingDecisions", conflictHandling: {type: "Automatic"}}),
+            Session.makeManyDecisions([], {type: "DropExistingDecisions", conflictHandling: {type: "Automatic"}}),
             I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.resetConfiguration ?? false)
         );
         this.actor.send({type: "EnqueueWork", workItem: workItem});
@@ -158,6 +178,33 @@ export default class ConfigurationSession implements IConfigurationSession {
         this.throwIfSessionClosed();
 
         return this.canResetConfigurationSubscriptionHandler.addListener(handler);
+    }
+
+    addStoredConfigurationChangedListener(handler: OnStoredConfigurationChangedHandler): TSubscription {
+        this.throwIfSessionClosed();
+
+        return this.storedConfigurationSubscriptionHandler.addListener(handler);
+    }
+
+    addDecisionsChangedListener(kind: DecisionKind.Explicit, handler: OnDecisionsChangedHandler<CollectedExplicitDecision>): TSubscription;
+    addDecisionsChangedListener(kind: DecisionKind.Implicit, handler: OnDecisionsChangedHandler<CollectedImplicitDecision>): TSubscription;
+    addDecisionsChangedListener(handler: OnDecisionsChangedHandler<CollectedDecision>): TSubscription;
+    addDecisionsChangedListener(kindOrHandler: DecisionKind | OnDecisionsChangedHandler<CollectedDecision>, handlerOrUndefined?: OnDecisionsChangedHandler<CollectedExplicitDecision> | OnDecisionsChangedHandler<CollectedImplicitDecision>): TSubscription {
+        this.throwIfSessionClosed();
+
+        const kind = typeof kindOrHandler === "string" ? kindOrHandler : undefined;
+        const handler = typeof kindOrHandler !== "string" ? kindOrHandler : handlerOrUndefined;
+        if (handler == null) {
+            throw new Error("The handler is null or undefined");
+        }
+
+        if (kind === DecisionKind.Explicit) {
+            return this.explicitDecisionsSubscriptionHandler.addListener(handler as OnDecisionsChangedHandler<CollectedExplicitDecision>);
+        }
+        if (kind === DecisionKind.Implicit) {
+            return this.implicitDecisionsSubscriptionHandler.addListener(handler as OnDecisionsChangedHandler<CollectedImplicitDecision>);
+        }
+        return this.decisionsSubscriptionHandler.addListener(handler as OnDecisionsChangedHandler<CollectedDecision>);
     }
 
     getSessionContext(): SessionContext
@@ -209,11 +256,11 @@ export default class ConfigurationSession implements IConfigurationSession {
         await workItem.deferredPromise.promise;
     }
 
-    async applySolution(solution: ExplainSolution): Promise<SetManyResult> {
+    async applySolution(solution: ExplainSolution): Promise<MakeManyDecisionsResult> {
         this.throwIfSessionClosed();
 
         const workItem = pipe(
-            Session.setMany(solution.decisions, solution.mode),
+            Session.makeManyDecisions(solution.decisions, solution.mode),
             I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.applySolution ?? true)
         );
         this.actor.send({type: "EnqueueWork", workItem: workItem});
@@ -221,12 +268,16 @@ export default class ConfigurationSession implements IConfigurationSession {
         return await workItem.deferredPromise.promise;
     }
 
-    async setMany(decisions: readonly ExplicitDecision[], mode: SetManyMode): Promise<SetManyResult> {
+    setMany(decisions: readonly ExplicitDecision[], mode: MakeManyDecisionsMode): Promise<SetManyResult> {
+        return this.makeManyDecisions(decisions, mode);
+    }
+
+    async makeManyDecisions(decisions: ReadonlyArray<ExplicitDecision>, mode: MakeManyDecisionsMode): Promise<MakeManyDecisionsResult> {
         this.throwIfSessionClosed();
 
         const workItem = pipe(
-            Session.setMany(decisions, mode),
-            I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.setMany ?? true)
+            Session.makeManyDecisions(decisions, mode),
+            I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.makeManyDecisions ?? true)
         );
         this.actor.send({type: "EnqueueWork", workItem: workItem});
 
@@ -306,11 +357,9 @@ export default class ConfigurationSession implements IConfigurationSession {
     private handleActorUpdate(state: Omit<MachineState, "type">) {
         this.sessionState = state.sessionState;
 
-        this.sessionChangesHandler.setValue(this.sessionState.configuration);
-
-        // First inform all listener about the change.
-        this.configurationChangedSubscriptionHandler.notifyListeners(this.sessionState.configuration);
-        this.canResetConfigurationSubscriptionHandler.notifyListeners(this.sessionState.configurationRawData);
+        // First inform all handler about the change.
+        this.hashedConfigurationInputHandler.forEach(fn => fn(this.sessionState.configuration));
+        this.rawDataInputHandlers.forEach(sh => sh.notifyListeners(this.sessionState.configurationRawData));
 
         // Then resolve all waiting promises.
         resolveDeferredPromises(state.deferredPromiseCompletions);

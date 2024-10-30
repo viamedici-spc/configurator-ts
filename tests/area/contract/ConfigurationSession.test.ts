@@ -10,6 +10,10 @@ import {
     CausedByBooleanDecision,
     ChoiceValueDecisionState,
     CollectedBooleanDecision,
+    CollectedDecision,
+    CollectedExplicitDecision,
+    CollectedImplicitDecision,
+    ConfigurationChanges,
     ConfigurationModelSourceType,
     ConfiguratorError,
     ConfiguratorErrorType,
@@ -18,14 +22,17 @@ import {
     ExplicitBooleanDecision,
     ExplicitNumericDecision,
     FullExplainAnswer,
+    MakeManyDecisionsConflict,
+    DropExistingDecisionsMode,
+    KeepExistingDecisionsMode,
+    MakeManyDecisionsMode,
     NumericAttribute,
+    OnCanResetConfigurationChangedHandler,
+    OnConfigurationChangedHandler,
+    Selection,
     ServerSideSessionInitialisationOptions,
     SessionClosed,
     SessionContext,
-    SetManyDecisionsConflict,
-    SetManyDropExistingDecisionsMode,
-    SetManyKeepExistingDecisionsMode,
-    SetManyMode,
     StoredConfiguration,
     StoredConfigurationInvalid
 } from "../../../src";
@@ -45,10 +52,11 @@ import {
     configurationRawDataEq,
     fullExplainAnswerEq,
     globalAttributeIdEq,
-    hashedConfigurationEq,
-    setManyDecisionsConflictEq
+    hashedConfigurationEq, makeManyDecisionsConflictEq
 } from "../../../src/contract/Eqs";
 import * as ConfigurationRawDataL from "../../../src/domain/logic/ConfigurationRawData";
+import {OnDecisionsChangedHandler, OnStoredConfigurationChangedHandler} from "../../../src/contract/Types";
+import {BooleanDecision} from "../../../src/contract/storedConfiguration/StoredConfigurationV1";
 
 const getSessionContext = (deploymentName: string): SessionContext => ({
     apiBaseUrl: config.endpoints.engine,
@@ -57,7 +65,7 @@ const getSessionContext = (deploymentName: string): SessionContext => ({
     },
     provideSourceId: true,
     optimisticDecisionOptions: {
-        setMany: true,
+        makeManyDecisions: true,
         makeDecision: true,
         applySolution: true,
         restoreConfiguration: true
@@ -379,10 +387,13 @@ describe("ConfigurationSession", () => {
         expectSessionClosed(() => session.getConfigurationChanges());
         expectSessionClosed(() => session.clearConfigurationChanges());
         expectSessionClosed(() => session.addConfigurationChangedListener(null as any));
+        expectSessionClosed(() => session.addCanResetConfigurationChangedListener(null as any));
+        expectSessionClosed(() => session.addStoredConfigurationChangedListener(null as any));
+        expectSessionClosed(() => session.addDecisionsChangedListener(null as any));
         await expectSessionClosedAsync(() => session.getSessionContext(true));
         await expectSessionClosedAsync(() => session.getConfiguration(true));
         await expectSessionClosedAsync(() => session.makeDecision(null as any));
-        await expectSessionClosedAsync(() => session.setMany(null as any, null as any));
+        await expectSessionClosedAsync(() => session.makeManyDecisions(null as any, null as any));
         await expectSessionClosedAsync(() => session.explain(null as any, null as any));
         await expectSessionClosedAsync(() => session.applySolution(null as any));
     });
@@ -471,7 +482,7 @@ describe("ConfigurationSession", () => {
         });
     });
 
-    describe("SetMany", () => {
+    describe("MakeManyDecisions", () => {
         describe("Compatible decisions", () => {
             it.each([
                 {
@@ -480,18 +491,18 @@ describe("ConfigurationSession", () => {
                         type: "Manual",
                         includeConstraintsInConflictExplanation: true
                     }
-                } satisfies SetManyDropExistingDecisionsMode as SetManyMode,
+                } satisfies DropExistingDecisionsMode as MakeManyDecisionsMode,
                 {
                     type: "DropExistingDecisions",
                     conflictHandling: {
                         type: "Automatic"
                     }
-                } satisfies SetManyDropExistingDecisionsMode as SetManyMode,
+                } satisfies DropExistingDecisionsMode as MakeManyDecisionsMode,
                 {
                     type: "KeepExistingDecisions",
-                } satisfies SetManyKeepExistingDecisionsMode as SetManyMode
+                } satisfies KeepExistingDecisionsMode as MakeManyDecisionsMode
             ])
-            ("Compatible decisions", async (setManyMode: SetManyMode) => {
+            ("Compatible decisions", async (makeManyDecisionsMode: MakeManyDecisionsMode) => {
                 const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
                 const expectations = getConfigurationSessionExpectations(session);
 
@@ -507,9 +518,9 @@ describe("ConfigurationSession", () => {
                 };
 
                 // Make two decisions compatible decisions.
-                const setMany = await session.setMany([desiredBool1Decision, desiredNum1Decision], setManyMode);
+                const makeManyDecisions = await session.makeManyDecisions([desiredBool1Decision, desiredNum1Decision], makeManyDecisionsMode);
 
-                expect(setMany.rejectedDecisions).toHaveLength(0);
+                expect(makeManyDecisions.rejectedDecisions).toHaveLength(0);
                 expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
                     expect(a.decision).toEqual({
                         kind: DecisionKind.Explicit,
@@ -546,16 +557,16 @@ describe("ConfigurationSession", () => {
                     state: true
                 };
 
-                const setManyMode: SetManyMode = {
+                const makeManyDecisionsMode: MakeManyDecisionsMode = {
                     type: "DropExistingDecisions",
                     conflictHandling: {type: "Manual", includeConstraintsInConflictExplanation: true}
                 };
 
                 // Make two decisions that are not compatible due to rules.
-                const setMany = session.setMany([desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision], setManyMode);
+                const makeManyDecisions = session.makeManyDecisions([desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision], makeManyDecisionsMode);
 
-                const expected: SetManyDecisionsConflict = {
-                    type: ConfiguratorErrorType.SetManyDecisionsConflict,
+                const expected: MakeManyDecisionsConflict = {
+                    type: ConfiguratorErrorType.MakeManyDecisionsConflict,
                     title: "",
                     detail: "",
                     decisionExplanations: [
@@ -564,7 +575,7 @@ describe("ConfigurationSession", () => {
                                 desiredBool2Decision
                             ],
                             solution: {
-                                mode: setManyMode,
+                                mode: makeManyDecisionsMode,
                                 decisions: [
                                     desiredGetBlocked1Decision,
                                     {
@@ -581,7 +592,7 @@ describe("ConfigurationSession", () => {
                                 desiredGetBlocked1Decision
                             ],
                             solution: {
-                                mode: setManyMode,
+                                mode: makeManyDecisionsMode,
                                 decisions: [
                                     desiredBool2Decision,
                                     {
@@ -603,8 +614,8 @@ describe("ConfigurationSession", () => {
                     }]
                 };
 
-                await expect(setMany).rejects.toSatisfy(e => setManyDecisionsConflictEq.equals({
-                    ...e as SetManyDecisionsConflict,
+                await expect(makeManyDecisions).rejects.toSatisfy(e => makeManyDecisionsConflictEq.equals({
+                    ...e as MakeManyDecisionsConflict,
                     // Reset the title and detail because this test is about the explanations.
                     title: "",
                     detail: ""
@@ -632,7 +643,7 @@ describe("ConfigurationSession", () => {
                 };
 
                 // Make two decisions that are not compatible due to rules.
-                const setMany = await session.setMany([desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision], {
+                const makeManyDecisions = await session.makeManyDecisions([desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision], {
                     type: "DropExistingDecisions",
                     conflictHandling: {type: "Automatic"}
                 });
@@ -643,7 +654,7 @@ describe("ConfigurationSession", () => {
                         state: 10
                     } satisfies Decision<number>);
                 });
-                expect(setMany.rejectedDecisions).toHaveLength(1);
+                expect(makeManyDecisions.rejectedDecisions).toHaveLength(1);
                 // One expectation must be right depending on the solution chosen by the engine.
                 expect(() => {
                     try {
@@ -659,7 +670,7 @@ describe("ConfigurationSession", () => {
                                 state: false
                             } satisfies Decision<boolean>);
                         });
-                        expect(setMany.rejectedDecisions[0]).toEqual(desiredBool2Decision);
+                        expect(makeManyDecisions.rejectedDecisions[0]).toEqual(desiredBool2Decision);
                     } catch (e) {
                         expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
                             expect(a.decision).toEqual({
@@ -673,7 +684,7 @@ describe("ConfigurationSession", () => {
                                 state: true
                             } satisfies Decision<boolean>);
                         });
-                        expect(setMany.rejectedDecisions[0]).toEqual(desiredGetBlocked1Decision);
+                        expect(makeManyDecisions.rejectedDecisions[0]).toEqual(desiredGetBlocked1Decision);
                     }
                 }).not.toThrow();
 
@@ -700,11 +711,11 @@ describe("ConfigurationSession", () => {
                 };
 
                 // Make two decisions that are not compatible due to rules.
-                const setMany = session.setMany([desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision], {
+                const makeManyDecisions = session.makeManyDecisions([desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision], {
                     type: "KeepExistingDecisions"
                 });
 
-                await expect(setMany).rejects.toSatisfy(e => (e as ConfiguratorError).type === "SetManyDecisionsConflict");
+                await expect(makeManyDecisions).rejects.toSatisfy(e => (e as ConfiguratorError).type === "MakeManyDecisionsConflict");
             });
         });
     });
@@ -752,7 +763,7 @@ describe("ConfigurationSession", () => {
                 state: true
             });
 
-            await session.setMany([{
+            await session.makeManyDecisions([{
                 type: AttributeType.Boolean,
                 attributeId: {localId: "Bool2"},
                 state: true
@@ -840,7 +851,7 @@ describe("ConfigurationSession", () => {
                 state: true
             });
 
-            await session1.setMany([{
+            await session1.makeManyDecisions([{
                 type: AttributeType.Boolean,
                 attributeId: {localId: "Bool2"},
                 state: true
@@ -881,7 +892,6 @@ describe("ConfigurationSession", () => {
 
     it("getDecisions", async () => {
         const getCollectedDecisionsMock = vi.spyOn(ConfigurationRawDataL, "getCollectedDecisions");
-
 
         const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
         const expectations = getConfigurationSessionExpectations(session);
@@ -1039,5 +1049,232 @@ describe("ConfigurationSession", () => {
         await expect(session.getDecisions(DecisionKind.Implicit, true)).resolves.toEqual(session.getDecisions(DecisionKind.Implicit));
         await expect(session.getDecisions(DecisionKind.Explicit, true)).resolves.toEqual(session.getDecisions(DecisionKind.Explicit));
         await expect(session.canResetConfiguration(true)).resolves.toEqual(session.canResetConfiguration());
+    });
+
+    describe("Handler", () => {
+        it("addStoredConfigurationChangedListener", async () => {
+            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+
+            const handler = vi.fn<OnStoredConfigurationChangedHandler>();
+            session.addStoredConfigurationChangedListener(handler);
+
+            // Handler must be called directly after registration.
+            expect(handler).toHaveBeenCalledTimes(1);
+
+            await session.makeDecision({
+                type: AttributeType.Boolean,
+                attributeId: {localId: "Bool2"},
+                state: true
+            });
+
+            expect(handler).toHaveBeenCalledTimes(2);
+            expect(handler).toHaveBeenLastCalledWith({
+                schemaVersion: 1,
+                explicitDecisions: [
+                    {
+                        type: "Boolean",
+                        attributeId: {
+                            sharedConfigurationModelId: undefined,
+                            componentPath: undefined,
+                            localId: "Bool2"
+                        },
+                        state: true
+                    } satisfies BooleanDecision
+                ]
+            } satisfies StoredConfiguration);
+        });
+
+        it("addCanResetConfigurationChangedListener", async () => {
+            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+
+            const handler = vi.fn<OnCanResetConfigurationChangedHandler>();
+            session.addCanResetConfigurationChangedListener(handler);
+
+            // Handler must be called directly after registration.
+            expect(handler).toHaveBeenCalledTimes(1);
+            expect(handler).toHaveBeenLastCalledWith(false);
+
+            await session.makeDecision({
+                type: AttributeType.Boolean,
+                attributeId: {localId: "Bool2"},
+                state: true
+            });
+
+            // After making a decision, the configuration can be resetted.
+            expect(handler).toHaveBeenCalledTimes(2);
+            expect(handler).toHaveBeenLastCalledWith(true);
+
+            await session.makeDecision({
+                type: AttributeType.Boolean,
+                attributeId: {localId: "Bool2"},
+                state: null
+            });
+
+            // Removing the decision must reset the handler.
+            expect(handler).toHaveBeenCalledTimes(3);
+            expect(handler).toHaveBeenLastCalledWith(false);
+        });
+
+        it("addConfigurationChangedListener", async () => {
+            const session = await SessionFactory.createSession({
+                ...getSessionContext("Configurator-TS-Model1"),
+                provideSourceId: false,
+                optimisticDecisionOptions: {
+                    makeDecision: true
+                }
+            }) as ConfigurationSession;
+
+            const handler = vi.fn<OnConfigurationChangedHandler>();
+            session.addConfigurationChangedListener(handler);
+
+            // Handler must be called directly after registration.
+            expect(handler).toHaveBeenCalledTimes(1);
+
+            const suspendFetchDeferredPromise = pDefer();
+            const globalFetch = global.fetch;
+            global.fetch = async (input, init) => {
+                await suspendFetchDeferredPromise.promise;
+                return await globalFetch(input, init);
+            };
+
+            const makeDecision = session.makeDecision({
+                type: AttributeType.Boolean,
+                attributeId: {localId: "Bool2"},
+                state: true
+            });
+
+            // Handler must have been called a second time with the optimistic decision.
+            expect(handler).toHaveBeenCalledTimes(2);
+            expect(handler).toHaveBeenLastCalledWith(expect.anything(), {
+                isSatisfied: null,
+                attributes: {
+                    added: [],
+                    changed: expect.arrayContaining([
+                        expect.objectContaining({
+                            type: AttributeType.Boolean,
+                            id: expect.objectContaining({localId: "Bool2"}),
+                            key: GlobalAttributeIdKeyBuilder({localId: "Bool2"}),
+                            isSatisfied: true,
+                            canContributeToConfigurationSatisfaction: false,
+                            selection: Selection.Optional,
+                            possibleDecisionStates: expect.arrayContaining([true, false]),
+                            decision: {
+                                kind: DecisionKind.Explicit,
+                                state: true
+                            },
+                            nonOptimisticDecision: null,
+                        } satisfies BooleanAttribute),
+                    ]),
+                    removed: []
+                }
+            } satisfies ConfigurationChanges);
+
+            suspendFetchDeferredPromise.resolve();
+            await makeDecision;
+
+            // The third time the handler is called should be with the engines response.
+            expect(handler).toHaveBeenCalledTimes(3);
+            expect(handler).toHaveBeenLastCalledWith(expect.anything(), {
+                isSatisfied: null,
+                attributes: {
+                    added: [],
+                    changed: expect.arrayContaining([
+                        expect.objectContaining({
+                            type: AttributeType.Boolean,
+                            id: expect.objectContaining({localId: "Bool2"}),
+                            key: GlobalAttributeIdKeyBuilder({localId: "Bool2"}),
+                            isSatisfied: true,
+                            canContributeToConfigurationSatisfaction: false,
+                            selection: Selection.Optional,
+                            possibleDecisionStates: expect.arrayContaining([true, false]),
+                            decision: {
+                                kind: DecisionKind.Explicit,
+                                state: true
+                            },
+                            nonOptimisticDecision: {
+                                kind: DecisionKind.Explicit,
+                                state: true
+                            },
+                        } satisfies BooleanAttribute),
+                        expect.objectContaining({
+                            type: AttributeType.Boolean,
+                            id: expect.objectContaining({localId: "GetBlocked1"}),
+                            key: GlobalAttributeIdKeyBuilder({localId: "GetBlocked1"}),
+                            isSatisfied: true,
+                            canContributeToConfigurationSatisfaction: false,
+                            selection: Selection.Mandatory,
+                            possibleDecisionStates: [false],
+                            decision: {
+                                kind: DecisionKind.Implicit,
+                                state: false
+                            },
+                            nonOptimisticDecision: {
+                                kind: DecisionKind.Implicit,
+                                state: false
+                            },
+                        } satisfies BooleanAttribute)
+                    ]),
+                    removed: []
+                }
+            } satisfies ConfigurationChanges);
+        });
+
+        it("addDecisionsChangedListener", async () => {
+            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const expectations = getConfigurationSessionExpectations(session);
+
+            const allHandler = vi.fn<OnDecisionsChangedHandler<CollectedDecision>>();
+            const implicitHandler = vi.fn<OnDecisionsChangedHandler<CollectedExplicitDecision>>();
+            const explicitHandler = vi.fn<OnDecisionsChangedHandler<CollectedImplicitDecision>>();
+            session.addDecisionsChangedListener(allHandler);
+            session.addDecisionsChangedListener(DecisionKind.Explicit, implicitHandler);
+            session.addDecisionsChangedListener(DecisionKind.Implicit, explicitHandler);
+
+            // Handler must be called directly after registration.
+            expect(allHandler).toHaveBeenCalledTimes(1);
+            expect(implicitHandler).toHaveBeenCalledTimes(1);
+            expect(explicitHandler).toHaveBeenCalledTimes(1);
+            // Each decision should be initially empty.
+            expect(allHandler).toHaveBeenLastCalledWith([]);
+            expect(implicitHandler).toHaveBeenLastCalledWith([]);
+            expect(explicitHandler).toHaveBeenLastCalledWith([]);
+
+            await session.makeDecision({
+                type: AttributeType.Boolean,
+                attributeId: {localId: "Bool2"},
+                state: true
+            });
+
+            // GetBlocked1 must be implicit false.
+            expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
+                expect(a.decision).toEqual({
+                    kind: DecisionKind.Implicit,
+                    state: false
+                } satisfies Decision<boolean>);
+            });
+
+            const Bool2_CollectedDecision: CollectedExplicitDecision = {
+                attributeType: AttributeType.Boolean,
+                attributeId: {localId: "Bool2"},
+                attributeKey: GlobalAttributeIdKeyBuilder({localId: "Bool2"}),
+                kind: DecisionKind.Explicit,
+                state: true
+            };
+            const GetBlocked1_CollectedDecision: CollectedImplicitDecision = {
+                attributeType: AttributeType.Boolean,
+                attributeId: {localId: "GetBlocked1"},
+                attributeKey: GlobalAttributeIdKeyBuilder({localId: "GetBlocked1"}),
+                kind: DecisionKind.Implicit,
+                state: false
+            };
+
+            expect(allHandler).toHaveBeenCalledTimes(2);
+            expect(implicitHandler).toHaveBeenCalledTimes(2);
+            expect(explicitHandler).toHaveBeenCalledTimes(2);
+
+            expect(allHandler).toHaveBeenLastCalledWith([Bool2_CollectedDecision, GetBlocked1_CollectedDecision]);
+            expect(implicitHandler).toHaveBeenLastCalledWith([Bool2_CollectedDecision]);
+            expect(explicitHandler).toHaveBeenLastCalledWith([GetBlocked1_CollectedDecision]);
+        });
     });
 });

@@ -36,9 +36,11 @@ export default class SubscriptionHandler<V, T extends ReadonlyArray<unknown>> {
         this.currentValue = value;
         this.changesHandler.setValue(value);
 
-        const changes = this.changesHandler.getChanges();
-        if (O.isSome(changes)) {
-            this.listeners.forEach((listener) => listener(...changes.value));
+        if (this.listeners.size > 0) {
+            const changes = this.changesHandler.getChanges();
+            if (O.isSome(changes)) {
+                this.listeners.forEach((listener) => listener(...changes.value));
+            }
         }
 
         this.changesHandler.clearChanges();

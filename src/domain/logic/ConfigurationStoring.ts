@@ -3,7 +3,7 @@ import {E, pipe, RA} from "@viamedici-spc/fp-ts-extensions";
 import {match} from "ts-pattern";
 import {
     AttributeType,
-    ChoiceValueDecisionState,
+    ChoiceValueDecisionState, CollectedExplicitDecision,
     ComponentDecisionState,
     ExplicitBooleanDecision,
     ExplicitChoiceDecision,
@@ -18,15 +18,10 @@ import {
     ConfiguratorError, ConfiguratorErrorType,
     StoredConfigurationInvalid,
 } from "../../contract/ConfiguratorError";
-import ConfigurationRawData from "../model/ConfigurationRawData";
-import {getCollectedDecisions} from "./ConfigurationRawData";
-import {collectedExplicitDecisionRefinement} from "../../contract/refinements/CollectedDecisionRefinements";
 
-export function storeConfiguration(rawData: ConfigurationRawData): StoredConfiguration {
+export function storeConfiguration(decisions: ReadonlyArray<CollectedExplicitDecision>): StoredConfiguration {
     const explicitDecisions = pipe(
-        rawData,
-        getCollectedDecisions,
-        RA.filter(collectedExplicitDecisionRefinement),
+        decisions,
         RA.map(d => {
             const id: V1.GlobalAttributeId = {
                 localId: d.attributeId.localId,

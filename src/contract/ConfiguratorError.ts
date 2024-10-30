@@ -32,7 +32,7 @@ export enum ConfiguratorErrorType {
     SnapshotInvalid = "SnapshotInvalid",
     SnapshotNotFound = "SnapshotNotFound",
     ConfigurationModelNotFeasible = "ConfigurationModelNotFeasible",
-    SetManyDecisionsConflict = "SetManyDecisionsConflict",
+    MakeManyDecisionsConflict = "MakeManyDecisionsConflict",
     SpecifiedDeploymentForbidden = "SpecifiedDeploymentForbidden",
     AttributeNotFound = "AttributeNotFound",
     ChoiceAttributeNotFound = "ChoiceAttributeNotFound",
@@ -84,10 +84,10 @@ export type ConfigurationModelNotFeasible =
     readonly constraintExplanations: ReadonlyArray<ConstraintExplanation>;
 };
 
-export type SetManyDecisionsConflict =
+export type MakeManyDecisionsConflict =
     Omit<Engine.PutManyDecisionsConflict, "type" | "decisionExplanations" | "constraintExplanations">
     & {
-    readonly type: ConfiguratorErrorType.SetManyDecisionsConflict;
+    readonly type: ConfiguratorErrorType.MakeManyDecisionsConflict;
     readonly decisionExplanations: ReadonlyArray<DecisionExplanation>;
     readonly constraintExplanations: ReadonlyArray<ConstraintExplanation>;
 };
@@ -199,7 +199,7 @@ export type ConfiguratorError =
     | SnapshotNotFound
     // Modified Engine errors
     | ConfigurationModelNotFeasible
-    | SetManyDecisionsConflict
+    | MakeManyDecisionsConflict
     | SpecifiedDeploymentForbidden
     | AttributeNotFound
     | ChoiceAttributeNotFound

@@ -20,16 +20,13 @@ import {
     ExplicitDecision,
     ExplicitNumericDecision, FullExplainAnswer,
     GlobalAttributeId,
-    GlobalAttributeIdKey,
-    SetManyKeepExistingDecisionsMode,
-    SetManyMode,
-    SetManyResult
+    GlobalAttributeIdKey, MakeManyDecisionsResult, KeepExistingDecisionsMode, MakeManyDecisionsMode
 } from "../../contract/Types";
 import {pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
 import GlobalAttributeIdKeyBuilder from "../../crossCutting/GlobalAttributeIdKeyBuilder";
 import {none, Option} from "fp-ts/Option";
 import {match} from "ts-pattern";
-import {ConfiguratorError, ConfiguratorErrorType, SetManyDecisionsConflict} from "../../contract/ConfiguratorError";
+import {ConfiguratorError, ConfiguratorErrorType, MakeManyDecisionsConflict} from "../../contract/ConfiguratorError";
 import {
     AttributeConsequence,
     AttributeDecision,
@@ -259,7 +256,7 @@ function getAttributeMeta(meta: Engine.CompleteMeta | null): ReadonlyMap<GlobalA
 export function integratePutManyDecisionsResponse(configuration: HashedConfiguration, response: Engine.PutManyDecisionsResponse): {
     configuration: HashedConfiguration,
     rawData: Partial<ConfigurationRawData>,
-    result: SetManyResult
+    result: MakeManyDecisionsResult
 } {
     const {
         configuration: updatedConfiguration,
@@ -276,7 +273,7 @@ export function integratePutManyDecisionsResponse(configuration: HashedConfigura
     };
 }
 
-export function processPutManyDecisionsConflict(decisions: ReadonlyArray<ExplicitDecision>, mode: SetManyMode): (error: Engine.Unspecified | Engine.PutManyDecisionsConflict) => Option<ConfiguratorError> {
+export function processPutManyDecisionsConflict(decisions: ReadonlyArray<ExplicitDecision>, mode: MakeManyDecisionsMode): (error: Engine.Unspecified | Engine.PutManyDecisionsConflict) => Option<ConfiguratorError> {
     return error => {
         if (error.type !== "PutManyDecisionsConflict") {
             return none;
@@ -286,12 +283,12 @@ export function processPutManyDecisionsConflict(decisions: ReadonlyArray<Explici
         const decisionExplanations = buildDecisionExplanations(error.decisionExplanations ?? [], decisions, mode);
 
         return some({
-            type: ConfiguratorErrorType.SetManyDecisionsConflict,
+            type: ConfiguratorErrorType.MakeManyDecisionsConflict,
             title: error.title ?? "",
             detail: error.detail ?? "",
             decisionExplanations: decisionExplanations,
             constraintExplanations: constraintExplanations
-        } satisfies SetManyDecisionsConflict);
+        } satisfies MakeManyDecisionsConflict);
     };
 }
 
@@ -335,7 +332,7 @@ export function processDecisionsExplainResult(question: ExplainQuestion): (respo
 
     return (response) => ({
         // TODO: Use automatic ConflictHandling if compatible with KeepExistingDecisions.
-        decisionExplanations: buildDecisionExplanations(response, decision ?? [], {type: "KeepExistingDecisions"} satisfies SetManyKeepExistingDecisionsMode)
+        decisionExplanations: buildDecisionExplanations(response, decision ?? [], {type: "KeepExistingDecisions"} satisfies KeepExistingDecisionsMode)
     });
 }
 
@@ -345,7 +342,7 @@ export function processConstraintsExplainResult(response: ReadonlyArray<Engine.C
     };
 }
 
-function buildDecisionExplanations(explanations: ReadonlyArray<Engine.DecisionExplanation>, decisions: RA.SingleOrArray<ExplicitDecision>, mode: SetManyMode) {
+function buildDecisionExplanations(explanations: ReadonlyArray<Engine.DecisionExplanation>, decisions: RA.SingleOrArray<ExplicitDecision>, mode: MakeManyDecisionsMode) {
     return pipe(
         explanations,
         RA.map(mapDecisionExplanation),
