@@ -56,6 +56,10 @@ processes the decision, the resulting consequences are applied asynchronously to
 When a configuration conflict is detected and explained, the library makes it easy to apply the desired solution to
 resolve the conflict.
 
+### Store / Restore Configuration
+
+A versioned data format with backward compatibility is provided to store and restore the configuration state.
+
 ## Demo App
 
 The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) is a comprehensive showcase of the features
