@@ -18,7 +18,14 @@ export default defineConfig(() => ({
         },
     },
     plugins: [
-        externalizeDeps(),
+        externalizeDeps({
+            except: [
+                // Causes import issues in the CommonJs build where the ESM modules in the "es6" folder are incorrectly referenced.
+                /^fp-ts.*/,
+                // Is only compatible with ESM, not with CommonJs. Some bundlers couldn't handle this by themselves.
+                "p-defer"
+            ]
+        }),
         dts({rollupTypes: true})
     ],
     test: {
