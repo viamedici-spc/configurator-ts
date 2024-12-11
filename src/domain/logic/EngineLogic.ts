@@ -203,13 +203,10 @@ export function closeSession(sessionState: Required<Pick<ConfigurationSessionSta
 
 export function setSessionContext(newSessionContext: SessionContext): (sessionState: ConfigurationSessionState) => TaskEither<EngineErrorResult, FullQualifiedConfigurationSessionState> {
     return sessionState =>
-        reinitialize({
-            ...sessionState,
-            sessionContext: newSessionContext,
-        });
+        reinitialize(sessionState, newSessionContext);
 }
 
-export function reinitialize(sessionState: ConfigurationSessionState): TaskEither<EngineErrorResult, FullQualifiedConfigurationSessionState> {
+export function reinitialize(sessionState: ConfigurationSessionState, newSessionContext?: SessionContext): TaskEither<EngineErrorResult, FullQualifiedConfigurationSessionState> {
     // Close the old session because a new SessionContext cannot be applied to an existing session.
     // Discard the result.
     if (sessionState.sessionId) {
@@ -223,7 +220,7 @@ export function reinitialize(sessionState: ConfigurationSessionState): TaskEithe
             sessionId: undefined
         } satisfies ConfigurationSessionState,
         I.map(sessionState => pipe(
-            createSessionWithData(sessionState.sessionContext, sessionState.configurationRawData),
+            createSessionWithData(newSessionContext ?? sessionState.sessionContext, sessionState.configurationRawData),
             TE.mapLeft(l => ({
                 error: l,
                 sessionState: sessionState

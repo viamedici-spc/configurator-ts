@@ -19,12 +19,12 @@ import {
     ConfiguratorErrorType,
     Decision,
     DecisionKind,
+    DropExistingDecisionsMode,
     ExplicitBooleanDecision,
     ExplicitNumericDecision,
     FullExplainAnswer,
-    MakeManyDecisionsConflict,
-    DropExistingDecisionsMode,
     KeepExistingDecisionsMode,
+    MakeManyDecisionsConflict,
     MakeManyDecisionsMode,
     NumericAttribute,
     OnCanResetConfigurationChangedHandler,
@@ -52,10 +52,11 @@ import {
     configurationRawDataEq,
     fullExplainAnswerEq,
     globalAttributeIdEq,
-    hashedConfigurationEq, makeManyDecisionsConflictEq
+    hashedConfigurationEq,
+    makeManyDecisionsConflictEq
 } from "../../../src/contract/Eqs";
 import * as ConfigurationRawDataL from "../../../src/domain/logic/ConfigurationRawData";
-import {OnDecisionsChangedHandler, OnStoredConfigurationChangedHandler} from "../../../src/contract/Types";
+import {OnDecisionsChangedHandler, OnStoredConfigurationChangedHandler} from "../../../src";
 import {BooleanDecision} from "../../../src/contract/storedConfiguration/StoredConfigurationV1";
 
 const getSessionContext = (deploymentName: string): SessionContext => ({
@@ -150,6 +151,30 @@ describe("ConfigurationSession", () => {
 
             await session.close();
         });
+    });
+
+    it("setSessionContext - falsy", async () => {
+        const sessionContext = getSessionContext("Configurator-TS-Model1");
+        const session = await SessionFactory.createSession(sessionContext);
+        expect(session.getSessionContext()).toBe(sessionContext);
+
+        const falsyContext: SessionContext = {
+            ...sessionContext,
+            configurationModelSource: {
+                type: ConfigurationModelSourceType.Package,
+                configurationModelPackage: {
+                    root: "<Empty>",
+                    configurationModels: []
+                }
+            }
+        };
+
+        // Set a falsy SessionContext.
+        await expect(session.setSessionContext(falsyContext)).rejects.toBeTruthy();
+
+        // Expect that current SessionContext is unchanged.
+        expect(session.getSessionContext()).not.toEqual(falsyContext);
+        expect(session.getSessionContext()).toBe(sessionContext);
     });
 
     it("reinitialize", async () => {

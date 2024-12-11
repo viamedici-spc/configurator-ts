@@ -2,7 +2,7 @@ import * as Engine from "./EngineLogic";
 import * as OD from "./OptimisticDecisions";
 import {E, pipe} from "@viamedici-spc/fp-ts-extensions";
 import {asLeftUnit, asUnit, createStateMutatingWorkItem, createStatePreservingWorkItem, guardSession} from "./WorkItem";
-import {FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
+import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
 import {EngineSuccessResultT} from "./EngineLogic";
 import {ScheduleTaskResult} from "../../contract/Types";
 import {WorkItem, WorkQueueInfo} from "../model/WorkItem";
@@ -26,7 +26,7 @@ export const setSessionContext = pipe(
     f => createStateMutatingWorkItem(f, null, false),
 );
 export const reinitialize = pipe(
-    () => Engine.reinitialize,
+    () => (sessionState: ConfigurationSessionState) => Engine.reinitialize(sessionState),
     asUnit,
     f => createStateMutatingWorkItem(f, null, false),
 );
