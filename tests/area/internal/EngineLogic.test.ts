@@ -3,12 +3,11 @@
 import {afterAll, afterEach, describe, expect, it, vi} from "vitest";
 import * as Logic from "../../../src/domain/logic/EngineLogic";
 import {SessionContextWithModelWithOneMandatoryChoice} from "../../data/SessionContexts";
-import {ConnectionError, ServerError} from "../../../src";
+import {ConnectionError, ServerError, SourceAttributeId} from "../../../src";
 import * as Engine from "../../../src/apiClient/engine/Engine";
-import {PossibleDecisionState} from "../../../src/apiClient/engine/Engine";
+import {ObsoletionStatus, PossibleDecisionState} from "../../../src/apiClient/engine/Engine";
 import {stringify} from "../../setup/JSON";
 import GlobalAttributeIdKeyBuilder from "../../../src/crossCutting/GlobalAttributeIdKeyBuilder";
-import {SourceAttributeId} from "../../../src";
 import {expectToBeLeft, expectToBeRight} from "../../setup/EitherExtensions";
 
 const globalFetch = global.fetch;
@@ -135,7 +134,10 @@ describe("EngineLogic", () => {
                                 globalAttributeIds: [
                                     {localId: "a1"}
                                 ]
-                            }]
+                            }],
+                            obsoletion: {
+                                status: ObsoletionStatus.Current
+                            }
                         } satisfies Engine.CompleteMeta)
                     } as Response);
                 }

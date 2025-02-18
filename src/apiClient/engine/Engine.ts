@@ -44,16 +44,16 @@ export type ProblemDetails = (
   | UtilRequiredKeys<UsageRuleRestriction, "type" | "title" | "detail">
   | UtilRequiredKeys<ConfigurationModelInvalid, "type" | "title" | "detail">
   | UtilRequiredKeys<DecisionsToRespectInvalid, "type" | "title" | "detail">
+  | UtilRequiredKeys<ConfigurationModelNotFeasible, "type" | "title" | "detail">
   | UtilRequiredKeys<SolutionNotFeasible, "type" | "title" | "detail">
-  | UtilRequiredKeys<SessionNotFound, "type" | "title" | "detail">
   | UtilRequiredKeys<PutManyDecisionsConflict, "type" | "title" | "detail">
+  | UtilRequiredKeys<SetDecisionConflict, "type" | "title" | "detail">
+  | UtilRequiredKeys<SessionNotFound, "type" | "title" | "detail">
   | UtilRequiredKeys<ConfigurationModelNotFound, "type" | "title" | "detail">
   | UtilRequiredKeys<SolverInitializationFailure, "type" | "title" | "detail">
   | UtilRequiredKeys<ConfigurationModelLoadFailure, "type" | "title" | "detail">
-  | UtilRequiredKeys<ConfigurationModelNotFeasible, "type" | "title" | "detail">
   | UtilRequiredKeys<ConfigurationInitializationFailure, "type" | "title" | "detail">
   | UtilRequiredKeys<SolverPoolInitializationFailure, "type" | "title" | "detail">
-  | UtilRequiredKeys<SetDecisionConflict, "type" | "title" | "detail">
   | UtilRequiredKeys<SolveOperationTimeout, "type" | "title" | "detail">
   | UtilRequiredKeys<ExplainConflict, "type" | "title" | "detail">
   | UtilRequiredKeys<ExplainFailure, "type" | "title" | "detail">
@@ -415,30 +415,11 @@ export interface DecisionsToRespectInvalid {
   globalAttributeId: GlobalAttributeId;
 }
 
-export interface SolutionNotFeasible {
-  type: "SolutionNotFeasible";
+export interface ConfigurationModelNotFeasible {
+  type: "ConfigurationModelNotFeasible";
   title: string;
   detail: string;
-}
-
-export interface SessionNotFound {
-  type: "SessionNotFound";
-  title: string;
-  detail: string;
-  sessionId: GlobalSessionId;
-}
-
-export interface GlobalSessionId {
-  sessionId: string;
-  tenantId: string;
-}
-
-export interface PutManyDecisionsConflict {
-  type: "PutManyDecisionsConflict";
-  title: string;
-  detail: string;
-  constraintExplanations: ConstraintExplanation[];
-  decisionExplanations: DecisionExplanation[];
+  constraintExplanations?: ConstraintExplanation[] | null;
 }
 
 export interface ConstraintExplanation {
@@ -477,6 +458,20 @@ export type ConstraintDescription = (
   type: string;
 };
 
+export interface SolutionNotFeasible {
+  type: "SolutionNotFeasible";
+  title: string;
+  detail: string;
+}
+
+export interface PutManyDecisionsConflict {
+  type: "PutManyDecisionsConflict";
+  title: string;
+  detail: string;
+  constraintExplanations: ConstraintExplanation[];
+  decisionExplanations: DecisionExplanation[];
+}
+
 /**
  * In an Explanation are specified the Explicit Decisions (Choice, Numeric, Boolean and Component)
  * which lead to the current Value-Decision State respectively Model-Decision State (Excluded, Included).
@@ -490,6 +485,7 @@ export interface DecisionExplanation {
 
 /** The object "CausedByChoiceDecision" encapsulates  a list of Choice Values with the associated current Decision State. */
 export interface CausedByChoiceValueDecision {
+  type: "Choice";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -501,7 +497,6 @@ export interface CausedByChoiceValueDecision {
    */
   attributeId: GlobalAttributeId;
   reason: Reason;
-  type: "Choice";
   choiceValueId: string;
   /**
    * A Decision is a decision about an Attribute. For each Value, it is stated explicitly or implicitly
@@ -546,6 +541,7 @@ export enum PossibleDecisionState {
 
 /** The object "CausedByNumericDecision" encapsulates a Numeric Value with the associated current Decision State. */
 export interface CausedByNumericDecision {
+  type: "Numeric";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -557,13 +553,13 @@ export interface CausedByNumericDecision {
    */
   attributeId: GlobalAttributeId;
   reason: Reason;
-  type: "Numeric";
   /** @format decimal */
   state?: number | null;
 }
 
 /** The object "CausedByBooleanDecision" encapsulates a Boolean Value with the associated current Decision State. */
 export interface CausedByBooleanDecision {
+  type: "Boolean";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -575,7 +571,6 @@ export interface CausedByBooleanDecision {
    */
   attributeId: GlobalAttributeId;
   reason: Reason;
-  type: "Boolean";
   state?: boolean | null;
 }
 
@@ -584,6 +579,7 @@ export interface CausedByBooleanDecision {
  * if the Configuration Engine searches a Solution.
  */
 export interface CausedByComponentDecision {
+  type: "Component";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -595,7 +591,6 @@ export interface CausedByComponentDecision {
    */
   attributeId: GlobalAttributeId;
   reason: Reason;
-  type: "Component";
   /**
    * A Decision is a decision about an Attribute. For each Value, it is stated explicitly or implicitly
    * whether it should be included in the search for a Solution by the Configuration Engine.
@@ -614,11 +609,12 @@ export interface CausedByComponentDecision {
 }
 
 export type CausedByDecision = (
-  | UtilRequiredKeys<CausedByChoiceValueDecision, "attributeId" | "reason" | "type">
-  | UtilRequiredKeys<CausedByNumericDecision, "attributeId" | "reason" | "type">
-  | UtilRequiredKeys<CausedByBooleanDecision, "attributeId" | "reason" | "type">
-  | UtilRequiredKeys<CausedByComponentDecision, "attributeId" | "reason" | "type">
+  | UtilRequiredKeys<CausedByChoiceValueDecision, "type" | "attributeId" | "reason">
+  | UtilRequiredKeys<CausedByNumericDecision, "type" | "attributeId" | "reason">
+  | UtilRequiredKeys<CausedByBooleanDecision, "type" | "attributeId" | "reason">
+  | UtilRequiredKeys<CausedByComponentDecision, "type" | "attributeId" | "reason">
 ) & {
+  type: string;
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -630,8 +626,25 @@ export type CausedByDecision = (
    */
   attributeId: GlobalAttributeId;
   reason: Reason;
-  type: string;
 };
+
+export interface SetDecisionConflict {
+  type: "SetDecisionConflict";
+  title: string;
+  detail: string;
+}
+
+export interface SessionNotFound {
+  type: "SessionNotFound";
+  title: string;
+  detail: string;
+  sessionId: GlobalSessionId;
+}
+
+export interface GlobalSessionId {
+  sessionId: string;
+  tenantId: string;
+}
 
 export interface ConfigurationModelNotFound {
   type: "ConfigurationModelNotFound";
@@ -651,13 +664,6 @@ export interface ConfigurationModelLoadFailure {
   detail: string;
 }
 
-export interface ConfigurationModelNotFeasible {
-  type: "ConfigurationModelNotFeasible";
-  title: string;
-  detail: string;
-  constraintExplanations?: ConstraintExplanation[] | null;
-}
-
 export interface ConfigurationInitializationFailure {
   type: "ConfigurationInitializationFailure";
   title: string;
@@ -667,12 +673,6 @@ export interface ConfigurationInitializationFailure {
 
 export interface SolverPoolInitializationFailure {
   type: "SolverPoolInitializationFailure";
-  title: string;
-  detail: string;
-}
-
-export interface SetDecisionConflict {
-  type: "SetDecisionConflict";
   title: string;
   detail: string;
 }
@@ -830,7 +830,6 @@ export interface ChoiceConsequence {
   values: ChoiceValueConsequence[];
 }
 
-/** Controls how many Values can respectively must be selected. */
 export interface Cardinality {
   /**
    * Controls how many Values must be selected.
@@ -1281,11 +1280,12 @@ export interface ChoiceValueDecision {
 }
 
 export type ExplicitDecision = (
-  | UtilRequiredKeys<ExplicitChoiceValueDecision, "attributeId" | "type">
-  | UtilRequiredKeys<ExplicitNumericDecision, "attributeId" | "type">
-  | UtilRequiredKeys<ExplicitBooleanDecision, "attributeId" | "type">
-  | UtilRequiredKeys<ExplicitComponentDecision, "attributeId" | "type">
+  | UtilRequiredKeys<ExplicitChoiceValueDecision, "type" | "attributeId">
+  | UtilRequiredKeys<ExplicitNumericDecision, "type" | "attributeId">
+  | UtilRequiredKeys<ExplicitBooleanDecision, "type" | "attributeId">
+  | UtilRequiredKeys<ExplicitComponentDecision, "type" | "attributeId">
 ) & {
+  type: string;
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -1296,11 +1296,11 @@ export type ExplicitDecision = (
    * Details can be found in the API product documentation.
    */
   attributeId: GlobalAttributeId;
-  type: string;
 };
 
 /** The object "ExplicitChoiceDecision" encapsulates  a list of Choice Values with the associated current Decision State. */
 export interface ExplicitChoiceValueDecision {
+  type: "Choice";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -1311,7 +1311,6 @@ export interface ExplicitChoiceValueDecision {
    * Details can be found in the API product documentation.
    */
   attributeId: GlobalAttributeId;
-  type: "Choice";
   choiceValueId: string;
   /**
    * The "Decision State" refers to a Value of a Choice Attribute or a referenced
@@ -1339,6 +1338,7 @@ export interface ExplicitChoiceValueDecision {
 
 /** The object "ExplicitNumericDecision" encapsulates a Numeric Value with the associated current Decision State. */
 export interface ExplicitNumericDecision {
+  type: "Numeric";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -1349,13 +1349,13 @@ export interface ExplicitNumericDecision {
    * Details can be found in the API product documentation.
    */
   attributeId: GlobalAttributeId;
-  type: "Numeric";
   /** @format decimal */
   state?: number | null;
 }
 
 /** The object "ExplicitBooleanDecision" encapsulates a Boolean Value with the associated current Decision State. */
 export interface ExplicitBooleanDecision {
+  type: "Boolean";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -1366,7 +1366,6 @@ export interface ExplicitBooleanDecision {
    * Details can be found in the API product documentation.
    */
   attributeId: GlobalAttributeId;
-  type: "Boolean";
   state?: boolean | null;
 }
 
@@ -1375,6 +1374,7 @@ export interface ExplicitBooleanDecision {
  * if the Configuration Engine searches a Solution.
  */
 export interface ExplicitComponentDecision {
+  type: "Component";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -1385,7 +1385,6 @@ export interface ExplicitComponentDecision {
    * Details can be found in the API product documentation.
    */
   attributeId: GlobalAttributeId;
-  type: "Component";
   /**
    * The "Decision State" refers to a Value of a Choice Attribute or a referenced
    * Component Configuration Model. It is transmitted to the Configuration Engine with a request.
@@ -1514,11 +1513,12 @@ export interface WhyConfigurationNotSatisfiedRequest {
 }
 
 export type WhyStateNotPossibleRequest = (
-  | UtilRequiredKeys<WhyBooleanStateNotPossibleRequest, "attributeId" | "type">
-  | UtilRequiredKeys<WhyNumericStateNotPossibleRequest, "attributeId" | "type">
-  | UtilRequiredKeys<WhyChoiceValueStateNotPossibleRequest, "attributeId" | "type">
-  | UtilRequiredKeys<WhyComponentStateNotPossibleRequest, "attributeId" | "type">
+  | UtilRequiredKeys<WhyBooleanStateNotPossibleRequest, "type" | "attributeId">
+  | UtilRequiredKeys<WhyNumericStateNotPossibleRequest, "type" | "attributeId">
+  | UtilRequiredKeys<WhyChoiceValueStateNotPossibleRequest, "type" | "attributeId">
+  | UtilRequiredKeys<WhyComponentStateNotPossibleRequest, "type" | "attributeId">
 ) & {
+  type: string;
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -1529,10 +1529,10 @@ export type WhyStateNotPossibleRequest = (
    * Details can be found in the API product documentation.
    */
   attributeId: GlobalAttributeId;
-  type: string;
 };
 
 export interface WhyBooleanStateNotPossibleRequest {
+  type: "Boolean";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -1543,11 +1543,11 @@ export interface WhyBooleanStateNotPossibleRequest {
    * Details can be found in the API product documentation.
    */
   attributeId: GlobalAttributeId;
-  type: "Boolean";
   state: boolean;
 }
 
 export interface WhyNumericStateNotPossibleRequest {
+  type: "Numeric";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -1558,12 +1558,12 @@ export interface WhyNumericStateNotPossibleRequest {
    * Details can be found in the API product documentation.
    */
   attributeId: GlobalAttributeId;
-  type: "Numeric";
   /** @format decimal */
   state: number;
 }
 
 export interface WhyChoiceValueStateNotPossibleRequest {
+  type: "ChoiceValue";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -1574,7 +1574,6 @@ export interface WhyChoiceValueStateNotPossibleRequest {
    * Details can be found in the API product documentation.
    */
   attributeId: GlobalAttributeId;
-  type: "ChoiceValue";
   choiceValueId: string;
   /**
    * A Decision is a decision about an Attribute. For each Value, it is stated explicitly or implicitly
@@ -1594,6 +1593,7 @@ export interface WhyChoiceValueStateNotPossibleRequest {
 }
 
 export interface WhyComponentStateNotPossibleRequest {
+  type: "Component";
   /**
    * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
    * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
@@ -1604,7 +1604,6 @@ export interface WhyComponentStateNotPossibleRequest {
    * Details can be found in the API product documentation.
    */
   attributeId: GlobalAttributeId;
-  type: "Component";
   /**
    * A Decision is a decision about an Attribute. For each Value, it is stated explicitly or implicitly
    * whether it should be included in the search for a Solution by the Configuration Engine.
@@ -1629,6 +1628,18 @@ export interface ConfigurationModelMeta {
 
 export interface CompleteMeta {
   configurationModels: ConfigurationModelMeta[];
+  obsoletion: ObsoletionMeta;
+}
+
+export interface ObsoletionMeta {
+  status: ObsoletionStatus;
+  /** @format date */
+  endOfLife?: string | null;
+}
+
+export enum ObsoletionStatus {
+  Current = "Current",
+  Obsolete = "Obsolete",
 }
 
 /** Contains the sessionId and other related data for the successfully created session. */
@@ -1773,9 +1784,24 @@ export interface AlwaysIncluded {
   type: "AlwaysIncluded";
 }
 
-export interface Constraint {
+export type Constraint = TextualConstraint | TextualConstraintCollection;
+
+export interface TextualConstraint {
   constraintId: string;
   textualConstraint: string;
+  type: "TextualConstraint";
+}
+
+export interface TextualConstraintCollection {
+  constraintId: string;
+  operator: TextualConstraintCollectionOperator;
+  textualConstraints: string[];
+  type: "TextualConstraintCollection";
+}
+
+export enum TextualConstraintCollectionOperator {
+  And = "And",
+  Or = "Or",
 }
 
 export interface UsageRules {
@@ -1927,7 +1953,7 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = "https://spc.cloud.ceventis.de/hca/api/engine";
+  public baseUrl: string = "https://textual-collection-constraint.spc.viamedici.dev/hca/api/engine";
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
@@ -2094,9 +2120,9 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title Viamedici.Spc.Engine.ConfigurationEngine.RestApi.Service
  * @version v2
- * @license © 2024 Viamedici - All rights reserved (https://viamedici.de)
+ * @license © 2025 Viamedici - All rights reserved (https://viamedici.de)
  * @termsOfService None
- * @baseUrl https://spc.cloud.ceventis.de/hca/api/engine
+ * @baseUrl https://textual-collection-constraint.spc.viamedici.dev/hca/api/engine
  * @contact Viamedici Software GmbH <info@viamedici.de> (https://viamedici.de)
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2324,6 +2350,23 @@ consumer of the API or the Configuration Engine.
     metaGet: (params: RequestParams = {}) =>
       this.request<CompleteMeta, Unspecified>({
         path: `/v2/session/configuration/meta`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Meta
+     * @name MetaGetObsoletion
+     * @request GET:/v2/session/configuration/meta/obsoletion
+     * @secure
+     */
+    metaGetObsoletion: (params: RequestParams = {}) =>
+      this.request<ObsoletionMeta, Unspecified>({
+        path: `/v2/session/configuration/meta/obsoletion`,
         method: "GET",
         secure: true,
         format: "json",
