@@ -198,6 +198,12 @@ export type DecisionsToRespect = {
 
 export type AttributeRelations = ReadonlyArray<DecisionsToRespect>;
 
+export type WizardStep = {
+    readonly attributes: ReadonlyArray<GlobalAttributeId>;
+};
+
+export type WizardAttributeRelations = ReadonlyArray<WizardStep>;
+
 export type ClientSideSessionInitialisationOptions = {
     /**
      * The access token used for authenticating with the Headless Configuration Engine (HCE) API.
@@ -238,6 +244,11 @@ export type SessionContext = {
      * Defines which attributes should be respected when making a decision.
      */
     readonly attributeRelations?: AttributeRelations | null;
+
+    /**
+     * Defines the order of attributes in a wizard style configurator.
+     */
+    readonly wizardAttributeRelations?: WizardAttributeRelations | null;
 
     /**
      * The parameter values used for the configuration model's usage rules.

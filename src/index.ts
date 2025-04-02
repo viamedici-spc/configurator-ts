@@ -41,7 +41,8 @@ import {
     StoredConfigurationInvalid,
     ConfiguratorError,
     ConfiguratorErrorType,
-    MakeManyDecisionsConflict
+    MakeManyDecisionsConflict,
+    SessionParametersInvalid
 } from "./contract/ConfiguratorError";
 import {
     LocalAttributeId,
@@ -137,7 +138,9 @@ import {
     MakeManyDecisionsMode,
     DropExistingDecisionsMode,
     KeepExistingDecisionsMode,
-    MakeManyDecisionsResult
+    MakeManyDecisionsResult,
+    WizardAttributeRelations,
+    WizardStep
 } from "./contract/Types";
 import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
 import * as StoredConfigurationV1 from "./contract/storedConfiguration/StoredConfigurationV1";
@@ -212,6 +215,7 @@ export {
     type NumericDecisionOutOfRange,
     type ConflictWithConsequence,
     type DecisionsToRespectInvalid,
+    type SessionParametersInvalid,
     type SessionNotFound,
     type ServerError,
     type ConnectionError,
@@ -317,6 +321,8 @@ export {
     type ExplainQuestionParam,
     type Subscription,
     type ScheduleTaskResult,
+    type WizardStep,
+    type WizardAttributeRelations,
 
     // Interpreter
     ConfigurationInterpreter,

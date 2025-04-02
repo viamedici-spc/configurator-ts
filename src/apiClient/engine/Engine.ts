@@ -44,6 +44,7 @@ export type ProblemDetails = (
   | UtilRequiredKeys<UsageRuleRestriction, "type" | "title" | "detail">
   | UtilRequiredKeys<ConfigurationModelInvalid, "type" | "title" | "detail">
   | UtilRequiredKeys<DecisionsToRespectInvalid, "type" | "title" | "detail">
+  | UtilRequiredKeys<SessionParametersInvalid, "type" | "title" | "detail">
   | UtilRequiredKeys<ConfigurationModelNotFeasible, "type" | "title" | "detail">
   | UtilRequiredKeys<SolutionNotFeasible, "type" | "title" | "detail">
   | UtilRequiredKeys<PutManyDecisionsConflict, "type" | "title" | "detail">
@@ -413,6 +414,12 @@ export interface DecisionsToRespectInvalid {
    * Details can be found in the API product documentation.
    */
   globalAttributeId: GlobalAttributeId;
+}
+
+export interface SessionParametersInvalid {
+  type: "SessionParametersInvalid";
+  title: string;
+  detail: string;
 }
 
 export interface ConfigurationModelNotFeasible {
@@ -1628,7 +1635,6 @@ export interface ConfigurationModelMeta {
 
 export interface CompleteMeta {
   configurationModels: ConfigurationModelMeta[];
-  obsoletion: ObsoletionMeta;
 }
 
 export interface ObsoletionMeta {
@@ -1682,11 +1688,7 @@ export interface CreateSessionRequest {
    * Examples can be found in the product documentation.
    */
   attributeRelations?: DecisionsToRespect[] | null;
-  /**
-   * Contextual information that will be processed in evaluating the Usage Rules.
-   * Examples can be found in the product documentation.
-   * @example {"principal.country":"de","applicationId":"webshop"}
-   */
+  wizardAttributeRelations?: WizardStep[] | null;
   usageRuleParameters?: Record<string, string>;
   allowedInExplain?: AllowedInExplain | null;
 }
@@ -1878,6 +1880,10 @@ export interface DecisionsToRespect {
   decisions: GlobalAttributeId[];
 }
 
+export interface WizardStep {
+  attributes: GlobalAttributeId[];
+}
+
 export interface AllowedInExplain {
   rules?: AllowedRules | null;
 }
@@ -1953,7 +1959,7 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = "https://textual-collection-constraint.spc.viamedici.dev/hca/api/engine";
+  public baseUrl: string = "https://alpha.spc.viamedici.dev/hca/api/engine";
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
@@ -2122,7 +2128,7 @@ export class HttpClient<SecurityDataType = unknown> {
  * @version v2
  * @license © 2025 Viamedici - All rights reserved (https://viamedici.de)
  * @termsOfService None
- * @baseUrl https://textual-collection-constraint.spc.viamedici.dev/hca/api/engine
+ * @baseUrl https://alpha.spc.viamedici.dev/hca/api/engine
  * @contact Viamedici Software GmbH <info@viamedici.de> (https://viamedici.de)
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2355,18 +2361,19 @@ consumer of the API or the Configuration Engine.
         format: "json",
         ...params,
       }),
-
+  };
+  obsoletion = {
     /**
      * No description
      *
-     * @tags Meta
-     * @name MetaGetObsoletion
-     * @request GET:/v2/session/configuration/meta/obsoletion
+     * @tags Obsoletion
+     * @name ObsoletionGetObsoletion
+     * @request GET:/v2/obsoletion
      * @secure
      */
-    metaGetObsoletion: (params: RequestParams = {}) =>
+    obsoletionGetObsoletion: (params: RequestParams = {}) =>
       this.request<ObsoletionMeta, Unspecified>({
-        path: `/v2/session/configuration/meta/obsoletion`,
+        path: `/v2/obsoletion`,
         method: "GET",
         secure: true,
         format: "json",

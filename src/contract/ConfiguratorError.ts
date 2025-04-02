@@ -49,6 +49,7 @@ export enum ConfiguratorErrorType {
     TaskCancelled = "TaskCancelled",
     SessionClosed = "SessionClosed",
     StoredConfigurationInvalid = "StoredConfigurationInvalid",
+    SessionParametersInvalid = "SessionParametersInvalid",
 }
 
 type ReplaceType<E extends { type: string }, T extends ConfiguratorErrorType> = Omit<E, "type"> & { readonly type: T };
@@ -76,6 +77,7 @@ export type ExplainConflict = ReplaceType<Engine.ExplainConflict, ConfiguratorEr
 export type ExplainFailure = ReplaceType<Engine.ExplainFailure, ConfiguratorErrorType.ExplainFailure>;
 export type SnapshotInvalid = ReplaceType<Engine.SnapshotInvalid, ConfiguratorErrorType.SnapshotInvalid>;
 export type SnapshotNotFound = ReplaceType<Engine.SnapshotNotFound, ConfiguratorErrorType.SnapshotNotFound>;
+export type SessionParametersInvalid = ReplaceType<Engine.SessionParametersInvalid, ConfiguratorErrorType.SessionParametersInvalid>;
 
 export type ConfigurationModelNotFeasible =
     Omit<Engine.ConfigurationModelNotFeasible, "type" | "constraintExplanations">
@@ -197,6 +199,7 @@ export type ConfiguratorError =
     | ExplainFailure
     | SnapshotInvalid
     | SnapshotNotFound
+    | SessionParametersInvalid
     // Modified Engine errors
     | ConfigurationModelNotFeasible
     | MakeManyDecisionsConflict

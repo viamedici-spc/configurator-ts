@@ -39,7 +39,7 @@ import {
     SessionContext,
     DropExistingDecisionsMode,
     KeepExistingDecisionsMode,
-    MakeManyDecisionsMode
+    MakeManyDecisionsMode, WizardStep
 } from "./Types";
 import {
     AttributeConsequence,
@@ -392,6 +392,10 @@ const decisionsToRespectEq: EqT<DecisionsToRespect> = Eq.struct<DecisionsToRespe
     decisions: RA.getUnsortedArrayEq(globalAttributeIdEq)
 });
 
+const wizardStepEq: EqT<WizardStep> = Eq.struct<WizardStep>({
+    attributes: RA.getEq(globalAttributeIdEq),
+});
+
 const configurationModelSourceEq: EqT<ConfigurationModelSource> = Eq.union<ConfigurationModelSource>()
     .with((s): s is ConfigurationModelFromChannel => s.type === ConfigurationModelSourceType.Channel, Eq.struct<ConfigurationModelFromChannel>({
         type: Str.Eq,
@@ -416,7 +420,8 @@ export const sessionContextEq: EqT<SessionContext> = Eq.struct<SessionContext>({
     })),
     allowedInExplain: Eq.eqNullable(allowedInExplain),
     usageRuleParameters: Eq.eqNullable(RR.getEq(Str.Eq)),
-    attributeRelations: Eq.eqNullable(RA.getUnsortedArrayEq(decisionsToRespectEq))
+    attributeRelations: Eq.eqNullable(RA.getUnsortedArrayEq(decisionsToRespectEq)),
+    wizardAttributeRelations: Eq.eqNullable(RA.getEq(wizardStepEq)),
 });
 
 export const configurationRawDataEq: EqT<ConfigurationRawData> = Eq.struct<ConfigurationRawData>({

@@ -131,12 +131,23 @@ export function mapSessionContext(sessionContext: SessionContext): Engine.Create
         )
         : undefined;
 
+    const wizardAttributeRelations = sessionContext.wizardAttributeRelations
+        ? pipe(
+            sessionContext.wizardAttributeRelations,
+            RA.map(w => ({
+                attributes: pipe(w.attributes, RA.map(mapGlobalAttributeId), RA.toArray)
+            }satisfies Engine.WizardStep)),
+            RA.toArray
+        )
+        : undefined;
+
     const usageRuleParameters = sessionContext.usageRuleParameters ? sessionContext.usageRuleParameters : undefined;
 
     return {
         configurationModelSource: configurationModelSource,
         allowedInExplain: allowedInExplain(),
         attributeRelations: attributeRelations,
+        wizardAttributeRelations: wizardAttributeRelations,
         usageRuleParameters: usageRuleParameters
     };
 }

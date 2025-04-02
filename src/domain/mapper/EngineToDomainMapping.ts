@@ -48,7 +48,7 @@ import {
     SerializationError,
     ServerError,
     SessionIdInvalid,
-    SessionNotFound, SetDecisionConflict,
+    SessionNotFound, SessionParametersInvalid, SetDecisionConflict,
     SideLoadingForbidden, SnapshotInvalid, SnapshotNotFound,
     SolutionNotFeasible, SolveOperationTimeout,
     SolverInitializationFailure,
@@ -106,6 +106,7 @@ export function mapConfiguratorError(problemDetails: Engine.ProblemDetails): Con
         .with({type: "ExplainFailure"}, p => changeType(p, ConfiguratorErrorType.ExplainFailure) satisfies ExplainFailure)
         .with({type: "SnapshotInvalid"}, p => changeType(p, ConfiguratorErrorType.SnapshotInvalid) satisfies SnapshotInvalid)
         .with({type: "SnapshotNotFound"}, p => changeType(p, ConfiguratorErrorType.SnapshotNotFound) satisfies SnapshotNotFound)
+        .with({type: "SessionParametersInvalid"}, p => changeType(p, ConfiguratorErrorType.SessionParametersInvalid) satisfies SessionParametersInvalid)
         .otherwise(() => serverError);
 }
 
