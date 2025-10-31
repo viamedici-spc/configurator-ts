@@ -1959,7 +1959,7 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = "https://alpha.spc.viamedici.dev/hca/api/engine";
+  public baseUrl: string = "https://spc.viamedici.io/hca/api/engine";
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
@@ -2128,7 +2128,7 @@ export class HttpClient<SecurityDataType = unknown> {
  * @version v2
  * @license © 2025 Viamedici - All rights reserved (https://viamedici.de)
  * @termsOfService None
- * @baseUrl https://alpha.spc.viamedici.dev/hca/api/engine
+ * @baseUrl https://spc.viamedici.io/hca/api/engine
  * @contact Viamedici Software GmbH <info@viamedici.de> (https://viamedici.de)
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

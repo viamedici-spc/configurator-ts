@@ -1,6 +1,6 @@
 {
   "endpoints" : {
-    "engine" : "https://spc.cloud.ceventis.de/hca/api/engine"
+    "engine" : "https://spc.viamedici.io/hca/api/engine"
   },
   "credentials" : {
     "engine" : {

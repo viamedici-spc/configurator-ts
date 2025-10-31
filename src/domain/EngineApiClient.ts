@@ -1,6 +1,6 @@
 import * as Engine from "../apiClient/engine/Engine";
 
-const defaultEngineBaseUrl = "https://spc.cloud.ceventis.de/hca/api/engine";
+const defaultEngineBaseUrl = "https://spc.viamedici.io/hca/api/engine";
 
 const apiClients = new Map<string, Engine.Api<unknown>>();
 const serverSideSessionCreationApiClients = new Map<string, Engine.Api<unknown>>();
