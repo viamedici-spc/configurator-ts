@@ -95,14 +95,16 @@ describe("EngineLogic", () => {
                                         possibleDecisionStates: [
                                             PossibleDecisionState.Included,
                                             PossibleDecisionState.Excluded
-                                        ]
+                                        ],
+                                        isPossibleDecisionStatesImmutable: false,
                                     },
                                     {
                                         choiceValueId: "v2",
                                         possibleDecisionStates: [
                                             PossibleDecisionState.Included,
                                             PossibleDecisionState.Excluded
-                                        ]
+                                        ],
+                                        isPossibleDecisionStatesImmutable: false,
                                     }
                                 ]
                             }],

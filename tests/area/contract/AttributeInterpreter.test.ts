@@ -76,25 +76,29 @@ describe("AttributeInterpreter", () => {
                     id: "V1",
                     decision: null,
                     nonOptimisticDecision: null,
-                    possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded]
+                    possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded],
+                    isPossibleDecisionStatesImmutable: false,
                 }],
                 ["V2", {
                     id: "V2",
                     decision: null,
                     nonOptimisticDecision: null,
-                    possibleDecisionStates: [ChoiceValueDecisionState.Included]
+                    possibleDecisionStates: [ChoiceValueDecisionState.Included],
+                    isPossibleDecisionStatesImmutable: false,
                 }],
                 ["V3", {
                     id: "V3",
                     decision: null,
                     nonOptimisticDecision: null,
-                    possibleDecisionStates: [ChoiceValueDecisionState.Excluded]
+                    possibleDecisionStates: [ChoiceValueDecisionState.Excluded],
+                    isPossibleDecisionStatesImmutable: false,
                 }],
                 ["V4", {
                     id: "V4",
                     decision: null,
                     nonOptimisticDecision: null,
-                    possibleDecisionStates: []
+                    possibleDecisionStates: [],
+                    isPossibleDecisionStatesImmutable: false,
                 }],
             ])
         });
@@ -126,7 +130,8 @@ describe("AttributeInterpreter", () => {
                         kind: DecisionKind.Implicit,
                         state: ChoiceValueDecisionState.Included
                     },
-                    possibleDecisionStates: []
+                    possibleDecisionStates: [],
+                    isPossibleDecisionStatesImmutable: false,
                 }],
                 ["V2", {
                     id: "V2",
@@ -138,13 +143,15 @@ describe("AttributeInterpreter", () => {
                         kind: DecisionKind.Explicit,
                         state: ChoiceValueDecisionState.Included
                     },
-                    possibleDecisionStates: []
+                    possibleDecisionStates: [],
+                    isPossibleDecisionStatesImmutable: false,
                 }],
                 ["V3", {
                     id: "V3",
                     decision: null,
                     nonOptimisticDecision: null,
-                    possibleDecisionStates: []
+                    possibleDecisionStates: [],
+                    isPossibleDecisionStatesImmutable: false,
                 }],
             ])
         });

@@ -54,8 +54,7 @@ import {
     SolverInitializationFailure,
     SolverPoolInitializationFailure,
     SpecifiedDeploymentForbidden,
-    TenantAccessForbidden,
-    UsageRuleRestriction
+    TenantAccessForbidden
 } from "../../contract/ConfiguratorError";
 import {pipe, RA} from "@viamedici-spc/fp-ts-extensions";
 import {ConfigurationInitializationFailure} from "../../apiClient/engine/Engine";
@@ -92,7 +91,6 @@ export function mapConfiguratorError(problemDetails: Engine.ProblemDetails): Con
         .with({type: "SessionIdInvalid"}, p => changeType(p, ConfiguratorErrorType.SessionIdInvalid) satisfies SessionIdInvalid)
         .with({type: "AuthenticationFailure"}, p => changeType(p, ConfiguratorErrorType.AuthenticationFailure) satisfies AuthenticationFailure)
         .with({type: "SideLoadingForbidden"}, p => changeType(p, ConfiguratorErrorType.SideLoadingForbidden) satisfies SideLoadingForbidden)
-        .with({type: "UsageRuleRestriction"}, p => changeType(p, ConfiguratorErrorType.UsageRuleRestriction) satisfies UsageRuleRestriction)
         .with({type: "ConfigurationModelInvalid"}, p => changeType(p, ConfiguratorErrorType.ConfigurationModelInvalid) satisfies ConfigurationModelInvalid)
         .with({type: "SolutionNotFeasible"}, p => changeType(p, ConfiguratorErrorType.SolutionNotFeasible) satisfies SolutionNotFeasible)
         .with({type: "ConfigurationModelNotFound"}, p => changeType(p, ConfiguratorErrorType.ConfigurationModelNotFound) satisfies ConfigurationModelNotFound)

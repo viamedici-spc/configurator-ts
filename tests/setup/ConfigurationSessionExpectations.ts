@@ -4,7 +4,7 @@ import {
     BooleanAttribute,
     ChoiceAttribute,
     ChoiceValue,
-    ChoiceValueId,
+    ChoiceValueId, ComponentAttribute,
     GlobalAttributeId,
     NumericAttribute
 } from "../../src";
@@ -20,14 +20,14 @@ function apFirst<P1, P extends ReadonlyArray<unknown>, R>(fn: (p1: P1, ...args: 
 }
 
 function expectChoiceAttribute(session: IConfigurationSession) {
-    return (id: GlobalAttributeId, additionalExpectations?: (sut: ChoiceAttribute, expectations: {
+    return async (id: GlobalAttributeId, additionalExpectations?: (sut: ChoiceAttribute, expectations: {
         expectChoiceValue: ApFirstResult<ReturnType<typeof expectChoiceValue>>
-    }) => void) => {
+    }) => void | Promise<void>) => {
         const attribute = Interpreter.getChoiceAttribute(session.getConfiguration(), id);
         expect(attribute).toBeTruthy();
 
         if (additionalExpectations) {
-            additionalExpectations(attribute!, {
+            await additionalExpectations(attribute!, {
                 expectChoiceValue: apFirst(expectChoiceValue(session), id)
             });
         }
@@ -37,12 +37,12 @@ function expectChoiceAttribute(session: IConfigurationSession) {
 }
 
 function expectNumericAttribute(session: IConfigurationSession) {
-    return (id: GlobalAttributeId, additionalExpectations?: (sut: NumericAttribute) => void) => {
+    return async (id: GlobalAttributeId, additionalExpectations?: (sut: NumericAttribute) => void | Promise<void>) => {
         const attribute = Interpreter.getNumericAttribute(session.getConfiguration(), id);
         expect(attribute).toBeTruthy();
 
         if (additionalExpectations) {
-            additionalExpectations(attribute!);
+            await additionalExpectations(attribute!);
         }
 
         return attribute!;
@@ -50,12 +50,25 @@ function expectNumericAttribute(session: IConfigurationSession) {
 }
 
 function expectBooleanAttribute(session: IConfigurationSession) {
-    return (id: GlobalAttributeId, additionalExpectations?: (sut: BooleanAttribute) => void) => {
+    return async (id: GlobalAttributeId, additionalExpectations?: (sut: BooleanAttribute) => void | Promise<void>) => {
         const attribute = Interpreter.getBooleanAttribute(session.getConfiguration(), id);
         expect(attribute).toBeTruthy();
 
         if (additionalExpectations) {
-            additionalExpectations(attribute!);
+            await additionalExpectations(attribute!);
+        }
+
+        return attribute!;
+    };
+}
+
+function expectComponentAttribute(session: IConfigurationSession) {
+    return async (id: GlobalAttributeId, additionalExpectations?: (sut: ComponentAttribute) => void | Promise<void>) => {
+        const attribute = Interpreter.getComponentAttribute(session.getConfiguration(), id);
+        expect(attribute).toBeTruthy();
+
+        if (additionalExpectations) {
+            await additionalExpectations(attribute!);
         }
 
         return attribute!;
@@ -63,12 +76,12 @@ function expectBooleanAttribute(session: IConfigurationSession) {
 }
 
 function expectChoiceValue(session: IConfigurationSession) {
-    return (id: GlobalAttributeId, choiceValueId: ChoiceValueId, additionalExpectations?: (sut: ChoiceValue) => void) => {
+    return async (id: GlobalAttributeId, choiceValueId: ChoiceValueId, additionalExpectations?: (sut: ChoiceValue) => void | Promise<void>) => {
         const choiceValue = Interpreter.getChoiceValue(session.getConfiguration(), id, choiceValueId);
         expect(choiceValue).toBeTruthy();
 
         if (additionalExpectations) {
-            additionalExpectations(choiceValue!);
+            await additionalExpectations(choiceValue!);
         }
 
         return choiceValue!;
@@ -99,6 +112,7 @@ export default function getConfigurationSessionExpectations(session: IConfigurat
         expectChoiceValue: expectChoiceValue(session),
         expectNumericAttribute: expectNumericAttribute(session),
         expectBooleanAttribute: expectBooleanAttribute(session),
+        expectComponentAttribute: expectComponentAttribute(session),
         expectRawDataToBeSameAsConfiguration: expectRawDataToBeSameAsConfiguration(session),
     };
 }

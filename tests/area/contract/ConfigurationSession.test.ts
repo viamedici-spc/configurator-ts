@@ -12,7 +12,7 @@ import {
     CollectedBooleanDecision,
     CollectedDecision,
     CollectedExplicitDecision,
-    CollectedImplicitDecision,
+    CollectedImplicitDecision, ComponentDecisionState,
     ConfigurationChanges,
     ConfigurationModelSourceType,
     ConfiguratorError,
@@ -191,13 +191,13 @@ describe("ConfigurationSession", () => {
             attributeId: {localId: "Num1"},
             state: 11
         });
-        expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
+        await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
             expect(a.decision).toEqual({
                 kind: DecisionKind.Explicit,
                 state: true
             } satisfies Decision<boolean>);
         });
-        expectations.expectNumericAttribute({localId: "Num1"}, a => {
+        await expectations.expectNumericAttribute({localId: "Num1"}, a => {
             expect(a.decision).toEqual({
                 kind: DecisionKind.Explicit,
                 state: 11
@@ -225,7 +225,7 @@ describe("ConfigurationSession", () => {
             state: true
         });
         // Expect decision to be applied.
-        expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
+        await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
             expect(a.decision).toEqual({kind: DecisionKind.Explicit, state: true} satisfies Decision<boolean>);
         });
         expectations.expectRawDataToBeSameAsConfiguration();
@@ -262,11 +262,11 @@ describe("ConfigurationSession", () => {
         expect(gotRejected).toBeTruthy();
         expect(session.sessionState.sessionId).not.toEqual(sessionIdToReject);
         // The old decision must remain.
-        expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
+        await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
             expect(a.decision).toEqual({kind: DecisionKind.Explicit, state: true} satisfies Decision<boolean>);
         });
         // The new decision must be applied.
-        expectations.expectNumericAttribute({localId: "Num1"}, a => {
+        await expectations.expectNumericAttribute({localId: "Num1"}, a => {
             expect(a.decision).toEqual({kind: DecisionKind.Explicit, state: 10} satisfies Decision<number>);
         });
         expectations.expectRawDataToBeSameAsConfiguration();
@@ -277,13 +277,13 @@ describe("ConfigurationSession", () => {
         const expectations = getConfigurationSessionExpectations(session);
 
         expectations.expectSatisfaction(false);
-        expectations.expectChoiceAttribute({localId: "Attr1"}, (a, e) => {
+        await expectations.expectChoiceAttribute({localId: "Attr1"}, (a, e) => {
             expect(a.canContributeToConfigurationSatisfaction).toBeTruthy();
             e.expectChoiceValue("Value1", v => {
                 expect(v.decision).toBeFalsy();
             });
         });
-        expectations.expectChoiceAttribute({localId: "Attr2"}, (a, e) => {
+        await expectations.expectChoiceAttribute({localId: "Attr2"}, (a, e) => {
             expect(a.canContributeToConfigurationSatisfaction).toBeTruthy();
             e.expectChoiceValue("Value1", v => {
                 expect(v.decision).toBeFalsy();
@@ -298,19 +298,126 @@ describe("ConfigurationSession", () => {
         });
 
         expectations.expectSatisfaction(true);
-        expectations.expectChoiceAttribute({localId: "Attr1"}, (a, e) => {
+        await expectations.expectChoiceAttribute({localId: "Attr1"}, (a, e) => {
             expect(a.canContributeToConfigurationSatisfaction).toBeFalsy();
             e.expectChoiceValue("Value1", v => {
                 expect(v.decision).toBeTruthy();
             });
         });
-        expectations.expectChoiceAttribute({localId: "Attr2"}, (a, e) => {
+        await expectations.expectChoiceAttribute({localId: "Attr2"}, (a, e) => {
             expect(a.canContributeToConfigurationSatisfaction).toBeFalsy();
             e.expectChoiceValue("Value1", v => {
                 expect(v.decision).toBeFalsy();
             });
         });
         expectations.expectRawDataToBeSameAsConfiguration();
+    });
+
+    it("Immutable PossibleDecisionStates", async () => {
+        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Trimming"));
+        const expectations = getConfigurationSessionExpectations(session);
+
+        expectations.expectSatisfaction(true);
+        await expectations.expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
+            e.expectChoiceValue("Value1", v => {
+                expect(v.isPossibleDecisionStatesImmutable).toBeTruthy();
+            });
+            e.expectChoiceValue("Value2", v => {
+                expect(v.isPossibleDecisionStatesImmutable).toBeFalsy();
+            });
+        });
+
+        await session.makeDecision({
+            type: AttributeType.Choice,
+            attributeId: {localId: "Choice1"},
+            choiceValueId: "Value2",
+            state: ChoiceValueDecisionState.Included
+        });
+
+        await expectations.expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
+            e.expectChoiceValue("Value1", v => {
+                expect(v.isPossibleDecisionStatesImmutable).toBeTruthy();
+            });
+            e.expectChoiceValue("Value2", v => {
+                expect(v.isPossibleDecisionStatesImmutable).toBeFalsy();
+            });
+        });
+        await expectations.expectBooleanAttribute({localId: "Boolean1"}, (a) => {
+            expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
+        });
+        await expectations.expectNumericAttribute({localId: "Numeric1"}, (a) => {
+            expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
+        });
+        await expectations.expectComponentAttribute({localId: "Component1"}, async (a) => {
+            expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
+
+            await expectations.expectBooleanAttribute({componentPath: [a.id.localId], localId: "Boolean1"}, (a) => {
+                expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
+            });
+        });
+    });
+
+    it("Trimming", async () => {
+        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Trimming"));
+        const expectations = getConfigurationSessionExpectations(session);
+
+        expectations.expectSatisfaction(true);
+        await expectations.expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
+            e.expectChoiceValue("Value1", v => {
+                expect(v.isPossibleDecisionStatesImmutable).toBeTruthy();
+            });
+            e.expectChoiceValue("Value2", v => {
+                expect(v.isPossibleDecisionStatesImmutable).toBeFalsy();
+            });
+        });
+
+        await session.makeDecision({
+            type: AttributeType.Choice,
+            attributeId: {localId: "Choice1"},
+            choiceValueId: "Value2",
+            state: ChoiceValueDecisionState.Included
+        });
+
+        await expectations.expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
+            e.expectChoiceValue("Value1", v => {
+                expect(v.isPossibleDecisionStatesImmutable).toBeTruthy();
+            });
+            e.expectChoiceValue("Value2", v => {
+                expect(v.isPossibleDecisionStatesImmutable).toBeFalsy();
+            });
+        });
+        await expectations.expectBooleanAttribute({localId: "Boolean1"}, (a) => {
+            expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
+        });
+        await expectations.expectNumericAttribute({localId: "Numeric1"}, (a) => {
+            expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
+        });
+        await expectations.expectComponentAttribute({localId: "Component1"}, async (a) => {
+            expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
+
+            await expectations.expectBooleanAttribute({componentPath: [a.id.localId], localId: "Boolean1"}, (a) => {
+                expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
+                expect(a.possibleDecisionStates).toBeEmpty();
+            });
+        });
+    });
+
+    it("Nullable", async () => {
+        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Trimming"));
+        const expectations = getConfigurationSessionExpectations(session);
+
+        await expectations.expectComponentAttribute({localId: "Component1"}, async (a) => {
+            expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
+            expect(a.decision?.state).toBe(ComponentDecisionState.Excluded);
+
+            await expectations.expectBooleanAttribute({
+                componentPath: [a.id.localId],
+                localId: "Boolean1"
+            }, async (a) => {
+                expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
+                expect(a.possibleDecisionStates).toBeEmpty();
+            });
+        });
     });
 
     it("Optimistic decisions", async () => {
@@ -330,7 +437,7 @@ describe("ConfigurationSession", () => {
             attributeId: {localId: "Bool1"},
             state: true
         });
-        expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
+        await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
             // The decision must be applied optimistically.
             expect(a.decision).toEqual({
                 kind: DecisionKind.Explicit,
@@ -346,7 +453,7 @@ describe("ConfigurationSession", () => {
             state: 10
         });
         // The decision must be applied optimistically.
-        expectations.expectNumericAttribute({localId: "Num1"}, a => {
+        await expectations.expectNumericAttribute({localId: "Num1"}, a => {
             expect(a.decision).toEqual({
                 kind: DecisionKind.Explicit,
                 state: 10
@@ -447,7 +554,7 @@ describe("ConfigurationSession", () => {
             });
 
             // Expect that only false is possible because setting Bool2 to true prevents GetBlocked1 to be true.
-            expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
+            await expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
                 expect(a.possibleDecisionStates).toIncludeSameMembers([false]);
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Implicit,
@@ -505,6 +612,56 @@ describe("ConfigurationSession", () => {
 
             expect(fullExplainAnswerEq.equals(answer, expectedAnswer)).toBeTruthy();
         });
+
+        it("Trimming - enabled", async () => {
+            const session = await SessionFactory.createSession({
+                ...getSessionContext("Configurator-TS-Trimming"),
+                disableConfigurationModelTrimming: false
+            });
+            const expectations = getConfigurationSessionExpectations(session);
+
+            await expectations.expectChoiceAttribute({localId: "Choice2"}, async (a, e) => {
+                await e.expectChoiceValue("Value2", v => {
+                    expect(v.isPossibleDecisionStatesImmutable).toBeTruthy();
+                    expect(v.possibleDecisionStates).toIncludeSameMembers([ChoiceValueDecisionState.Excluded]);
+                });
+
+                // A trimmed attribute can not be explained
+                await expect(session.explain(b => b.whyIsStateNotPossible.choice(a.id).choiceValue("Value2").state(ChoiceValueDecisionState.Included), "full")).resolves.toEqual({
+                    constraintExplanations: [],
+                    decisionExplanations: [],
+                } satisfies FullExplainAnswer);
+            });
+        });
+    });
+
+    it("Trimming - disabled", async () => {
+        const session = await SessionFactory.createSession({
+            ...getSessionContext("Configurator-TS-Trimming"),
+            disableConfigurationModelTrimming: true
+        });
+        const expectations = getConfigurationSessionExpectations(session);
+
+        await expectations.expectChoiceAttribute({localId: "Choice2"}, async (a, e) => {
+            await e.expectChoiceValue("Value2", v => {
+                expect(v.isPossibleDecisionStatesImmutable).toBeTruthy();
+                expect(v.possibleDecisionStates).toIncludeSameMembers([ChoiceValueDecisionState.Excluded]);
+            });
+            await expect(session.explain(b => b.whyIsStateNotPossible.choice(a.id).choiceValue("Value2").state(ChoiceValueDecisionState.Included), "full")).resolves.toEqual({
+                constraintExplanations: [
+                    {
+                        causedByCardinalities: [],
+                        causedByRules: [
+                            {
+                                configurationModelId: "Trimming",
+                                localId: "New Rule Group::New Textual Rule 5",
+                            },
+                        ],
+                    }
+                ],
+                decisionExplanations: [],
+            } satisfies FullExplainAnswer);
+        });
     });
 
     describe("MakeManyDecisions", () => {
@@ -546,13 +703,13 @@ describe("ConfigurationSession", () => {
                 const makeManyDecisions = await session.makeManyDecisions([desiredBool1Decision, desiredNum1Decision], makeManyDecisionsMode);
 
                 expect(makeManyDecisions.rejectedDecisions).toHaveLength(0);
-                expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
+                await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
                     expect(a.decision).toEqual({
                         kind: DecisionKind.Explicit,
                         state: true
                     } satisfies Decision<boolean>);
                 });
-                expectations.expectNumericAttribute({localId: "Num1"}, a => {
+                await expectations.expectNumericAttribute({localId: "Num1"}, a => {
                     expect(a.decision).toEqual({
                         kind: DecisionKind.Explicit,
                         state: 10
@@ -673,7 +830,7 @@ describe("ConfigurationSession", () => {
                     conflictHandling: {type: "Automatic"}
                 });
 
-                expectations.expectNumericAttribute({localId: "Num1"}, a => {
+                await expectations.expectNumericAttribute({localId: "Num1"}, a => {
                     expect(a.decision).toEqual({
                         kind: DecisionKind.Explicit,
                         state: 10
@@ -810,25 +967,25 @@ describe("ConfigurationSession", () => {
 
             // Expect that every made decision is present in the configuration.
             expectations.expectRawDataToBeSameAsConfiguration();
-            expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
+            await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
                     state: true
                 } satisfies Decision<boolean>);
             });
-            expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
+            await expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
                     state: true
                 } satisfies Decision<boolean>);
             });
-            expectations.expectNumericAttribute({localId: "Num1"}, a => {
+            await expectations.expectNumericAttribute({localId: "Num1"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
                     state: 12
                 } satisfies Decision<number>);
             });
-            expectations.expectChoiceValue({localId: "Ch1"}, "Value1", a => {
+            await expectations.expectChoiceValue({localId: "Ch1"}, "Value1", a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
                     state: ChoiceValueDecisionState.Included
@@ -843,19 +1000,19 @@ describe("ConfigurationSession", () => {
 
             // Expect that every decision state the same, except for ChoiceDecision that was made after storing the configuration.
             expectations.expectRawDataToBeSameAsConfiguration();
-            expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
+            await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
                     state: true
                 } satisfies Decision<boolean>);
             });
-            expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
+            await expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
                     state: true
                 } satisfies Decision<boolean>);
             });
-            expectations.expectNumericAttribute({localId: "Num1"}, a => {
+            await expectations.expectNumericAttribute({localId: "Num1"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
                     state: 12
@@ -936,7 +1093,7 @@ describe("ConfigurationSession", () => {
         });
 
         // Expect the decision to be applied optimistically.
-        expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
+        await expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
             expect(a.decision).toEqual({
                 kind: DecisionKind.Explicit,
                 state: true
@@ -951,7 +1108,7 @@ describe("ConfigurationSession", () => {
         suspendFetchDeferredPromise.resolve();
         await makeDecision;
 
-        expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
+        await expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
             expect(a.possibleDecisionStates).toIncludeSameMembers([false]);
             expect(a.decision).toEqual({
                 kind: DecisionKind.Implicit,
@@ -998,7 +1155,7 @@ describe("ConfigurationSession", () => {
             state: ChoiceValueDecisionState.Included
         });
 
-        expectations.expectChoiceAttribute({localId: "Ch2"}, (_, e) => {
+        await expectations.expectChoiceAttribute({localId: "Ch2"}, (_, e) => {
             e.expectChoiceValue("Value1", v => {
                 expect(v.decision).toEqual({
                     kind: DecisionKind.Explicit,
@@ -1183,6 +1340,7 @@ describe("ConfigurationSession", () => {
                             canContributeToConfigurationSatisfaction: false,
                             selection: Selection.Optional,
                             possibleDecisionStates: expect.arrayContaining([true, false]),
+                            isPossibleDecisionStatesImmutable: false,
                             decision: {
                                 kind: DecisionKind.Explicit,
                                 state: true
@@ -1212,6 +1370,7 @@ describe("ConfigurationSession", () => {
                             canContributeToConfigurationSatisfaction: false,
                             selection: Selection.Optional,
                             possibleDecisionStates: expect.arrayContaining([true, false]),
+                            isPossibleDecisionStatesImmutable: false,
                             decision: {
                                 kind: DecisionKind.Explicit,
                                 state: true
@@ -1229,6 +1388,7 @@ describe("ConfigurationSession", () => {
                             canContributeToConfigurationSatisfaction: false,
                             selection: Selection.Mandatory,
                             possibleDecisionStates: [false],
+                            isPossibleDecisionStatesImmutable: false,
                             decision: {
                                 kind: DecisionKind.Implicit,
                                 state: false
@@ -1271,7 +1431,7 @@ describe("ConfigurationSession", () => {
             });
 
             // GetBlocked1 must be implicit false.
-            expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
+            await expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Implicit,
                     state: false

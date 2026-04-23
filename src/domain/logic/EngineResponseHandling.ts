@@ -185,6 +185,7 @@ function getAttributeConsequences(consequences: Engine.Consequences): ReadonlyMa
         type: AttributeType.Boolean,
         isSatisfied: consequence.isSatisfied,
         possibleDecisionStates: consequence.possibleDecisionStates,
+        isPossibleDecisionStatesImmutable: consequence.isPossibleDecisionStatesImmutable,
         selection: mapSelection(consequence.selection),
     })) satisfies ReadonlyArray<BooleanAttributeConsequence>;
 
@@ -197,12 +198,14 @@ function getAttributeConsequences(consequences: Engine.Consequences): ReadonlyMa
             min: consequence.range.min,
         },
         decimalPlaces: consequence.decimalPlaces,
+        isPossibleDecisionStatesImmutable: consequence.isPossibleDecisionStatesImmutable,
     })) satisfies ReadonlyArray<NumericAttributeConsequence>;
 
     const componentAttributeConsequences = transformConsequences(consequences.componentConsequences, (consequence) => ({
         type: AttributeType.Component,
         isSatisfied: consequence.isSatisfied,
         possibleDecisionStates: pipe(consequence.possibleDecisionStates, RA.map(EtoD.mapPossibleDecisionStateToComponent)),
+        isPossibleDecisionStatesImmutable: consequence.isPossibleDecisionStatesImmutable,
         inclusion: mapInclusion(consequence.inclusion),
         selection: consequence.selection ? EtoD.mapSelection(consequence.selection) : null,
     })) satisfies ReadonlyArray<ComponentAttributeConsequence>;
@@ -218,7 +221,8 @@ function getAttributeConsequences(consequences: Engine.Consequences): ReadonlyMa
             consequence.values ?? [],
             RA.map(v => ({
                 id: v.choiceValueId,
-                possibleDecisionStates: pipe(v.possibleDecisionStates, RA.map(EtoD.mapPossibleDecisionStateToChoice))
+                possibleDecisionStates: pipe(v.possibleDecisionStates, RA.map(EtoD.mapPossibleDecisionStateToChoice)),
+                isPossibleDecisionStatesImmutable: v.isPossibleDecisionStatesImmutable,
             } satisfies ChoiceValueConsequence))
         )
     })) satisfies ReadonlyArray<ChoiceAttributeConsequence>;

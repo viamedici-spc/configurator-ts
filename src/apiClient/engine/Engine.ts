@@ -9,8 +9,6 @@
  * ---------------------------------------------------------------
  */
 
-type UtilRequiredKeys<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
-
 export interface Unspecified {
   type?: string | null;
   title?: string | null;
@@ -21,52 +19,47 @@ export interface Unspecified {
   [key: string]: any;
 }
 
-export type ProblemDetails = (
-  | UtilRequiredKeys<RequestTimeout, "type" | "title" | "detail">
-  | UtilRequiredKeys<RequestFailure, "type" | "title" | "detail">
-  | UtilRequiredKeys<SerializationError, "type" | "title" | "detail">
-  | UtilRequiredKeys<InternalServerError, "type" | "title" | "detail">
-  | UtilRequiredKeys<MissingTenantIdClaim, "type" | "title" | "detail">
-  | UtilRequiredKeys<MissingSessionIdClaim, "type" | "title" | "detail">
-  | UtilRequiredKeys<TenantAccessForbidden, "type" | "title" | "detail">
-  | UtilRequiredKeys<SessionIdInvalid, "type" | "title" | "detail">
-  | UtilRequiredKeys<AuthenticationFailure, "type" | "title" | "detail">
-  | UtilRequiredKeys<SideLoadingForbidden, "type" | "title" | "detail">
-  | UtilRequiredKeys<SpecifiedDeploymentForbidden, "type" | "title" | "detail">
-  | UtilRequiredKeys<AttributeNotFound, "type" | "title" | "detail">
-  | UtilRequiredKeys<ChoiceAttributeNotFound, "type" | "title" | "detail">
-  | UtilRequiredKeys<ChoiceValueNotFound, "type" | "title" | "detail">
-  | UtilRequiredKeys<NumericAttributeNotFound, "type" | "title" | "detail">
-  | UtilRequiredKeys<BooleanAttributeNotFound, "type" | "title" | "detail">
-  | UtilRequiredKeys<ComponentAttributeNotFound, "type" | "title" | "detail">
-  | UtilRequiredKeys<NumericDecisionOutOfRange, "type" | "title" | "detail">
-  | UtilRequiredKeys<ConflictWithConsequence, "type" | "title" | "detail">
-  | UtilRequiredKeys<UsageRuleRestriction, "type" | "title" | "detail">
-  | UtilRequiredKeys<ConfigurationModelInvalid, "type" | "title" | "detail">
-  | UtilRequiredKeys<DecisionsToRespectInvalid, "type" | "title" | "detail">
-  | UtilRequiredKeys<SessionParametersInvalid, "type" | "title" | "detail">
-  | UtilRequiredKeys<ConfigurationModelNotFeasible, "type" | "title" | "detail">
-  | UtilRequiredKeys<SolutionNotFeasible, "type" | "title" | "detail">
-  | UtilRequiredKeys<PutManyDecisionsConflict, "type" | "title" | "detail">
-  | UtilRequiredKeys<SetDecisionConflict, "type" | "title" | "detail">
-  | UtilRequiredKeys<SessionNotFound, "type" | "title" | "detail">
-  | UtilRequiredKeys<ConfigurationModelNotFound, "type" | "title" | "detail">
-  | UtilRequiredKeys<SolverInitializationFailure, "type" | "title" | "detail">
-  | UtilRequiredKeys<ConfigurationModelLoadFailure, "type" | "title" | "detail">
-  | UtilRequiredKeys<ConfigurationInitializationFailure, "type" | "title" | "detail">
-  | UtilRequiredKeys<SolverPoolInitializationFailure, "type" | "title" | "detail">
-  | UtilRequiredKeys<SolveOperationTimeout, "type" | "title" | "detail">
-  | UtilRequiredKeys<ExplainConflict, "type" | "title" | "detail">
-  | UtilRequiredKeys<ExplainFailure, "type" | "title" | "detail">
-  | UtilRequiredKeys<SnapshotInvalid, "type" | "title" | "detail">
-  | UtilRequiredKeys<SnapshotNotFound, "type" | "title" | "detail">
-  | UtilRequiredKeys<AssignedChannelNotFound, "type" | "title" | "detail">
-  | UtilRequiredKeys<Unspecified, "type" | "title" | "detail">
-) & {
-  type: string;
-  title: string;
-  detail: string;
-};
+export type ProblemDetails = BaseProblemDetails &
+  (
+    | BaseProblemDetailsTypeMapping<"RequestTimeout", RequestTimeout>
+    | BaseProblemDetailsTypeMapping<"RequestFailure", RequestFailure>
+    | BaseProblemDetailsTypeMapping<"SerializationError", SerializationError>
+    | BaseProblemDetailsTypeMapping<"InternalServerError", InternalServerError>
+    | BaseProblemDetailsTypeMapping<"MissingTenantIdClaim", MissingTenantIdClaim>
+    | BaseProblemDetailsTypeMapping<"MissingSessionIdClaim", MissingSessionIdClaim>
+    | BaseProblemDetailsTypeMapping<"TenantAccessForbidden", TenantAccessForbidden>
+    | BaseProblemDetailsTypeMapping<"SessionIdInvalid", SessionIdInvalid>
+    | BaseProblemDetailsTypeMapping<"AuthenticationFailure", AuthenticationFailure>
+    | BaseProblemDetailsTypeMapping<"SideLoadingForbidden", SideLoadingForbidden>
+    | BaseProblemDetailsTypeMapping<"SpecifiedDeploymentForbidden", SpecifiedDeploymentForbidden>
+    | BaseProblemDetailsTypeMapping<"AttributeNotFound", AttributeNotFound>
+    | BaseProblemDetailsTypeMapping<"ChoiceAttributeNotFound", ChoiceAttributeNotFound>
+    | BaseProblemDetailsTypeMapping<"ChoiceValueNotFound", ChoiceValueNotFound>
+    | BaseProblemDetailsTypeMapping<"NumericAttributeNotFound", NumericAttributeNotFound>
+    | BaseProblemDetailsTypeMapping<"BooleanAttributeNotFound", BooleanAttributeNotFound>
+    | BaseProblemDetailsTypeMapping<"ComponentAttributeNotFound", ComponentAttributeNotFound>
+    | BaseProblemDetailsTypeMapping<"NumericDecisionOutOfRange", NumericDecisionOutOfRange>
+    | BaseProblemDetailsTypeMapping<"ConflictWithConsequence", ConflictWithConsequence>
+    | BaseProblemDetailsTypeMapping<"ConfigurationModelInvalid", ConfigurationModelInvalid>
+    | BaseProblemDetailsTypeMapping<"DecisionsToRespectInvalid", DecisionsToRespectInvalid>
+    | BaseProblemDetailsTypeMapping<"SessionParametersInvalid", SessionParametersInvalid>
+    | BaseProblemDetailsTypeMapping<"ConfigurationModelNotFeasible", ConfigurationModelNotFeasible>
+    | BaseProblemDetailsTypeMapping<"SolutionNotFeasible", SolutionNotFeasible>
+    | BaseProblemDetailsTypeMapping<"PutManyDecisionsConflict", PutManyDecisionsConflict>
+    | BaseProblemDetailsTypeMapping<"SetDecisionConflict", SetDecisionConflict>
+    | BaseProblemDetailsTypeMapping<"SessionNotFound", SessionNotFound>
+    | BaseProblemDetailsTypeMapping<"ConfigurationModelNotFound", ConfigurationModelNotFound>
+    | BaseProblemDetailsTypeMapping<"SolverInitializationFailure", SolverInitializationFailure>
+    | BaseProblemDetailsTypeMapping<"ConfigurationModelLoadFailure", ConfigurationModelLoadFailure>
+    | BaseProblemDetailsTypeMapping<"ConfigurationInitializationFailure", ConfigurationInitializationFailure>
+    | BaseProblemDetailsTypeMapping<"SolverPoolInitializationFailure", SolverPoolInitializationFailure>
+    | BaseProblemDetailsTypeMapping<"SolveOperationTimeout", SolveOperationTimeout>
+    | BaseProblemDetailsTypeMapping<"ExplainConflict", ExplainConflict>
+    | BaseProblemDetailsTypeMapping<"ExplainFailure", ExplainFailure>
+    | BaseProblemDetailsTypeMapping<"SnapshotInvalid", SnapshotInvalid>
+    | BaseProblemDetailsTypeMapping<"SnapshotNotFound", SnapshotNotFound>
+    | BaseProblemDetailsTypeMapping<"AssignedChannelNotFound", AssignedChannelNotFound>
+  );
 
 export enum HttpStatusCode {
   Continue = "Continue",
@@ -386,12 +379,6 @@ export interface ConflictWithConsequence {
   choiceValueId?: string | null;
 }
 
-export interface UsageRuleRestriction {
-  type: "UsageRuleRestriction";
-  title: string;
-  detail: string;
-}
-
 export interface ConfigurationModelInvalid {
   type: "ConfigurationModelInvalid";
   title: string;
@@ -458,12 +445,11 @@ export interface GlobalConstraintId {
   configurationModelId: string;
 }
 
-export type ConstraintDescription = (
-  | UtilRequiredKeys<RuleConstraint, "type">
-  | UtilRequiredKeys<CardinalityConstraint, "type">
-) & {
-  type: string;
-};
+export type ConstraintDescription = BaseConstraintDescription &
+  (
+    | BaseConstraintDescriptionTypeMapping<"Rule", RuleConstraint>
+    | BaseConstraintDescriptionTypeMapping<"Cardinality", CardinalityConstraint>
+  );
 
 export interface SolutionNotFeasible {
   type: "SolutionNotFeasible";
@@ -615,25 +601,13 @@ export interface CausedByComponentDecision {
   state: PossibleDecisionState;
 }
 
-export type CausedByDecision = (
-  | UtilRequiredKeys<CausedByChoiceValueDecision, "type" | "attributeId" | "reason">
-  | UtilRequiredKeys<CausedByNumericDecision, "type" | "attributeId" | "reason">
-  | UtilRequiredKeys<CausedByBooleanDecision, "type" | "attributeId" | "reason">
-  | UtilRequiredKeys<CausedByComponentDecision, "type" | "attributeId" | "reason">
-) & {
-  type: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  reason: Reason;
-};
+export type CausedByDecision = BaseCausedByDecision &
+  (
+    | BaseCausedByDecisionTypeMapping<"Choice", CausedByChoiceValueDecision>
+    | BaseCausedByDecisionTypeMapping<"Numeric", CausedByNumericDecision>
+    | BaseCausedByDecisionTypeMapping<"Boolean", CausedByBooleanDecision>
+    | BaseCausedByDecisionTypeMapping<"Component", CausedByComponentDecision>
+  );
 
 export interface SetDecisionConflict {
   type: "SetDecisionConflict";
@@ -752,7 +726,7 @@ export interface Consequences {
    * If it is TRUE then the configuration can be concluded.
    */
   isConfigurationSatisfied: boolean;
-  /** TODO: Documentation */
+  /** Gives a hint if an attribute can contribute to the overall configuration satisfaction state. */
   canAttributeContributeToConfigurationSatisfaction: GlobalAttributeId[];
   /**
    * The Choice Consequences are the result of an evaluation weather of a Configuration Model or of made
@@ -865,6 +839,8 @@ export interface ChoiceValueConsequence {
    * for a Choice Value.
    */
   possibleDecisionStates: PossibleDecisionState[];
+  /** States if this consequence is not influenced by user decisions. It is determined when the session is created. */
+  isPossibleDecisionStatesImmutable: boolean;
 }
 
 /**
@@ -910,6 +886,8 @@ export interface NumericConsequence {
    * the response time of some routes. Therefore it should be chosen as small as possible.
    */
   decimalPlaces: number;
+  /** States if this consequence is not influenced by user decisions. It is determined when the session is created. */
+  isPossibleDecisionStatesImmutable: boolean;
 }
 
 /**
@@ -988,6 +966,8 @@ export interface BooleanConsequence {
    * possible boolean states.
    */
   possibleDecisionStates: boolean[];
+  /** States if this consequence is not influenced by user decisions. It is determined when the session is created. */
+  isPossibleDecisionStatesImmutable: boolean;
 }
 
 /**
@@ -1047,6 +1027,8 @@ export interface ComponentConsequence {
    * referenced Component Configuration Model.
    */
   possibleDecisionStates: PossibleDecisionState[];
+  /** States if this consequence is not influenced by user decisions. It is determined when the session is created. */
+  isPossibleDecisionStatesImmutable: boolean;
 }
 
 /**
@@ -1286,24 +1268,13 @@ export interface ChoiceValueDecision {
   kind: DecisionKind;
 }
 
-export type ExplicitDecision = (
-  | UtilRequiredKeys<ExplicitChoiceValueDecision, "type" | "attributeId">
-  | UtilRequiredKeys<ExplicitNumericDecision, "type" | "attributeId">
-  | UtilRequiredKeys<ExplicitBooleanDecision, "type" | "attributeId">
-  | UtilRequiredKeys<ExplicitComponentDecision, "type" | "attributeId">
-) & {
-  type: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-};
+export type ExplicitDecision = BaseExplicitDecision &
+  (
+    | BaseExplicitDecisionTypeMapping<"Choice", ExplicitChoiceValueDecision>
+    | BaseExplicitDecisionTypeMapping<"Numeric", ExplicitNumericDecision>
+    | BaseExplicitDecisionTypeMapping<"Boolean", ExplicitBooleanDecision>
+    | BaseExplicitDecisionTypeMapping<"Component", ExplicitComponentDecision>
+  );
 
 /** The object "ExplicitChoiceDecision" encapsulates  a list of Choice Values with the associated current Decision State. */
 export interface ExplicitChoiceValueDecision {
@@ -1451,13 +1422,12 @@ export interface ExplicitDecisions {
   componentDecisions?: ExplicitComponentDecision[] | null;
 }
 
-export type Mode = (
-  | UtilRequiredKeys<DefaultMode, "type">
-  | UtilRequiredKeys<DropExistingDecisionsMode, "type">
-  | UtilRequiredKeys<KeepExistingDecisionsMode, "type">
-) & {
-  type: string;
-};
+export type Mode = BaseMode &
+  (
+    | BaseModeTypeMapping<"Default", DefaultMode>
+    | BaseModeTypeMapping<"DropExistingDecisions", DropExistingDecisionsMode>
+    | BaseModeTypeMapping<"KeepExistingDecisions", KeepExistingDecisionsMode>
+  );
 
 /** Alias for KeepExistingDecisionsMode. */
 export interface DefaultMode {
@@ -1469,12 +1439,11 @@ export interface DropExistingDecisionsMode {
   conflictResolution: ConflictResolution;
 }
 
-export type ConflictResolution = (
-  | UtilRequiredKeys<ManualConflictResolution, "type">
-  | UtilRequiredKeys<AutomaticConflictResolution, "type">
-) & {
-  type: string;
-};
+export type ConflictResolution = BaseConflictResolution &
+  (
+    | BaseConflictResolutionTypeMapping<"Manual", ManualConflictResolution>
+    | BaseConflictResolutionTypeMapping<"Automatic", AutomaticConflictResolution>
+  );
 
 export interface ManualConflictResolution {
   type: "Manual";
@@ -1494,12 +1463,11 @@ export interface ExplainResult {
   decisionExplanations: DecisionExplanation[];
 }
 
-export type WhyNotSatisfiedRequest = (
-  | UtilRequiredKeys<WhyAttributeNotSatisfiedRequest, "type">
-  | UtilRequiredKeys<WhyConfigurationNotSatisfiedRequest, "type">
-) & {
-  type: string;
-};
+export type WhyNotSatisfiedRequest = BaseWhyNotSatisfiedRequest &
+  (
+    | BaseWhyNotSatisfiedRequestTypeMapping<"Attribute", WhyAttributeNotSatisfiedRequest>
+    | BaseWhyNotSatisfiedRequestTypeMapping<"Configuration", WhyConfigurationNotSatisfiedRequest>
+  );
 
 export interface WhyAttributeNotSatisfiedRequest {
   type: "Attribute";
@@ -1519,24 +1487,13 @@ export interface WhyConfigurationNotSatisfiedRequest {
   type: "Configuration";
 }
 
-export type WhyStateNotPossibleRequest = (
-  | UtilRequiredKeys<WhyBooleanStateNotPossibleRequest, "type" | "attributeId">
-  | UtilRequiredKeys<WhyNumericStateNotPossibleRequest, "type" | "attributeId">
-  | UtilRequiredKeys<WhyChoiceValueStateNotPossibleRequest, "type" | "attributeId">
-  | UtilRequiredKeys<WhyComponentStateNotPossibleRequest, "type" | "attributeId">
-) & {
-  type: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-};
+export type WhyStateNotPossibleRequest = BaseWhyStateNotPossibleRequest &
+  (
+    | BaseWhyStateNotPossibleRequestTypeMapping<"Boolean", WhyBooleanStateNotPossibleRequest>
+    | BaseWhyStateNotPossibleRequestTypeMapping<"Numeric", WhyNumericStateNotPossibleRequest>
+    | BaseWhyStateNotPossibleRequestTypeMapping<"ChoiceValue", WhyChoiceValueStateNotPossibleRequest>
+    | BaseWhyStateNotPossibleRequestTypeMapping<"Component", WhyComponentStateNotPossibleRequest>
+  );
 
 export interface WhyBooleanStateNotPossibleRequest {
   type: "Boolean";
@@ -1689,8 +1646,8 @@ export interface CreateSessionRequest {
    */
   attributeRelations?: DecisionsToRespect[] | null;
   wizardAttributeRelations?: WizardStep[] | null;
-  usageRuleParameters?: Record<string, string>;
   allowedInExplain?: AllowedInExplain | null;
+  disableConfigurationModelTrimming?: boolean | null;
 }
 
 /**
@@ -1700,12 +1657,11 @@ export interface CreateSessionRequest {
  *     This is the variant for the majority of cases.
  * (2) The nested structure of the sub models can be specified as a "Package" directly in the request body.
  */
-export type ConfigurationModelSource = (
-  | UtilRequiredKeys<ConfigurationModelFromChannel, "type">
-  | UtilRequiredKeys<ConfigurationModelFromPackage, "type">
-) & {
-  type: string;
-};
+export type ConfigurationModelSource = BaseConfigurationModelSource &
+  (
+    | BaseConfigurationModelSourceTypeMapping<"Channel", ConfigurationModelFromChannel>
+    | BaseConfigurationModelSourceTypeMapping<"Package", ConfigurationModelFromPackage>
+  );
 
 export interface ConfigurationModelFromChannel {
   type: "Channel";
@@ -1725,10 +1681,9 @@ export interface ConfigurationModelPackage {
 
 export interface ConfigurationModel {
   configurationModelId: string;
-  sharedFromConfigurationModels?: string[] | null;
   attributes: Attributes;
+  sharedFromConfigurationModels?: string[] | null;
   constraints?: Constraint[] | null;
-  usageRules?: UsageRules | null;
 }
 
 export interface Attributes {
@@ -1770,12 +1725,11 @@ export interface ComponentAttribute {
   inclusion: ComponentInclusionType;
 }
 
-export type ComponentInclusionType = (
-  | UtilRequiredKeys<OptionallyIncluded, "type">
-  | UtilRequiredKeys<AlwaysIncluded, "type">
-) & {
-  type: string;
-};
+export type ComponentInclusionType = BaseComponentInclusionType &
+  (
+    | BaseComponentInclusionTypeTypeMapping<"OptionallyIncluded", OptionallyIncluded>
+    | BaseComponentInclusionTypeTypeMapping<"AlwaysIncluded", AlwaysIncluded>
+  );
 
 export interface OptionallyIncluded {
   type: "OptionallyIncluded";
@@ -1786,7 +1740,11 @@ export interface AlwaysIncluded {
   type: "AlwaysIncluded";
 }
 
-export type Constraint = TextualConstraint | TextualConstraintCollection;
+export type Constraint = BaseConstraint &
+  (
+    | BaseConstraintTypeMapping<"TextualConstraint", TextualConstraint>
+    | BaseConstraintTypeMapping<"TextualConstraintCollection", TextualConstraintCollection>
+  );
 
 export interface TextualConstraint {
   constraintId: string;
@@ -1805,66 +1763,6 @@ export enum TextualConstraintCollectionOperator {
   And = "And",
   Or = "Or",
 }
-
-export interface UsageRules {
-  modelUsageRule?: ModelUsageRule | null;
-  attributeUsageRules?: AttributeUsageRule[] | null;
-  choiceValueUsageRules?: ChoiceValueUsageRule[] | null;
-  constraintUsageRules?: ConstraintUsageRule[] | null;
-}
-
-export type ModelUsageRule = UsageRule & object;
-
-export interface UsageRule {
-  usageRuleId: string;
-  expressionGroups: ExpressionGroup[];
-}
-
-export interface ExpressionGroup {
-  groupId: string;
-  operatorExpressions?: OperatorExpression[] | null;
-  regularExpressions?: RegularExpression[] | null;
-}
-
-export interface OperatorExpression {
-  parameterKey: string;
-  operator: UsageRuleOperator;
-  valueType: UsageRuleValueType;
-  value: string;
-}
-
-export enum UsageRuleOperator {
-  Equal = "Equal",
-  NotEqual = "NotEqual",
-  Greater = "Greater",
-  GreaterEqual = "GreaterEqual",
-  Less = "Less",
-  LessEqual = "LessEqual",
-}
-
-export enum UsageRuleValueType {
-  Date = "Date",
-  String = "String",
-  Numeric = "Numeric",
-}
-
-export interface RegularExpression {
-  parameterKey: string;
-  regex: string;
-}
-
-export type AttributeUsageRule = UsageRule & {
-  attributeId?: string;
-};
-
-export type ChoiceValueUsageRule = UsageRule & {
-  attributeId?: string;
-  choiceValueId?: string;
-};
-
-export type ConstraintUsageRule = UsageRule & {
-  constraintId?: string;
-};
 
 export interface DecisionsToRespect {
   /**
@@ -1888,13 +1786,12 @@ export interface AllowedInExplain {
   rules?: AllowedRules | null;
 }
 
-export type AllowedRules = (
-  | UtilRequiredKeys<AllowedRulesNone, "type">
-  | UtilRequiredKeys<AllowedRulesSpecific, "type">
-  | UtilRequiredKeys<AllowedRulesAll, "type">
-) & {
-  type: string;
-};
+export type AllowedRules = BaseAllowedRules &
+  (
+    | BaseAllowedRulesTypeMapping<"AllowedRulesNone", AllowedRulesNone>
+    | BaseAllowedRulesTypeMapping<"AllowedRulesSpecific", AllowedRulesSpecific>
+    | BaseAllowedRulesTypeMapping<"AllowedRulesAll", AllowedRulesAll>
+  );
 
 export interface AllowedRulesNone {
   type: "AllowedRulesNone";
@@ -1912,6 +1809,140 @@ export interface AllowedRulesAll {
 export interface CloseSessionRequest {
   sessionId: string;
 }
+
+interface BaseProblemDetails {
+  type: string;
+  title: string;
+  detail: string;
+}
+
+type BaseProblemDetailsTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
+interface BaseConstraintDescription {
+  type: string;
+}
+
+type BaseConstraintDescriptionTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
+interface BaseCausedByDecision {
+  type: string;
+  /**
+   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
+   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
+   * the identifier components is used.
+   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
+   * because it is the path to an Attribute.
+   * shared component path localId
+   * Details can be found in the API product documentation.
+   */
+  attributeId: GlobalAttributeId;
+  reason: Reason;
+}
+
+type BaseCausedByDecisionTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
+interface BaseExplicitDecision {
+  type: string;
+  /**
+   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
+   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
+   * the identifier components is used.
+   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
+   * because it is the path to an Attribute.
+   * shared component path localId
+   * Details can be found in the API product documentation.
+   */
+  attributeId: GlobalAttributeId;
+}
+
+type BaseExplicitDecisionTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
+interface BaseMode {
+  type: string;
+}
+
+type BaseModeTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
+interface BaseConflictResolution {
+  type: string;
+}
+
+type BaseConflictResolutionTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
+interface BaseWhyNotSatisfiedRequest {
+  type: string;
+}
+
+type BaseWhyNotSatisfiedRequestTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
+interface BaseWhyStateNotPossibleRequest {
+  type: string;
+  /**
+   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
+   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
+   * the identifier components is used.
+   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
+   * because it is the path to an Attribute.
+   * shared component path localId
+   * Details can be found in the API product documentation.
+   */
+  attributeId: GlobalAttributeId;
+}
+
+type BaseWhyStateNotPossibleRequestTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
+/**
+ * There are two ways to make a Configuration Model, which generally consists of several
+ * Sub Configuration Models, part of a Configuration Session.
+ * (1) A specific deployed model version can be obtained from a specific Channel.
+ *     This is the variant for the majority of cases.
+ * (2) The nested structure of the sub models can be specified as a "Package" directly in the request body.
+ */
+interface BaseConfigurationModelSource {
+  type: string;
+}
+
+type BaseConfigurationModelSourceTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
+interface BaseComponentInclusionType {
+  type: string;
+}
+
+type BaseComponentInclusionTypeTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
+type BaseConstraint = object;
+
+type BaseConstraintTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
+interface BaseAllowedRules {
+  type: string;
+}
+
+type BaseAllowedRulesTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
 
 export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
@@ -1959,7 +1990,7 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = "https://spc.viamedici.io/hca/api/engine";
+  public baseUrl: string = "https://integration-tests-ts.spc.viamedici.dev/hca/api/engine";
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
@@ -2124,11 +2155,11 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title Viamedici.Spc.Engine.ConfigurationEngine.RestApi.Service
- * @version v2
- * @license © 2025 Viamedici - All rights reserved (https://viamedici.de)
+ * @title Configuration Engine
+ * @version 2026.3.6-integration-tests-ts.1
+ * @license © 2026 Viamedici - All rights reserved (https://viamedici.de)
  * @termsOfService None
- * @baseUrl https://spc.viamedici.io/hca/api/engine
+ * @baseUrl https://integration-tests-ts.spc.viamedici.dev/hca/api/engine
  * @contact Viamedici Software GmbH <info@viamedici.de> (https://viamedici.de)
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

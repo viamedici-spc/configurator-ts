@@ -32,6 +32,7 @@ export function getBooleanAttribute(globalOrLocalId: string | GlobalAttributeId,
         nonOptimisticDecision: null,
         selection: Selection.Mandatory,
         possibleDecisionStates: [true, false],
+        isPossibleDecisionStatesImmutable: false,
         ...partial ?? {},
     };
 
@@ -64,6 +65,7 @@ export function getNumericAttribute(globalOrLocalId: string | GlobalAttributeId,
             min: 0,
             max: 10
         },
+        isPossibleDecisionStatesImmutable: false,
         ...partial ?? {},
     };
 
@@ -93,6 +95,7 @@ export function getComponentAttribute(globalOrLocalId: string | GlobalAttributeI
         selection: Selection.Mandatory,
         inclusion: Inclusion.Optional,
         possibleDecisionStates: [ComponentDecisionState.Included, ComponentDecisionState.Excluded],
+        isPossibleDecisionStatesImmutable: false,
         ...partial ?? {},
     };
 
@@ -126,13 +129,15 @@ export function getChoiceAttribute(globalOrLocalId: string | GlobalAttributeId, 
                 id: "V1",
                 decision: null,
                 nonOptimisticDecision: null,
-                possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded]
+                possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded],
+                isPossibleDecisionStatesImmutable: false,
             } satisfies ChoiceValue],
             ["V2", {
                 id: "V2",
                 decision: null,
                 nonOptimisticDecision: null,
-                possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded]
+                possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded],
+                isPossibleDecisionStatesImmutable: false,
             } satisfies ChoiceValue]
         ]),
         ...partial ?? {},

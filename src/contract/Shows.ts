@@ -86,6 +86,7 @@ const booleanAttributeShow: Show.Show<BooleanAttribute> = Show.struct<BooleanAtt
     decision: getDecisionEq(Bool.Show),
     nonOptimisticDecision: getDecisionEq(Bool.Show),
     possibleDecisionStates: getCachedShow(RA.getShow(Bool.Show)),
+    isPossibleDecisionStatesImmutable: Bool.Show,
     selection: Str.Show
 });
 const numericAttributeShow: Show.Show<NumericAttribute> = Show.struct<NumericAttribute>({
@@ -97,13 +98,15 @@ const numericAttributeShow: Show.Show<NumericAttribute> = Show.struct<NumericAtt
         max: Num.Show,
         min: Num.Show,
     })),
-    decimalPlaces: Num.Show
+    decimalPlaces: Num.Show,
+    isPossibleDecisionStatesImmutable: Bool.Show,
 });
 const componentAttributeShow: Show.Show<ComponentAttribute> = Show.struct<ComponentAttribute>({
     ...baseAttribute,
     decision: getDecisionEq(Str.Show as Show.Show<ComponentDecisionState>),
     nonOptimisticDecision: getDecisionEq(Str.Show as Show.Show<ComponentDecisionState>),
     possibleDecisionStates: getCachedShow(RA.getShow(Str.Show)),
+    isPossibleDecisionStatesImmutable: Bool.Show,
     selection: getNullableShow(Str.Show),
     inclusion: Str.Show
 });
@@ -119,6 +122,7 @@ const choiceAttributeShow: Show.Show<ChoiceAttribute> = Show.struct<ChoiceAttrib
         decision: getDecisionEq(Str.Show as Show.Show<ChoiceValueDecisionState>),
         nonOptimisticDecision: getDecisionEq(Str.Show as Show.Show<ChoiceValueDecisionState>),
         possibleDecisionStates: getCachedShow(RA.getShow(Str.Show)),
+        isPossibleDecisionStatesImmutable: Bool.Show,
     }))
 });
 

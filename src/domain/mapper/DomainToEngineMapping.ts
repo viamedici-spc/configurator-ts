@@ -141,14 +141,12 @@ export function mapSessionContext(sessionContext: SessionContext): Engine.Create
         )
         : undefined;
 
-    const usageRuleParameters = sessionContext.usageRuleParameters ? sessionContext.usageRuleParameters : undefined;
-
     return {
         configurationModelSource: configurationModelSource,
         allowedInExplain: allowedInExplain(),
         attributeRelations: attributeRelations,
         wizardAttributeRelations: wizardAttributeRelations,
-        usageRuleParameters: usageRuleParameters
+        disableConfigurationModelTrimming: sessionContext.disableConfigurationModelTrimming,
     };
 }
 

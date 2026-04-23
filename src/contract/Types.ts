@@ -251,11 +251,6 @@ export type SessionContext = {
     readonly wizardAttributeRelations?: WizardAttributeRelations | null;
 
     /**
-     * The parameter values used for the configuration model's usage rules.
-     */
-    readonly usageRuleParameters?: Record<string, string> | null;
-
-    /**
      * Specifies which elements are allowed to be included in the result when explaining a circumstance.
      * This is usually a security-sensitive option, so it is recommended to use server-side session creation for this.
      */
@@ -273,6 +268,13 @@ export type SessionContext = {
      * @remarks When true, an additional API request will be made during session initialization to retrieve the source IDs.
      */
     readonly provideSourceId?: boolean | null;
+
+    /**
+     * Determines whether the Configuration Model should be trimmed by removing unattainable attributes and choice values from further
+     * evaluation after session creation which results in a better overall performance.
+     * @default false
+     */
+    readonly disableConfigurationModelTrimming?: boolean | null;
 };
 
 export type OptimisticDecisionOptions = {
@@ -401,6 +403,7 @@ export type BooleanAttribute = BaseAttribute & {
     readonly decision: Decision<boolean> | null;
     readonly nonOptimisticDecision: Decision<boolean> | null;
     readonly possibleDecisionStates: ReadonlyArray<boolean>;
+    readonly isPossibleDecisionStatesImmutable: boolean;
     readonly selection: Selection;
 }
 
@@ -412,6 +415,7 @@ export type NumericAttribute = BaseAttribute & {
     readonly range: Range;
     readonly decimalPlaces: number;
     readonly selection: Selection;
+    readonly isPossibleDecisionStatesImmutable: boolean;
 }
 
 export type ComponentAttribute = BaseAttribute & {
@@ -422,6 +426,7 @@ export type ComponentAttribute = BaseAttribute & {
     readonly inclusion: Inclusion;
     readonly selection: Selection | null;
     readonly possibleDecisionStates: ReadonlyArray<ComponentDecisionState>;
+    readonly isPossibleDecisionStatesImmutable: boolean;
 }
 
 export type ChoiceAttribute = BaseAttribute & {
@@ -436,6 +441,7 @@ export type ChoiceValue = {
     readonly decision: Decision<ChoiceValueDecisionState> | null;
     readonly nonOptimisticDecision: Decision<ChoiceValueDecisionState> | null;
     readonly possibleDecisionStates: ReadonlyArray<ChoiceValueDecisionState>;
+    readonly isPossibleDecisionStatesImmutable: boolean;
 }
 
 export enum ChoiceValueDecisionState {

@@ -17,7 +17,6 @@ export enum ConfiguratorErrorType {
     SessionIdInvalid = "SessionIdInvalid",
     AuthenticationFailure = "AuthenticationFailure",
     SideLoadingForbidden = "SideLoadingForbidden",
-    UsageRuleRestriction = "UsageRuleRestriction",
     ConfigurationModelInvalid = "ConfigurationModelInvalid",
     SolutionNotFeasible = "SolutionNotFeasible",
     ConfigurationModelNotFound = "ConfigurationModelNotFound",
@@ -63,7 +62,6 @@ export type TenantAccessForbidden = ReplaceType<Engine.TenantAccessForbidden, Co
 export type SessionIdInvalid = ReplaceType<Engine.SessionIdInvalid, ConfiguratorErrorType.SessionIdInvalid>;
 export type AuthenticationFailure = ReplaceType<Engine.AuthenticationFailure, ConfiguratorErrorType.AuthenticationFailure>;
 export type SideLoadingForbidden = ReplaceType<Engine.SideLoadingForbidden, ConfiguratorErrorType.SideLoadingForbidden>;
-export type UsageRuleRestriction = ReplaceType<Engine.UsageRuleRestriction, ConfiguratorErrorType.UsageRuleRestriction>;
 export type ConfigurationModelInvalid = ReplaceType<Engine.ConfigurationModelInvalid, ConfiguratorErrorType.ConfigurationModelInvalid>;
 export type SolutionNotFeasible = ReplaceType<Engine.SolutionNotFeasible, ConfiguratorErrorType.SolutionNotFeasible>;
 export type ConfigurationModelNotFound = ReplaceType<Engine.ConfigurationModelNotFound, ConfiguratorErrorType.ConfigurationModelNotFound>;
@@ -185,7 +183,6 @@ export type ConfiguratorError =
     | SessionIdInvalid
     | AuthenticationFailure
     | SideLoadingForbidden
-    | UsageRuleRestriction
     | ConfigurationModelInvalid
     | SolutionNotFeasible
     | ConfigurationModelNotFound

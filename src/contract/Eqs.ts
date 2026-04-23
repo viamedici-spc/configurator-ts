@@ -1,4 +1,4 @@
-import {Bool, Eq, EqT, Num, O, pipe, RA, RM, RR, some, Str} from "@viamedici-spc/fp-ts-extensions";
+import {Bool, Eq, EqT, Num, O, pipe, RA, RM, some, Str} from "@viamedici-spc/fp-ts-extensions";
 import {
     AllowedInExplain,
     AllowedRulesInExplain,
@@ -10,18 +10,24 @@ import {
     AttributeType,
     AutomaticConflictResolution,
     BooleanAttribute,
-    ChoiceAttribute, ChoiceValue, ChoiceValueDecisionState,
+    ChoiceAttribute,
+    ChoiceValue,
+    ChoiceValueDecisionState,
     ClientSideSessionInitialisationOptions,
-    ComponentAttribute, ComponentDecisionState,
-    Configuration, ConfigurationChanges,
+    ComponentAttribute,
+    ComponentDecisionState,
+    Configuration,
+    ConfigurationChanges,
     ConfigurationModelFromChannel,
     ConfigurationModelFromPackage,
     ConfigurationModelSource,
     ConfigurationModelSourceType,
     ConflictResolution,
-    ConstraintExplanation, Decision,
+    ConstraintExplanation,
+    Decision,
     DecisionExplanation,
     DecisionsToRespect,
+    DropExistingDecisionsMode,
     ExplainSolution,
     ExplicitBooleanDecision,
     ExplicitChoiceDecision,
@@ -32,14 +38,14 @@ import {
     GlobalAttributeId,
     GlobalAttributeIdKey,
     GlobalConstraintId,
+    KeepExistingDecisionsMode,
+    MakeManyDecisionsMode,
     ManualConflictResolution,
     NumericAttribute,
     OptimisticDecisionOptions,
     ServerSideSessionInitialisationOptions,
     SessionContext,
-    DropExistingDecisionsMode,
-    KeepExistingDecisionsMode,
-    MakeManyDecisionsMode, WizardStep
+    WizardStep
 } from "./Types";
 import {
     AttributeConsequence,
@@ -48,7 +54,8 @@ import {
     BooleanAttributeConsequence,
     BooleanAttributeDecision,
     ChoiceAttributeConsequence,
-    ChoiceAttributeDecision, ChoiceValueDecision,
+    ChoiceAttributeDecision,
+    ChoiceValueDecision,
     ComponentAttributeConsequence,
     ComponentAttributeDecision,
     NumericAttributeConsequence,
@@ -235,6 +242,7 @@ export const booleanAttributeConsequenceEq: EqT<BooleanAttributeConsequence> = E
     id: globalAttributeIdEq,
     key: globalAttributeIdKeyEq,
     possibleDecisionStates: RA.getUnsortedArrayEq(Bool.Eq),
+    isPossibleDecisionStatesImmutable: Bool.Eq,
     selection: Str.Eq,
     isSatisfied: Bool.Eq
 });
@@ -249,6 +257,7 @@ export const numericAttributeConsequenceEq: EqT<NumericAttributeConsequence> = E
     }),
     isSatisfied: Bool.Eq,
     selection: Str.Eq,
+    isPossibleDecisionStatesImmutable: Bool.Eq,
     decimalPlaces: Num.Eq,
 });
 
@@ -257,6 +266,7 @@ export const componentAttributeConsequenceEq: EqT<ComponentAttributeConsequence>
     id: globalAttributeIdEq,
     key: globalAttributeIdKeyEq,
     possibleDecisionStates: RA.getUnsortedArrayEq(Str.Eq),
+    isPossibleDecisionStatesImmutable: Bool.Eq,
     isSatisfied: Bool.Eq,
     inclusion: Str.Eq,
     selection: Eq.eqNullable(Str.Eq),
@@ -299,6 +309,7 @@ export const booleanAttributeEq: EqT<BooleanAttribute> = Eq.struct<BooleanAttrib
     ...baseAttribute,
     selection: Str.Eq,
     possibleDecisionStates: RA.getUnsortedArrayEq(Bool.Eq),
+    isPossibleDecisionStatesImmutable: Bool.Eq,
     decision: nullableBooleanDecisionEq,
     nonOptimisticDecision: nullableBooleanDecisionEq,
 });
@@ -313,6 +324,7 @@ export const numericAttributeEq: EqT<NumericAttribute> = Eq.struct<NumericAttrib
     decimalPlaces: Num.Eq,
     decision: nullableNumericDecisionEq,
     nonOptimisticDecision: nullableNumericDecisionEq,
+    isPossibleDecisionStatesImmutable: Bool.Eq,
 });
 
 export const componentAttributeEq: EqT<ComponentAttribute> = Eq.struct<ComponentAttribute>({
@@ -320,6 +332,7 @@ export const componentAttributeEq: EqT<ComponentAttribute> = Eq.struct<Component
     inclusion: Str.Eq,
     selection: Eq.eqNullable(Str.Eq),
     possibleDecisionStates: RA.getUnsortedArrayEq(Str.Eq),
+    isPossibleDecisionStatesImmutable: Bool.Eq,
     decision: nullableComponentDecisionEq,
     nonOptimisticDecision: nullableComponentDecisionEq,
 });
@@ -333,6 +346,7 @@ export const choiceAttributeEq: EqT<ChoiceAttribute> = Eq.struct<ChoiceAttribute
     values: RM.getEq(Str.Eq, Eq.struct<ChoiceValue>({
         id: Str.Eq,
         possibleDecisionStates: RA.getUnsortedArrayEq(Str.Eq),
+        isPossibleDecisionStatesImmutable: Bool.Eq,
         decision: nullableChoiceValueDecisionEq,
         nonOptimisticDecision: nullableChoiceValueDecisionEq,
     }))
@@ -419,9 +433,9 @@ export const sessionContextEq: EqT<SessionContext> = Eq.struct<SessionContext>({
         makeManyDecisions: Eq.eqNullable(Bool.Eq)
     })),
     allowedInExplain: Eq.eqNullable(allowedInExplain),
-    usageRuleParameters: Eq.eqNullable(RR.getEq(Str.Eq)),
     attributeRelations: Eq.eqNullable(RA.getUnsortedArrayEq(decisionsToRespectEq)),
     wizardAttributeRelations: Eq.eqNullable(RA.getEq(wizardStepEq)),
+    disableConfigurationModelTrimming: Eq.eqNullable(Bool.Eq),
 });
 
 export const configurationRawDataEq: EqT<ConfigurationRawData> = Eq.struct<ConfigurationRawData>({

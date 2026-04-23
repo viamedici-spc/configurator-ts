@@ -19,14 +19,14 @@ export type AttributeDecision =
     | ComponentAttributeDecision
     | ChoiceAttributeDecision;
 
-export type BooleanAttributeConsequence = Pick<BooleanAttribute, "type" | "id" | "key" | "isSatisfied" | "possibleDecisionStates" | "selection">;
-export type NumericAttributeConsequence = Pick<NumericAttribute, "type" | "id" | "key" | "isSatisfied" | "decimalPlaces" | "range" | "selection">;
-export type ComponentAttributeConsequence = Pick<ComponentAttribute, "type" | "id" | "key" | "isSatisfied" | "possibleDecisionStates" | "selection" | "inclusion">;
+export type BooleanAttributeConsequence = Pick<BooleanAttribute, "type" | "id" | "key" | "isSatisfied" | "possibleDecisionStates" | "isPossibleDecisionStatesImmutable" | "selection">;
+export type NumericAttributeConsequence = Pick<NumericAttribute, "type" | "id" | "key" | "isSatisfied" | "decimalPlaces" | "range" | "isPossibleDecisionStatesImmutable" | "selection">;
+export type ComponentAttributeConsequence = Pick<ComponentAttribute, "type" | "id" | "key" | "isSatisfied" | "possibleDecisionStates" | "isPossibleDecisionStatesImmutable" | "selection" | "inclusion">;
 export type ChoiceAttributeConsequence = Pick<ChoiceAttribute, "type" | "id" | "key" | "isSatisfied" | "cardinality">
     & {
     values: ReadonlyArray<ChoiceValueConsequence>
 };
-export type ChoiceValueConsequence = Pick<ChoiceValue, "id" | "possibleDecisionStates">;
+export type ChoiceValueConsequence = Pick<ChoiceValue, "id" | "possibleDecisionStates" | "isPossibleDecisionStatesImmutable">;
 export type AttributeConsequence =
     BooleanAttributeConsequence
     | NumericAttributeConsequence
