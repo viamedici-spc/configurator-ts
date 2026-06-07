@@ -170,4 +170,73 @@ describe("EngineLogic", () => {
         } satisfies  SourceAttributeId);
         expect(attribute.isSatisfied).toBeFalse();
     });
+
+    it("createSession - forwards additionalRequestHeaders on the CreateSession request only and never overrides Authorization", async () => {
+        fetchMock.mockImplementation((input) => {
+            if (typeof input === "string") {
+                if (input.endsWith("session")) {
+                    return Promise.resolve({
+                        ok: true,
+                        status: 200,
+                        json: (): Promise<any> => Promise.resolve({
+                            sessionId: "SessionId"
+                        } satisfies Engine.CreateSessionSuccessResponse)
+                    } as Response);
+                }
+                if (input.endsWith("consequence")) {
+                    return Promise.resolve({
+                        ok: true,
+                        status: 200,
+                        json: (): Promise<any> => Promise.resolve({
+                            isConfigurationSatisfied: false,
+                            canAttributeContributeToConfigurationSatisfaction: [],
+                            choiceConsequences: [],
+                            componentConsequences: [],
+                            numericConsequences: [],
+                            booleanConsequences: []
+                        } satisfies Engine.Consequences)
+                    } as Response);
+                }
+                if (input.endsWith("decision")) {
+                    return Promise.resolve({
+                        ok: true,
+                        status: 200,
+                        json: (): Promise<any> => Promise.resolve({
+                            choiceValueDecisions: [],
+                            numericDecisions: [],
+                            booleanDecisions: [],
+                            componentDecisions: []
+                        } satisfies Engine.Decisions)
+                    } as Response);
+                }
+            }
+
+            return Promise.reject();
+        });
+
+        const createSessionResult = await Logic.createSession({
+            ...SessionContextWithModelWithOneMandatoryChoice,
+            sessionInitialisationOptions: {
+                accessToken: "Token1",
+                additionalRequestHeaders: {
+                    "X-TENANT-ID": "tenant1",
+                    // The library's own Authorization must win over a consumer-supplied one.
+                    "Authorization": "Bearer Spoofed"
+                }
+            },
+            provideSourceId: false
+        })();
+
+        expectToBeRight(createSessionResult);
+
+        // First call is the CreateSession POST: it carries the additional header...
+        expect(fetchMock.mock.calls[0][0]).toEndWith("session");
+        expect(fetchMock.mock.calls[0][1]!.headers!["X-TENANT-ID"]).toBe("tenant1");
+        // ...but Authorization is always the library's, never the consumer's.
+        expect(fetchMock.mock.calls[0][1]!.headers!["Authorization"]).toBe("Bearer Token1");
+
+        // Subsequent session-scoped calls must NOT carry the additional header (CreateSession only).
+        fetchMock.mock.calls.slice(1)
+            .forEach(call => expect(call[1]!.headers!["X-TENANT-ID"]).toBeUndefined());
+    });
 });

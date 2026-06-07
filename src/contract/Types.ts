@@ -209,6 +209,19 @@ export type ClientSideSessionInitialisationOptions = {
      * The access token used for authenticating with the Headless Configuration Engine (HCE) API.
      */
     readonly accessToken: string;
+
+    /**
+     * Additional HTTP headers to send on the CreateSession request only.
+     *
+     * Use this to forward deployment- or platform-specific context that the Configuration Engine needs when creating
+     * the session — for example a tenant-selector header in a multi-tenant deployment where the access
+     * token grants access to more than one tenant and the engine cannot infer a single one on its own.
+     *
+     * @remarks Applied to the CreateSession request only; subsequent session-scoped requests are
+     * authenticated by the session id and are unaffected. The library's own `Authorization` header
+     * always takes precedence and cannot be overridden here.
+     */
+    readonly additionalRequestHeaders?: Readonly<Record<string, string>>;
 };
 
 export type ServerSideSessionInitialisationOptions = {

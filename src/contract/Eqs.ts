@@ -1,4 +1,4 @@
-import {Bool, Eq, EqT, Num, O, pipe, RA, RM, some, Str} from "@viamedici-spc/fp-ts-extensions";
+import {Bool, Eq, EqT, Num, O, pipe, RA, RM, RR, some, Str} from "@viamedici-spc/fp-ts-extensions";
 import {
     AllowedInExplain,
     AllowedRulesInExplain,
@@ -386,6 +386,7 @@ export const makeManyDecisionsConflictEq: EqT<MakeManyDecisionsConflict> = Eq.st
 const sessionInitialisationOptionsEq: EqT<ServerSideSessionInitialisationOptions | ClientSideSessionInitialisationOptions> = Eq.union<ServerSideSessionInitialisationOptions | ClientSideSessionInitialisationOptions>()
     .with((o): o is ClientSideSessionInitialisationOptions => (o as ClientSideSessionInitialisationOptions).accessToken != null, Eq.struct<ClientSideSessionInitialisationOptions>({
         accessToken: Str.Eq,
+        additionalRequestHeaders: Eq.eqNullable(RR.getEq(Str.Eq)),
     }))
     .with((o): o is ServerSideSessionInitialisationOptions => (o as ServerSideSessionInitialisationOptions).sessionCreateUrl != null, Eq.struct<ServerSideSessionInitialisationOptions>({
         sessionCreateUrl: Str.Eq,

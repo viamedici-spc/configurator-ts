@@ -51,6 +51,8 @@ export function createSession(sessionContext: SessionContext): TaskEither<Config
     return pipe(
         match(sessionContext.sessionInitialisationOptions)
             .with({accessToken: P.string}, c => getSessionPostRequest(hcaApiClient.session.sessionPost, {
+                // Consumer-supplied headers first so the library's own Authorization always wins.
+                ...c.additionalRequestHeaders ?? {},
                 "Authorization": `Bearer ${c.accessToken}`
             }))
             .with({sessionCreateUrl: P.string}, c => getSessionPostRequest(getServerSideSessionCreationApiClient(c.sessionCreateUrl)))
