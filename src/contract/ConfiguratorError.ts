@@ -3,6 +3,7 @@ import {
     ChoiceValueId,
     ConstraintExplanation,
     DecisionExplanation,
+    FixedDecision,
     GlobalAttributeId
 } from "./Types";
 import * as Engine from "../apiClient/engine/Engine";
@@ -42,6 +43,7 @@ export enum ConfiguratorErrorType {
     NumericDecisionOutOfRange = "NumericDecisionOutOfRange",
     ConflictWithConsequence = "ConflictWithConsequence",
     DecisionsToRespectInvalid = "DecisionsToRespectInvalid",
+    FixedDecisionsInvalid = "FixedDecisionsInvalid",
     SessionNotFound = "SessionNotFound",
     ServerError = "ServerError",
     ConnectionError = "ConnectionError",
@@ -148,6 +150,11 @@ export type DecisionsToRespectInvalid = Omit<Engine.DecisionsToRespectInvalid, "
     readonly globalAttributeId: GlobalAttributeId;
 };
 
+export type FixedDecisionsInvalid = Omit<Engine.FixedDecisionsInvalid, "type" | "rejectedDecisions"> & {
+    readonly type: ConfiguratorErrorType.FixedDecisionsInvalid;
+    readonly rejectedDecisions: ReadonlyArray<FixedDecision>;
+};
+
 export type SessionNotFound = {
     readonly type: ConfiguratorErrorType.SessionNotFound;
 };
@@ -210,6 +217,7 @@ export type ConfiguratorError =
     | NumericDecisionOutOfRange
     | ConflictWithConsequence
     | DecisionsToRespectInvalid
+    | FixedDecisionsInvalid
     | SessionNotFound
     // Newly introduced errors
     | ServerError

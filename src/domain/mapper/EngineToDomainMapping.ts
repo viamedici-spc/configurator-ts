@@ -18,6 +18,7 @@ import {
     ExplicitComponentDecision,
     ExplicitDecision,
     ExplicitNumericDecision,
+    FixedDecision,
     GlobalAttributeId,
     GlobalConstraintId,
     Inclusion,
@@ -38,7 +39,7 @@ import {
     ConfiguratorError,
     ConfiguratorErrorType,
     ConflictWithConsequence,
-    DecisionsToRespectInvalid, ExplainConflict, ExplainFailure,
+    DecisionsToRespectInvalid, ExplainConflict, ExplainFailure, FixedDecisionsInvalid,
     MissingSessionIdClaim,
     MissingTenantIdClaim,
     NumericAttributeNotFound,
@@ -77,6 +78,7 @@ export function mapConfiguratorError(problemDetails: Engine.ProblemDetails): Con
         .with({type: "NumericDecisionOutOfRange"}, mapNumericDecisionOutOfRange)
         .with({type: "ConflictWithConsequence"}, mapConflictWithConsequence)
         .with({type: "DecisionsToRespectInvalid"}, mapDecisionsToRespectInvalid)
+        .with({type: "FixedDecisionsInvalid"}, mapFixedDecisionsInvalid)
         .with({type: "SessionNotFound"}, mapSessionNotFound)
         // This response is handled explicit by the MakeManyDecisions method. If it occurs outside the MakeManyDecisions scope, it is probably a ServerError.
         .with({type: "PutManyDecisionsConflict"}, () => serverError)
@@ -415,4 +417,60 @@ export function mapToExplicitDecision(decisions: Engine.Decisions): ReadonlyArra
         RA.concat<ExplicitDecision>(explicitNumericDecisions),
         RA.concat<ExplicitDecision>(explicitBooleanDecisions),
     );
+}
+
+function mapFixedChoiceState(state: Engine.FixedDecisionState): ChoiceValueDecisionState {
+    return match(state)
+        .with(Engine.FixedDecisionState.Included, () => ChoiceValueDecisionState.Included)
+        .with(Engine.FixedDecisionState.Excluded, () => ChoiceValueDecisionState.Excluded)
+        .exhaustive();
+}
+
+function mapFixedComponentState(state: Engine.FixedDecisionState): ComponentDecisionState {
+    return match(state)
+        .with(Engine.FixedDecisionState.Included, () => ComponentDecisionState.Included)
+        .with(Engine.FixedDecisionState.Excluded, () => ComponentDecisionState.Excluded)
+        .exhaustive();
+}
+
+export function mapToFixedDecisions(decisions: ReadonlyArray<Engine.FixedDecision>): ReadonlyArray<FixedDecision> {
+    return pipe(
+        decisions,
+        RA.map(d => match(d)
+            .returnType<FixedDecision>()
+            .with({type: "Choice"}, c => ({
+                type: AttributeType.Choice,
+                attributeId: mapGlobalAttributeId(c.attributeId),
+                choiceValueId: c.choiceValueId,
+                state: mapFixedChoiceState(c.state)
+            }))
+            .with({type: "Component"}, c => ({
+                type: AttributeType.Component,
+                attributeId: mapGlobalAttributeId(c.attributeId),
+                state: mapFixedComponentState(c.state)
+            }))
+            .with({type: "Numeric"}, c => ({
+                type: AttributeType.Numeric,
+                attributeId: mapGlobalAttributeId(c.attributeId),
+                // rejectedDecisions echo the concrete values the client submitted, so the state is always set.
+                state: c.state!
+            }))
+            .with({type: "Boolean"}, c => ({
+                type: AttributeType.Boolean,
+                attributeId: mapGlobalAttributeId(c.attributeId),
+                state: c.state!
+            }))
+            .exhaustive()
+        ),
+        RA.toArray
+    );
+}
+
+function mapFixedDecisionsInvalid(problem: Engine.FixedDecisionsInvalid): FixedDecisionsInvalid {
+    const {rejectedDecisions, ...rest} = problem;
+    return {
+        ...rest,
+        type: ConfiguratorErrorType.FixedDecisionsInvalid,
+        rejectedDecisions: mapToFixedDecisions(rejectedDecisions),
+    };
 }

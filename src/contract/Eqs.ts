@@ -34,6 +34,11 @@ import {
     ExplicitComponentDecision,
     ExplicitDecision,
     ExplicitNumericDecision,
+    FixedBooleanDecision,
+    FixedChoiceDecision,
+    FixedComponentDecision,
+    FixedDecision,
+    FixedNumericDecision,
     FullExplainAnswer,
     GlobalAttributeId,
     GlobalAttributeIdKey,
@@ -140,6 +145,37 @@ export const explicitDecisionEq: EqT<ExplicitDecision> = Eq.union<ExplicitDecisi
     .with((d): d is ExplicitNumericDecision => d.type === AttributeType.Numeric, explicitNumericDecisionEq)
     .with((d): d is ExplicitComponentDecision => d.type === AttributeType.Component, explicitComponentDecisionEq)
     .with((d): d is ExplicitChoiceDecision => d.type === AttributeType.Choice, explicitChoiceDecisionEq);
+
+export const fixedNumericDecisionEq: EqT<FixedNumericDecision> = Eq.struct<FixedNumericDecision>({
+    type: Str.Eq,
+    attributeId: globalAttributeIdEq,
+    state: Num.Eq,
+});
+
+export const fixedBooleanDecisionEq: EqT<FixedBooleanDecision> = Eq.struct<FixedBooleanDecision>({
+    type: Str.Eq,
+    attributeId: globalAttributeIdEq,
+    state: Bool.Eq,
+});
+
+export const fixedComponentDecisionEq: EqT<FixedComponentDecision> = Eq.struct<FixedComponentDecision>({
+    type: Str.Eq,
+    attributeId: globalAttributeIdEq,
+    state: Str.Eq,
+});
+
+export const fixedChoiceDecisionEq: EqT<FixedChoiceDecision> = Eq.struct<FixedChoiceDecision>({
+    type: Str.Eq,
+    attributeId: globalAttributeIdEq,
+    choiceValueId: Str.Eq,
+    state: Str.Eq,
+});
+
+export const fixedDecisionEq: EqT<FixedDecision> = Eq.union<FixedDecision>()
+    .with((d): d is FixedBooleanDecision => d.type === AttributeType.Boolean, fixedBooleanDecisionEq)
+    .with((d): d is FixedNumericDecision => d.type === AttributeType.Numeric, fixedNumericDecisionEq)
+    .with((d): d is FixedComponentDecision => d.type === AttributeType.Component, fixedComponentDecisionEq)
+    .with((d): d is FixedChoiceDecision => d.type === AttributeType.Choice, fixedChoiceDecisionEq);
 
 export const explicitDecisionByIdEq = pipe(
     Eq.struct({
@@ -437,6 +473,7 @@ export const sessionContextEq: EqT<SessionContext> = Eq.struct<SessionContext>({
     attributeRelations: Eq.eqNullable(RA.getUnsortedArrayEq(decisionsToRespectEq)),
     wizardAttributeRelations: Eq.eqNullable(RA.getEq(wizardStepEq)),
     disableConfigurationModelTrimming: Eq.eqNullable(Bool.Eq),
+    fixedDecisions: Eq.eqNullable(RA.getUnsortedArrayEq(fixedDecisionEq)),
 });
 
 export const configurationRawDataEq: EqT<ConfigurationRawData> = Eq.struct<ConfigurationRawData>({

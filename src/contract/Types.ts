@@ -27,34 +27,58 @@ export type GlobalConstraintId = {
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
-type BaseExplicitDecision = {
-    readonly type: AttributeType
+export type BaseDecision = {
     readonly attributeId: GlobalAttributeId
 };
 
-export type ExplicitDecision = BaseExplicitDecision
-    & (ExplicitChoiceDecision | ExplicitNumericDecision | ExplicitBooleanDecision | ExplicitComponentDecision);
-
-export type ExplicitNumericDecision = BaseExplicitDecision & {
-    readonly type: AttributeType.Numeric,
-    readonly state: number | null | undefined
-};
-
-export type ExplicitBooleanDecision = BaseExplicitDecision & {
-    readonly type: AttributeType.Boolean,
-    readonly state: boolean | null | undefined
-};
-
-export type ExplicitChoiceDecision = BaseExplicitDecision & {
+// A decision's shape only depends on the attribute type; Explicit and Fixed decisions differ solely in whether the
+// state may be null/undefined. They are therefore instantiations of the same per-attribute-type base with the state
+// type as parameter.
+export type ChoiceDecisionOf<TState> = BaseDecision & {
     readonly type: AttributeType.Choice,
     readonly choiceValueId: ChoiceValueId,
-    readonly state: ChoiceValueDecisionState | null | undefined
+    readonly state: TState
 };
 
-export type ExplicitComponentDecision = BaseExplicitDecision & {
-    readonly type: AttributeType.Component,
-    readonly state: ComponentDecisionState | null | undefined
+export type NumericDecisionOf<TState> = BaseDecision & {
+    readonly type: AttributeType.Numeric,
+    readonly state: TState
 };
+
+export type BooleanDecisionOf<TState> = BaseDecision & {
+    readonly type: AttributeType.Boolean,
+    readonly state: TState
+};
+
+export type ComponentDecisionOf<TState> = BaseDecision & {
+    readonly type: AttributeType.Component,
+    readonly state: TState
+};
+
+// Explicit decisions are made at runtime; a null/undefined state resets (clears) the decision.
+export type ExplicitDecision =
+    ExplicitChoiceDecision | ExplicitNumericDecision | ExplicitBooleanDecision | ExplicitComponentDecision;
+
+export type ExplicitNumericDecision = NumericDecisionOf<number | null | undefined>;
+
+export type ExplicitBooleanDecision = BooleanDecisionOf<boolean | null | undefined>;
+
+export type ExplicitChoiceDecision = ChoiceDecisionOf<ChoiceValueDecisionState | null | undefined>;
+
+export type ExplicitComponentDecision = ComponentDecisionOf<ComponentDecisionState | null | undefined>;
+
+// Fixed decisions are set once when the session is created and stay immutable for its lifetime. They share the shape
+// of ExplicitDecision, but the state is strict — there is no null/undefined "reset".
+export type FixedDecision =
+    FixedChoiceDecision | FixedNumericDecision | FixedBooleanDecision | FixedComponentDecision;
+
+export type FixedNumericDecision = NumericDecisionOf<number>;
+
+export type FixedBooleanDecision = BooleanDecisionOf<boolean>;
+
+export type FixedChoiceDecision = ChoiceDecisionOf<ChoiceValueDecisionState>;
+
+export type FixedComponentDecision = ComponentDecisionOf<ComponentDecisionState>;
 
 // ---------------------------------------------------------------------------------------------------------------------
 type BaseCausedByDecision = {
@@ -288,6 +312,17 @@ export type SessionContext = {
      * @default false
      */
     readonly disableConfigurationModelTrimming?: boolean | null;
+
+    /**
+     * Decisions that are fixed when the session is created and cannot be changed afterwards — they are immutable
+     * for the whole lifetime of the session. The Configuration Engine treats them like constraints and can trim the
+     * Configuration Model accordingly (e.g. fixing a sales region removes unreachable attributes and choice values).
+     *
+     * @remarks Unlike {@link ExplicitDecision}, a {@link FixedDecision} requires a concrete state (there is no
+     * null/undefined "reset"): choice and component decisions are `Included` or `Excluded`, numeric and boolean
+     * decisions carry their respective value.
+     */
+    readonly fixedDecisions?: ReadonlyArray<FixedDecision> | null;
 };
 
 export type OptimisticDecisionOptions = {

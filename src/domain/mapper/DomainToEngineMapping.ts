@@ -4,6 +4,7 @@ import {
     AllowedRulesInExplainType,
     AttributeType,
     ChoiceValueDecisionState,
+    ChoiceValueId,
     ComponentDecisionState,
     ConfigurationModelSourceType,
     ExplainQuestionSubject,
@@ -12,6 +13,7 @@ import {
     ExplicitComponentDecision,
     ExplicitDecision,
     ExplicitNumericDecision,
+    FixedDecision,
     GlobalAttributeId, MakeManyDecisionsMode,
     SessionContext,
     WhyIsNotSatisfied, WhyIsStateNotPossible
@@ -27,45 +29,47 @@ export function mapGlobalAttributeId(atttributeId: GlobalAttributeId): Engine.Gl
     };
 }
 
+// Shared wire-shape builders: Explicit and Fixed decisions serialise to the same object per attribute type; only the
+// state representation differs, so the caller passes the already-mapped state.
+function toEngineChoice<S>(decision: { attributeId: GlobalAttributeId, choiceValueId: ChoiceValueId }, state: S) {
+    return {type: "Choice" as const, attributeId: mapGlobalAttributeId(decision.attributeId), choiceValueId: decision.choiceValueId, state};
+}
+
+function toEngineComponent<S>(decision: { attributeId: GlobalAttributeId }, state: S) {
+    return {type: "Component" as const, attributeId: mapGlobalAttributeId(decision.attributeId), state};
+}
+
+function toEngineNumeric<S>(decision: { attributeId: GlobalAttributeId }, state: S) {
+    return {type: "Numeric" as const, attributeId: mapGlobalAttributeId(decision.attributeId), state};
+}
+
+function toEngineBoolean<S>(decision: { attributeId: GlobalAttributeId }, state: S) {
+    return {type: "Boolean" as const, attributeId: mapGlobalAttributeId(decision.attributeId), state};
+}
+
+// Explicit decisions: a null/undefined state means "reset" and maps to the engine's Undefined state.
+function mapExplicitDecisionState(state: ChoiceValueDecisionState | ComponentDecisionState | null | undefined): Engine.DecisionState {
+    return match(state)
+        .with(P.nullish, () => Engine.DecisionState.Undefined)
+        .with(P.union(ChoiceValueDecisionState.Included, ComponentDecisionState.Included), () => Engine.DecisionState.Included)
+        .with(P.union(ChoiceValueDecisionState.Excluded, ComponentDecisionState.Excluded), () => Engine.DecisionState.Excluded)
+        .exhaustive();
+}
+
 export function mapExplicitChoiceDecision(decision: ExplicitChoiceDecision): Engine.ExplicitChoiceValueDecision {
-    return {
-        type: "Choice",
-        attributeId: mapGlobalAttributeId(decision.attributeId),
-        choiceValueId: decision.choiceValueId,
-        state: match(decision.state)
-            .with(P.nullish, () => Engine.DecisionState.Undefined)
-            .with(ChoiceValueDecisionState.Included, () => Engine.DecisionState.Included)
-            .with(ChoiceValueDecisionState.Excluded, () => Engine.DecisionState.Excluded)
-            .exhaustive()
-    };
+    return toEngineChoice(decision, mapExplicitDecisionState(decision.state));
 }
 
 export function mapExplicitComponentDecision(decision: ExplicitComponentDecision): Engine.ExplicitComponentDecision {
-    return {
-        type: "Component",
-        attributeId: mapGlobalAttributeId(decision.attributeId),
-        state: match(decision.state)
-            .with(P.nullish, () => Engine.DecisionState.Undefined)
-            .with(ComponentDecisionState.Included, () => Engine.DecisionState.Included)
-            .with(ComponentDecisionState.Excluded, () => Engine.DecisionState.Excluded)
-            .exhaustive()
-    };
+    return toEngineComponent(decision, mapExplicitDecisionState(decision.state));
 }
 
 export function mapExplicitNumericDecision(decision: ExplicitNumericDecision): Engine.ExplicitNumericDecision {
-    return {
-        type: "Numeric",
-        attributeId: mapGlobalAttributeId(decision.attributeId),
-        state: decision.state
-    };
+    return toEngineNumeric(decision, decision.state);
 }
 
 export function mapExplicitBooleanDecision(decision: ExplicitBooleanDecision): Engine.ExplicitBooleanDecision {
-    return {
-        type: "Boolean",
-        attributeId: mapGlobalAttributeId(decision.attributeId),
-        state: decision.state
-    };
+    return toEngineBoolean(decision, decision.state);
 }
 
 export function mapExplicitDecision(decision: ExplicitDecision): Engine.ExplicitDecision {
@@ -74,6 +78,29 @@ export function mapExplicitDecision(decision: ExplicitDecision): Engine.Explicit
         .with({type: AttributeType.Component}, mapExplicitComponentDecision)
         .with({type: AttributeType.Boolean}, mapExplicitBooleanDecision)
         .with({type: AttributeType.Numeric}, mapExplicitNumericDecision)
+        .exhaustive();
+}
+
+export function mapFixedDecisions(decisions: ReadonlyArray<FixedDecision>): Engine.FixedDecision[] {
+    return pipe(decisions, RA.map(mapFixedDecision), RA.toArray);
+}
+
+export function mapFixedDecision(decision: FixedDecision): Engine.FixedDecision {
+    return match(decision)
+        .returnType<Engine.FixedDecision>()
+        .with({type: AttributeType.Choice}, d => toEngineChoice(d, mapFixedDecisionState(d.state)))
+        .with({type: AttributeType.Component}, d => toEngineComponent(d, mapFixedDecisionState(d.state)))
+        .with({type: AttributeType.Numeric}, d => toEngineNumeric(d, d.state))
+        .with({type: AttributeType.Boolean}, d => toEngineBoolean(d, d.state))
+        .exhaustive();
+}
+
+// Fixed decisions require a concrete state (no "reset"): choice/component states map straight to the engine's
+// two-valued FixedDecisionState.
+function mapFixedDecisionState(state: ChoiceValueDecisionState | ComponentDecisionState): Engine.FixedDecisionState {
+    return match(state)
+        .with(P.union(ChoiceValueDecisionState.Included, ComponentDecisionState.Included), () => Engine.FixedDecisionState.Included)
+        .with(P.union(ChoiceValueDecisionState.Excluded, ComponentDecisionState.Excluded), () => Engine.FixedDecisionState.Excluded)
         .exhaustive();
 }
 
@@ -141,12 +168,17 @@ export function mapSessionContext(sessionContext: SessionContext): Engine.Create
         )
         : undefined;
 
+    const fixedDecisions = sessionContext.fixedDecisions && RA.isNonEmpty(sessionContext.fixedDecisions)
+        ? mapFixedDecisions(sessionContext.fixedDecisions)
+        : undefined;
+
     return {
         configurationModelSource: configurationModelSource,
         allowedInExplain: allowedInExplain(),
         attributeRelations: attributeRelations,
         wizardAttributeRelations: wizardAttributeRelations,
         disableConfigurationModelTrimming: sessionContext.disableConfigurationModelTrimming,
+        fixedDecisions: fixedDecisions,
     };
 }
 

@@ -42,6 +42,7 @@ export type ProblemDetails = BaseProblemDetails &
     | BaseProblemDetailsTypeMapping<"ConflictWithConsequence", ConflictWithConsequence>
     | BaseProblemDetailsTypeMapping<"ConfigurationModelInvalid", ConfigurationModelInvalid>
     | BaseProblemDetailsTypeMapping<"DecisionsToRespectInvalid", DecisionsToRespectInvalid>
+    | BaseProblemDetailsTypeMapping<"FixedDecisionsInvalid", FixedDecisionsInvalid>
     | BaseProblemDetailsTypeMapping<"SessionParametersInvalid", SessionParametersInvalid>
     | BaseProblemDetailsTypeMapping<"ConfigurationModelNotFeasible", ConfigurationModelNotFeasible>
     | BaseProblemDetailsTypeMapping<"SolutionNotFeasible", SolutionNotFeasible>
@@ -401,6 +402,135 @@ export interface DecisionsToRespectInvalid {
    * Details can be found in the API product documentation.
    */
   globalAttributeId: GlobalAttributeId;
+}
+
+export interface FixedDecisionsInvalid {
+  type: "FixedDecisionsInvalid";
+  title: string;
+  detail: string;
+  rejectedDecisions: FixedDecision[];
+  validationMessage: string;
+}
+
+export type FixedDecision = BaseFixedDecision &
+  (
+    | BaseFixedDecisionTypeMapping<"Choice", FixedChoiceValueDecision>
+    | BaseFixedDecisionTypeMapping<"Numeric", FixedNumericDecision>
+    | BaseFixedDecisionTypeMapping<"Boolean", FixedBooleanDecision>
+    | BaseFixedDecisionTypeMapping<"Component", FixedComponentDecision>
+  );
+
+/** The object "FixedChoiceValueDecision" encapsulates  a list of Choice Values with the associated current Decision State. */
+export interface FixedChoiceValueDecision {
+  type: "Choice";
+  /**
+   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
+   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
+   * the identifier components is used.
+   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
+   * because it is the path to an Attribute.
+   * shared component path localId
+   * Details can be found in the API product documentation.
+   */
+  attributeId: GlobalAttributeId;
+  choiceValueId: string;
+  /**
+   * The "Decision State" refers to a Value of a Choice Attribute or a referenced
+   * Component Configuration Model. It is transmitted to the Configuration Engine with a request.
+   * ### Included
+   * "Included" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
+   * are taken into account when the Configuration Engine searches for a Solution.
+   * - In case of a Choice Attribute this is analogous to selecting a Value.
+   *
+   * ### Excluded
+   * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
+   * are not taken into account when the Configuration Engine searches for a Solution.
+   * - In case of a Choice Attribute an excluded Value can not become the subject of an Implicit Decision.
+   */
+  state: FixedDecisionState;
+}
+
+/**
+ * The "Decision State" refers to a Value of a Choice Attribute or a referenced
+ * Component Configuration Model. It is transmitted to the Configuration Engine with a request.
+ * ### Included
+ * "Included" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
+ * are taken into account when the Configuration Engine searches for a Solution.
+ * - In case of a Choice Attribute this is analogous to selecting a Value.
+ *
+ * ### Excluded
+ * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
+ * are not taken into account when the Configuration Engine searches for a Solution.
+ * - In case of a Choice Attribute an excluded Value can not become the subject of an Implicit Decision.
+ */
+export enum FixedDecisionState {
+  Included = "Included",
+  Excluded = "Excluded",
+}
+
+/** The object "FixedNumericDecision" encapsulates a Numeric Value with the associated current Decision State. */
+export interface FixedNumericDecision {
+  type: "Numeric";
+  /**
+   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
+   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
+   * the identifier components is used.
+   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
+   * because it is the path to an Attribute.
+   * shared component path localId
+   * Details can be found in the API product documentation.
+   */
+  attributeId: GlobalAttributeId;
+  /** @format decimal */
+  state: number;
+}
+
+/** The object "FixedBooleanDecision" encapsulates a Boolean Value with the associated current Decision State. */
+export interface FixedBooleanDecision {
+  type: "Boolean";
+  /**
+   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
+   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
+   * the identifier components is used.
+   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
+   * because it is the path to an Attribute.
+   * shared component path localId
+   * Details can be found in the API product documentation.
+   */
+  attributeId: GlobalAttributeId;
+  state: boolean;
+}
+
+/**
+ * The object "FixedComponentDecision" specifies weather a referenced Component Configuration Model is taken into account
+ * if the Configuration Engine searches a Solution.
+ */
+export interface FixedComponentDecision {
+  type: "Component";
+  /**
+   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
+   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
+   * the identifier components is used.
+   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
+   * because it is the path to an Attribute.
+   * shared component path localId
+   * Details can be found in the API product documentation.
+   */
+  attributeId: GlobalAttributeId;
+  /**
+   * The "Decision State" refers to a Value of a Choice Attribute or a referenced
+   * Component Configuration Model. It is transmitted to the Configuration Engine with a request.
+   * ### Included
+   * "Included" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
+   * are taken into account when the Configuration Engine searches for a Solution.
+   * - In case of a Choice Attribute this is analogous to selecting a Value.
+   *
+   * ### Excluded
+   * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
+   * are not taken into account when the Configuration Engine searches for a Solution.
+   * - In case of a Choice Attribute an excluded Value can not become the subject of an Implicit Decision.
+   */
+  state: FixedDecisionState;
 }
 
 export interface SessionParametersInvalid {
@@ -1071,7 +1201,7 @@ export interface Decisions {
   numericDecisions: NumericDecision[];
   /** The object "ComponentDecisions" encapsulates  a list of Component Decisions. */
   componentDecisions: ComponentDecision[];
-  /** The object "ChoiceDecisions" encapsulates  a list of Choice Decisions. */
+  /** The object "ChoiceValueDecisions" encapsulates  a list of Choice Decisions. */
   choiceValueDecisions: ChoiceValueDecision[];
 }
 
@@ -1412,7 +1542,7 @@ export interface PutManyDecisionsResponse {
  */
 export interface ExplicitDecisions {
   mode?: Mode | null;
-  /** The object "ChoiceDecisions" encapsulates  a list of Explicit Choice Decisions. */
+  /** The object "ChoiceValueDecisions" encapsulates  a list of Explicit Choice Decisions. */
   choiceDecisions?: ExplicitChoiceValueDecision[] | null;
   /** The object "NumericDecisions" encapsulates  a list of Explicit Numeric Decisions. */
   numericDecisions?: ExplicitNumericDecision[] | null;
@@ -1645,6 +1775,7 @@ export interface CreateSessionRequest {
    * Examples can be found in the product documentation.
    */
   attributeRelations?: DecisionsToRespect[] | null;
+  fixedDecisions?: FixedDecision[] | null;
   wizardAttributeRelations?: WizardStep[] | null;
   allowedInExplain?: AllowedInExplain | null;
   disableConfigurationModelTrimming?: boolean | null;
@@ -1820,6 +1951,24 @@ type BaseProblemDetailsTypeMapping<Key, Type> = {
   type: Key;
 } & Type;
 
+interface BaseFixedDecision {
+  type: string;
+  /**
+   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
+   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
+   * the identifier components is used.
+   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
+   * because it is the path to an Attribute.
+   * shared component path localId
+   * Details can be found in the API product documentation.
+   */
+  attributeId: GlobalAttributeId;
+}
+
+type BaseFixedDecisionTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
 interface BaseConstraintDescription {
   type: string;
 }
@@ -1990,7 +2139,7 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = "https://integration-tests-ts.spc.viamedici.dev/hca/api/engine";
+  public baseUrl: string = "https://change-fixed-decisions-contract.spc.viamedici.dev/hca/api/engine";
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
@@ -2156,10 +2305,10 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Configuration Engine
- * @version 2026.3.6-integration-tests-ts.1
+ * @version 2026.4.0-change-fixed-decisions-contract.1
  * @license © 2026 Viamedici - All rights reserved (https://viamedici.de)
  * @termsOfService None
- * @baseUrl https://integration-tests-ts.spc.viamedici.dev/hca/api/engine
+ * @baseUrl https://change-fixed-decisions-contract.spc.viamedici.dev/hca/api/engine
  * @contact Viamedici Software GmbH <info@viamedici.de> (https://viamedici.de)
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

@@ -22,6 +22,7 @@ import {
     DropExistingDecisionsMode,
     ExplicitBooleanDecision,
     ExplicitNumericDecision,
+    FixedDecisionsInvalid,
     FullExplainAnswer,
     KeepExistingDecisionsMode,
     MakeManyDecisionsConflict,
@@ -398,6 +399,170 @@ describe("ConfigurationSession", () => {
             await expectations.expectBooleanAttribute({componentPath: [a.id.localId], localId: "Boolean1"}, (a) => {
                 expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
                 expect(a.possibleDecisionStates).toBeEmpty();
+            });
+        });
+    });
+
+    it("Fixed choice decision trims the attribute and is immutable; without it the value stays interactive", async () => {
+        // Baseline: without a fixed decision, Choice1.Value2 is interactive - both Included and Excluded are possible
+        // and the user could still decide either way (this is the whole point of fixed decisions: see the difference).
+        const withoutFixed = await SessionFactory.createSession(getSessionContext("Configurator-TS-Trimming"));
+        await getConfigurationSessionExpectations(withoutFixed).expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
+            e.expectChoiceValue("Value2", v => {
+                expect(v.decision).toBeFalsy();
+                expect(v.isPossibleDecisionStatesImmutable).toBeFalsy();
+                expect(v.possibleDecisionStates).toIncludeSameMembers([ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded]);
+            });
+        });
+
+        // Fixing Value2 = Included at session creation trims the now-impossible Excluded state away and pins the value
+        // immutably - the end user can no longer change it.
+        const withFixed = await SessionFactory.createSession({
+            ...getSessionContext("Configurator-TS-Trimming"),
+            fixedDecisions: [{
+                type: AttributeType.Choice,
+                attributeId: {localId: "Choice1"},
+                choiceValueId: "Value2",
+                state: ChoiceValueDecisionState.Included
+            }]
+        });
+        await getConfigurationSessionExpectations(withFixed).expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
+            e.expectChoiceValue("Value2", v => {
+                expect(v.decision?.state).toBe(ChoiceValueDecisionState.Included);
+                expect(v.isPossibleDecisionStatesImmutable).toBeTruthy();
+                expect(v.possibleDecisionStates).toIncludeSameMembers([ChoiceValueDecisionState.Included]);
+            });
+        });
+    });
+
+    it("Invalid fixed decision rejects session creation with FixedDecisionsInvalid", async () => {
+        // Fixing a choice value that does not exist in the model is rejected at session creation.
+        await expect(SessionFactory.createSession({
+            ...getSessionContext("Configurator-TS-Trimming"),
+            fixedDecisions: [{
+                type: AttributeType.Choice,
+                attributeId: {localId: "Choice1"},
+                choiceValueId: "NonExistentValue",
+                state: ChoiceValueDecisionState.Included
+            }]
+        })).rejects.toSatisfy(e => {
+            const error = e as FixedDecisionsInvalid;
+            return error.type === ConfiguratorErrorType.FixedDecisionsInvalid
+                && Array.isArray(error.rejectedDecisions)
+                && typeof error.validationMessage === "string";
+        });
+    });
+
+    it("Fixed decision is Implicit; an explicit override and its reset round-trip back to Implicit", async () => {
+        const session = await SessionFactory.createSession({
+            ...getSessionContext("Configurator-TS-Trimming"),
+            fixedDecisions: [{
+                type: AttributeType.Choice,
+                attributeId: {localId: "Choice1"},
+                choiceValueId: "Value2",
+                state: ChoiceValueDecisionState.Included
+            }]
+        });
+
+        // A fixed decision surfaces as an Implicit decision (the engine derived it from the fixed constraint).
+        await getConfigurationSessionExpectations(session).expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
+            e.expectChoiceValue("Value2", v => {
+                expect(v.decision?.state).toBe(ChoiceValueDecisionState.Included);
+                expect(v.decision?.kind).toBe(DecisionKind.Implicit);
+            });
+        });
+
+        // Making the matching explicit decision on the fixed value is allowed and turns it Explicit
+        // (implicit -> explicit), while the value stays immutable.
+        await session.makeDecision({
+            type: AttributeType.Choice,
+            attributeId: {localId: "Choice1"},
+            choiceValueId: "Value2",
+            state: ChoiceValueDecisionState.Included
+        });
+        await getConfigurationSessionExpectations(session).expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
+            e.expectChoiceValue("Value2", v => {
+                expect(v.decision?.state).toBe(ChoiceValueDecisionState.Included);
+                expect(v.decision?.kind).toBe(DecisionKind.Explicit);
+                expect(v.isPossibleDecisionStatesImmutable).toBeTruthy();
+            });
+        });
+
+        // Resetting the explicit decision (Undefined) does not drop the fixed decision - it falls back to the
+        // underlying Implicit Included, so the implicit <-> explicit round-trip works both ways.
+        await session.makeDecision({
+            type: AttributeType.Choice,
+            attributeId: {localId: "Choice1"},
+            choiceValueId: "Value2",
+            state: undefined
+        });
+        await getConfigurationSessionExpectations(session).expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
+            e.expectChoiceValue("Value2", v => {
+                expect(v.decision?.state).toBe(ChoiceValueDecisionState.Included);
+                expect(v.decision?.kind).toBe(DecisionKind.Implicit);
+                expect(v.isPossibleDecisionStatesImmutable).toBeTruthy();
+            });
+        });
+    });
+
+    it("Fixed Choice decision on a Boolean attribute is rejected as FixedDecisionsInvalid", async () => {
+        // Type mismatch: Boolean1 is a Boolean attribute, so fixing it with a Choice decision must be rejected.
+        await expect(SessionFactory.createSession({
+            ...getSessionContext("Configurator-TS-Trimming"),
+            fixedDecisions: [{
+                type: AttributeType.Choice,
+                attributeId: {localId: "Boolean1"},
+                choiceValueId: "true",
+                state: ChoiceValueDecisionState.Included
+            }]
+        })).rejects.toSatisfy(e => {
+            const error = e as FixedDecisionsInvalid;
+            return error.type === ConfiguratorErrorType.FixedDecisionsInvalid
+                && Array.isArray(error.rejectedDecisions)
+                && typeof error.validationMessage === "string";
+        });
+    });
+
+    it("Fixed Boolean decision on a Choice attribute is rejected as FixedDecisionsInvalid", async () => {
+        // Type mismatch: Choice1 is a Choice attribute, so fixing it with a Boolean decision must be rejected.
+        await expect(SessionFactory.createSession({
+            ...getSessionContext("Configurator-TS-Trimming"),
+            fixedDecisions: [{
+                type: AttributeType.Boolean,
+                attributeId: {localId: "Choice1"},
+                state: true
+            }]
+        })).rejects.toSatisfy(e => {
+            const error = e as FixedDecisionsInvalid;
+            return error.type === ConfiguratorErrorType.FixedDecisionsInvalid
+                && Array.isArray(error.rejectedDecisions)
+                && typeof error.validationMessage === "string";
+        });
+    });
+
+    it("Empty makeManyDecisions with DropExistingDecisions keeps the fixed decision", async () => {
+        const session = await SessionFactory.createSession({
+            ...getSessionContext("Configurator-TS-Trimming"),
+            fixedDecisions: [{
+                type: AttributeType.Choice,
+                attributeId: {localId: "Choice1"},
+                choiceValueId: "Value2",
+                state: ChoiceValueDecisionState.Included
+            }]
+        });
+        const expectations = getConfigurationSessionExpectations(session);
+
+        // Dropping all explicit decisions (with an empty set) must not drop the fixed decision.
+        await session.makeManyDecisions([], {
+            type: "DropExistingDecisions",
+            conflictHandling: {type: "Automatic"}
+        } satisfies DropExistingDecisionsMode as MakeManyDecisionsMode);
+
+        await expectations.expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
+            e.expectChoiceValue("Value2", v => {
+                expect(v.decision?.state).toBe(ChoiceValueDecisionState.Included);
+                expect(v.decision?.kind).toBe(DecisionKind.Implicit);
+                expect(v.isPossibleDecisionStatesImmutable).toBeTruthy();
             });
         });
     });
