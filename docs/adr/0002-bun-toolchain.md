@@ -20,7 +20,8 @@ drift, and the published package mixed formats.
 - **oxlint** lints, until Bun ships a linter of its own.
 - **tsdown** builds the package: one ES module bundle with the dependencies external, and its declarations from the
   TypeScript 7 compiler (`typescript` is a dev dependency for that alone). Isolated declarations are not used: the
-  generated engine client cannot carry the explicit types they need. publint and arethetypeswrong check the packed result.
+  generated engine client cannot carry the explicit types they need. publint and arethetypeswrong check the packed
+  result.
 - **`bun run verify`** is the one gate, locally and in CI; its independent steps run in parallel
   (`bun run --parallel`).
 - **Publishing** goes through the shared CI workflow: Bun packs the tarball, `npm publish` uploads it with npm trusted

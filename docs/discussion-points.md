@@ -23,4 +23,5 @@ in one repository, and where fp-ts-extensions, which has consumers outside these
 ## Resolved
 
 - **The generator for the engine client** (2026-11-26): openapi-typescript and openapi-fetch, generator in its own
-  `scripts/` package, public types written by hand — [ADR 0004](adr/0004-engine-client-and-hand-written-public-types.md).
+  `scripts/` package, public types written by hand —
+  [ADR 0004](adr/0004-engine-client-and-hand-written-public-types.md).

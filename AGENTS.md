@@ -21,10 +21,10 @@ with [docs/overview.md](docs/overview.md).
 
 ## Code
 
-- Layers: `src/contract/` (public types, errors, interpreters, `Eqs.ts`) ↔ `src/domain/mapper/` ↔ `src/apiClient/engine/`
-  (generated wire types; requests via openapi-fetch in `src/domain/EngineApiClient.ts`). Never export or derive a public
-  type from a wire type. A new field on a public type also updates its
-  `Eq` in `src/contract/Eqs.ts` (`Eq.struct` requires every key).
+- Layers: `src/contract/` (public types, errors, interpreters, `Eqs.ts`) ↔ `src/domain/mapper/` ↔
+  `src/apiClient/engine/` (generated wire types; requests via openapi-fetch in `src/domain/EngineApiClient.ts`). Never
+  export or derive a public type from a wire type. A new field on a public type also updates its `Eq` in
+  `src/contract/Eqs.ts` (`Eq.struct` requires every key).
 - Functional style with `@viamedici-spc/fp-ts-extensions`/fp-ts and `ts-pattern` (`match(...).exhaustive()`); type-only
   imports use `import type`. Conventions: [docs/conventions/code.md](docs/conventions/code.md).
 

@@ -9,8 +9,8 @@ Date: 2026-11-26
 ## Context
 
 The stored-configuration types were derived from their morphic-ts codecs (`AType<typeof Codec>`), so the published
-declarations carried morphic's types. Those fail a full type check without `skipLibCheck`, and under TypeScript 7 they no
-longer resolve to the intended shapes at all. morphic-ts is no longer maintained.
+declarations carried morphic's types. Those fail a full type check without `skipLibCheck`, and under TypeScript 7 they
+no longer resolve to the intended shapes at all. morphic-ts is no longer maintained.
 
 ## Decision
 

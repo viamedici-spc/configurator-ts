@@ -20,8 +20,8 @@ API serves that), and modelling (configuration models are made in SPC's modellin
   `src/contract/Types.ts`, the `ConfiguratorError` union, the interpreters (`AttributeInterpreter`,
   `ConfigurationInterpreter`, `ChoiceValueInterpreter`), the refinements, the `Eq` instances, `Logger` and the
   stored-configuration types.
-- The stored-configuration types are plain readonly types; `src/contract/storedConfiguration/StoredConfigurationCodec.ts`
-  validates them at runtime.
+- The stored-configuration types are plain readonly types;
+  `src/contract/storedConfiguration/StoredConfigurationCodec.ts` validates them at runtime.
 
 ## Invariants
 
@@ -36,12 +36,14 @@ API serves that), and modelling (configuration models are made in SPC's modellin
 
 `ConfigurationSession` wraps an XState machine (`src/domain/WorkProcessingMachine.ts`) that serialises the work on a
 session: decisions, explanations, context changes, restoring a lost session. Engine calls are fp-ts `TaskEither`s in
-`src/domain/logic/EngineLogic.ts`, sent by openapi-fetch (`src/domain/EngineApiClient.ts`); optimistic decisions are applied in `src/domain/logic/OptimisticDecisions.ts` and
-reconciled with the engine's answer. Feature notes: [fixed decisions](features/fixed-decisions.md).
+`src/domain/logic/EngineLogic.ts`, sent by openapi-fetch (`src/domain/EngineApiClient.ts`); optimistic decisions are
+applied in `src/domain/logic/OptimisticDecisions.ts` and reconciled with the engine's answer. Feature notes:
+[fixed decisions](features/fixed-decisions.md).
 
 ## Supported environments
 
-Browsers, as ESM, through a bundler or inside a CDN bundle; not Node.js ([ADR 0001](adr/0001-browser-target-and-esm-only.md)).
+Browsers, as ESM, through a bundler or inside a CDN bundle; not Node.js
+([ADR 0001](adr/0001-browser-target-and-esm-only.md)).
 
 ## Commands
 
