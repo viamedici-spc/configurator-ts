@@ -1,7 +1,7 @@
 import {defineConfig, type Rolldown, type UserConfig} from "tsdown";
 
 /**
- * fp-ts 2.x and morphic-ts have no `exports` map, so strict ESM resolution (webpack 5 for a `"type": "module"` package)
+ * fp-ts 2.x, monocle-ts and morphic-ts have no `exports` map, so strict ESM resolution (webpack 5 for a `"type": "module"` package)
  * rejects subpaths such as `fp-ts/Option`. The JavaScript output therefore imports their ES modules by full file path;
  * the declarations keep the usual paths.
  */
@@ -16,6 +16,10 @@ const fullySpecifiedSubpaths: Rolldown.Plugin = {
             const fpTs = /^fp-ts(?:\/(?:lib|es6))?(?:\/([^/]+?))?(?:\.js)?$/.exec(source);
             if (fpTs) {
                 return {id: `fp-ts/es6/${fpTs[1] ?? "index"}.js`, external: true};
+            }
+            const monocle = /^monocle-ts(?:\/(?:lib|es6))?(?:\/([^/]+?))?(?:\.js)?$/.exec(source);
+            if (monocle) {
+                return {id: `monocle-ts/es6/${monocle[1] ?? "index"}.js`, external: true};
             }
             const morphic = /^(@morphic-ts\/[^/]+)\/(?:lib|es6)\/([^/]+?)(?:\.js)?$/.exec(source);
             if (morphic) {

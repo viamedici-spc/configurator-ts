@@ -9,17 +9,17 @@ yet.
 
 ⚠️ **Nobody polls this file.** It is read when somebody upgrades the dependency in question.
 
-## fp-ts and morphic-ts
+## fp-ts, monocle-ts and morphic-ts
 
 ### Import them by their public subpaths in the output
 
-- **We would rather** emit `fp-ts/Option` and `@morphic-ts/batteries/lib/…` as written in the sources.
+- **We would rather** emit `fp-ts/Option`, `monocle-ts/Lens` and `@morphic-ts/batteries/lib/…` as written in the sources.
 - **We do instead** rewrite these imports to full ES module paths in `tsdown.config.ts`.
 - **What blocks it:** neither package has an `exports` map, so strict ESM resolution cannot resolve their subpaths.
 - **Check** (an `exports` field means the gate has lifted for that package):
 
   ```bash
-  npm view fp-ts@latest exports; npm view @morphic-ts/batteries@latest exports
+  npm view fp-ts@latest exports; npm view monocle-ts@latest exports; npm view @morphic-ts/batteries@latest exports
   ```
 
 - **What it would buy:** the plugin in `tsdown.config.ts` goes away, and applications testing with Vitest no longer need `server.deps.inline` (README).
