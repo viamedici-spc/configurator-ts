@@ -113,6 +113,30 @@ const wellFormedConfigurations: StoredConfiguration[] = [
     },
 ];
 
+// One valid decision per type; each malformed decision below differs from one of them in exactly one field.
+const validDecisions = {
+    Numeric: {type: "Numeric", attributeId: {localId: "N"}, state: 1},
+    Boolean: {type: "Boolean", attributeId: {localId: "B"}, state: true},
+    Choice: {type: "Choice", attributeId: {localId: "C"}, choiceValueId: "V", state: "Included"},
+    Component: {type: "Component", attributeId: {localId: "K"}, state: "Included"},
+} as const;
+
+function without(decision: object, field: string): object {
+    return Object.fromEntries(Object.entries(decision).filter(([key]) => key !== field));
+}
+
+const malformedDecisions: ReadonlyArray<readonly [string, object]> = [
+    ...Object.entries(validDecisions).flatMap(([type, decision]) => [
+        [`${type} without attributeId`, without(decision, "attributeId")] as const,
+        [`${type} without state`, without(decision, "state")] as const,
+        [`${type} without attributeId.localId`, {...decision, attributeId: {}}] as const,
+    ]),
+    ["Choice without choiceValueId", without(validDecisions.Choice, "choiceValueId")],
+    ["Component with an unknown state", {...validDecisions.Component, state: "Undecided"}],
+    ["Numeric with the state as a string", {...validDecisions.Numeric, state: "1"}],
+    ["Boolean with the state as a string", {...validDecisions.Boolean, state: "true"}],
+];
+
 describe("StoredConfiguration", () => {
     it.each(malformedConfigurations)("Malformed configuration get rejected", obj => {
         const configuration = obj as StoredConfiguration;
@@ -121,6 +145,19 @@ describe("StoredConfiguration", () => {
         expect(left).toEqual({
             type: ConfiguratorErrorType.StoredConfigurationInvalid,
         } satisfies StoredConfigurationInvalid);
+    });
+
+    it.each(Object.values(validDecisions))("A valid %p decision passes", decision => {
+        expectToBeRight(
+            loadConfiguration({schemaVersion: 1, explicitDecisions: [decision]} as unknown as StoredConfiguration),
+        );
+    });
+
+    it.each(malformedDecisions)("A decision is rejected: %s", (_, decision) => {
+        const left = expectToBeLeft(
+            loadConfiguration({schemaVersion: 1, explicitDecisions: [decision]} as unknown as StoredConfiguration),
+        );
+        expect<unknown>(left.type).toBe(ConfiguratorErrorType.StoredConfigurationInvalid);
     });
 
     it.each(wellFormedConfigurations)("Well-formed configuration passes", obj => {
