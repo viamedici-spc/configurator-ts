@@ -1,6 +1,7 @@
-// Runtime validation of stored configurations. The public types live in StoredConfigurationV1.ts and
-// StoredConfiguration.ts as plain readonly types, so the published typings need no morphic types (whose declarations no
-// longer resolve under TypeScript 7); tests/area/internal/StoredConfiguration.test.ts keeps codecs and types in step.
+// Runtime validation of stored configurations. morphic's types are not part of the published declarations (ADR 0003):
+// the public types are written by hand in src/contract/storedConfiguration/StoredConfigurationV1.ts and
+// src/contract/storedConfiguration/StoredConfiguration.ts, and tests/area/internal/StoredConfiguration.test.ts keeps
+// codecs and types in step.
 import {summonFor} from "@morphic-ts/batteries/lib/summoner-ESBAST";
 
 const {summon} = summonFor<{}>({});

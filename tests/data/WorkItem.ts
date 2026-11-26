@@ -115,9 +115,8 @@ export function createStateMutatingWorkItemDummy<T>(
 }
 
 /**
- * Marks a work item's promise as handled, because a test often asserts its rejection only after it happened. bun test,
- * unlike Vitest, fails a test on a rejection that has no handler yet; the promise itself stays rejected for the
- * assertion.
+ * Marks a work item's promise as handled, because a test often asserts its rejection only after it happened. bun test
+ * fails a test on a rejection that has no handler yet; the promise itself stays rejected for the assertion.
  */
 export function handledLater<T>(promise: Promise<T>): Promise<T> {
     promise.catch(() => undefined);
