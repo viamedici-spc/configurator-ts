@@ -44,7 +44,7 @@
   "dependencies": {
     "@morphic-ts/batteries": "^3.0.0",
     "@morphic-ts/model-algebras": "^3.0.0",
-    "@viamedici-spc/fp-ts-extensions": "2.0.0-modern-toolchain-20261126094931",
+    "@viamedici-spc/fp-ts-extensions": "2.0.0",
     "dyna-guid": "^2.3.3",
     "fast-equals": "^6.4.1",
     "fp-ts": "^2.16.11",

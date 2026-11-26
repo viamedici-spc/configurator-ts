@@ -7,7 +7,7 @@
       "dependencies": {
         "@morphic-ts/batteries": "^3.0.0",
         "@morphic-ts/model-algebras": "^3.0.0",
-        "@viamedici-spc/fp-ts-extensions": "2.0.0-modern-toolchain-20261126094931",
+        "@viamedici-spc/fp-ts-extensions": "2.0.0",
         "dyna-guid": "^2.3.3",
         "fast-equals": "^6.4.1",
         "fp-ts": "^2.16.11",
@@ -223,7 +223,7 @@
 
     "@typescript/typescript-win32-x64": ["@typescript/typescript-win32-x64@7.0.2", "", { "os": "win32", "cpu": "x64" }, "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g=="],
 
-    "@viamedici-spc/fp-ts-extensions": ["@viamedici-spc/fp-ts-extensions@2.0.0-modern-toolchain-20261126094931", "", { "peerDependencies": { "fp-ts": "2.*" } }, "sha512-ywpE+ue+AHBscDs6IHjiTd0m4uVFvtP4suatHbRRYGf3poYiZZOmSMaul/owVe7PrPpxXrwZHaW0/LK83KoN2g=="],
+    "@viamedici-spc/fp-ts-extensions": ["@viamedici-spc/fp-ts-extensions@2.0.0", "", { "peerDependencies": { "fp-ts": "2.*" } }, "sha512-r+M0EWcMvv0eTUGFiTgdnHHTNS/60skV4jDDVv5B+wC6qCLFP7t51XQsXD3QVa6HmAWQEmOvdNihG9xk4/RTyA=="],
 
     "@yuku-toolchain/darwin-arm64": ["@yuku-toolchain/darwin-arm64@0.28.1", "", { "os": "darwin", "cpu": "arm64" }, "sha512-xMtZUwiGvJH90ogLjRrnG5+YEhinKti8qMPF18bd5z0ahSoaHWyBoe16evT7cSUxid0JEaZvh6H3daDPwDw4+g=="],
 
