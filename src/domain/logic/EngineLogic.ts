@@ -1,7 +1,8 @@
+import {updateActiveAttributes} from "../../apiClient/engine/ActiveAttributes";
 import {
     ExplainAnswer,
     ExplainQuestion, ExplainQuestionType,
-    ExplicitDecision, MakeManyDecisionsResult, MakeManyDecisionsMode, SessionContext
+    GlobalAttributeId, ExplicitDecision, MakeManyDecisionsResult, MakeManyDecisionsMode, SessionContext
 } from "../../contract/Types";
 import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
 import {ConnectionError, ConfiguratorError, ServerError, ConfiguratorErrorType} from "../../contract/ConfiguratorError";
@@ -61,32 +62,45 @@ export function createSession(sessionContext: SessionContext): TaskEither<Config
             sessionContext: sessionContext,
             sessionId: r.sessionId!
         })),
-        TE.chain(state => {
-            const decisions = request(() => hcaApiClient.decision.decisionGetAllDecisions({
-                headers: getHeadersForSession(state)
-            }));
-            const consequences = request(() => hcaApiClient.consequence.consequenceGet({
-                headers: getHeadersForSession(state)
-            }));
-            const meta = (state.sessionContext.provideSourceId ?? false)
-                ? request(() => hcaApiClient.meta.metaGet({
-                    headers: getHeadersForSession(state)
-                }))
-                : TE.right(null);
+        TE.chain(readConfiguration)
+    );
+}
 
-            return pipe(
-                sequenceS(TE.ApplicativePar)({
-                    decisions: decisions,
-                    consequences: consequences,
-                    meta: meta,
-                }),
-                TE.map(r => ResponseHandling.createConfiguration(r.decisions, r.consequences, r.meta)),
-                TE.map(r => ({
-                    ...state,
-                    configuration: r.configuration,
-                    configurationRawData: r.rawData
-                } satisfies FullQualifiedConfigurationSessionState))
-            );
+function readConfiguration(
+    state: Pick<FullQualifiedConfigurationSessionState, "sessionContext" | "sessionId" | "activeAttributes">,
+    previous?: ConfigurationRawData
+): TaskEither<ConfiguratorError, FullQualifiedConfigurationSessionState> {
+    const api = getApiClient(state.sessionContext.apiBaseUrl);
+    const headers = getHeadersForSession(state);
+    return pipe(
+        sequenceS(TE.ApplicativePar)({
+            decisions: request(() => api.decision.decisionGetAllDecisions({headers})),
+            consequences: request(() => api.consequence.consequenceGet({headers})),
+            meta: !previous && state.sessionContext.provideSourceId
+                ? request(() => api.meta.metaGet({headers}))
+                : TE.right(null),
+        }),
+        TE.map(({decisions, consequences, meta}) => {
+            const result = previous
+                ? ResponseHandling.refreshScopedConfiguration(previous, decisions, consequences)
+                : ResponseHandling.createConfiguration(decisions, consequences, meta);
+            return {...state, configuration: result.configuration, configurationRawData: result.rawData};
+        })
+    );
+}
+
+/** Apply consequences and affected decisions from either scope operation. */
+export function setActiveAttributes(attributes: ReadonlyArray<GlobalAttributeId> | null) {
+    return (state: FullQualifiedConfigurationSessionState): TaskEither<ConfiguratorError, FullQualifiedConfigurationSessionState> => pipe(
+        request(() => updateActiveAttributes(getApiClient(state.sessionContext.apiBaseUrl), state.sessionId,
+            attributes === null ? null : attributes.map(DtoE.mapGlobalAttributeId)), error =>
+            (error as any)?.type === "ActiveAttributesUnsupported"
+                ? O.some({type:ConfiguratorErrorType.ServerError,message:"The engine endpoint rejected the active-attribute operation.",activeAttributesUnsupported:true} as ConfiguratorError)
+                : none),
+        TE.map(response => {
+            const result = ResponseHandling.integratePutDecisionResponse(state.configuration, response);
+            return {...state, activeAttributes: attributes, configuration: result.configuration,
+                configurationRawData: merge(state.configurationRawData, result.rawData)};
         })
     );
 }
@@ -124,6 +138,10 @@ export function makeManyDecisions(decisions: ReadonlyArray<ExplicitDecision>, mo
             ))
         );
     };
+}
+
+export function readScopedConfiguration(state: FullQualifiedConfigurationSessionState): TaskEither<ConfiguratorError, FullQualifiedConfigurationSessionState> {
+    return readConfiguration(state, state.configurationRawData);
 }
 
 export function makeDecision(decision: ExplicitDecision): (sessionState: FullQualifiedConfigurationSessionState) => TaskEither<ConfiguratorError, FullQualifiedConfigurationSessionState> {
@@ -223,6 +241,7 @@ export function reinitialize(sessionState: ConfigurationSessionState, newSession
         } satisfies ConfigurationSessionState,
         I.map(sessionState => pipe(
             createSessionWithData(newSessionContext ?? sessionState.sessionContext, sessionState.configurationRawData),
+            TE.chain(state => newSessionContext || sessionState.activeAttributes == null ? TE.right(state) : setActiveAttributes(sessionState.activeAttributes)(state)),
             TE.mapLeft(l => ({
                 error: l,
                 sessionState: sessionState
@@ -275,7 +294,7 @@ function request<T, E>(request: () => Promise<Engine.HttpResponse<T, E>>, custom
                     return E.left(customMapped.value);
                 }
 
-                if (r.error["type"] != null && r.error["title"] != null && r.error["detail"] != null) {
+                if (typeof r.error === "object" && "type" in r.error && "title" in r.error && "detail" in r.error) {
                     return pipe(
                         r.error as any as Engine.ProblemDetails,
                         EtoD.mapConfiguratorError,

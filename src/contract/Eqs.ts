@@ -1,4 +1,9 @@
-import {Bool, Eq, EqT, Num, O, pipe, RA, RM, RR, some, Str} from "@viamedici-spc/fp-ts-extensions";
+// Import primitive instances directly so production bundlers initialize them
+// before the module-level equality structures capture their values.
+import * as Bool from "fp-ts/boolean";
+import * as Num from "fp-ts/number";
+import * as Str from "fp-ts/string";
+import {Eq, EqT, O, pipe, RA, RM, RR, some} from "@viamedici-spc/fp-ts-extensions";
 import {
     AllowedInExplain,
     AllowedRulesInExplain,
@@ -397,12 +402,12 @@ export const attributeEq: EqT<Attribute> = Eq.union<Attribute>()
 export const hashedAttributeEq: EqT<HashedAttribute> = Eq.fromEquals((x, y) => x.hash === y.hash);
 
 export const configurationEq: EqT<Configuration> = Eq.struct({
-    isSatisfied: Bool.Eq,
+    isSatisfied: Eq.eqNullable(Bool.Eq),
     attributes: RM.getEq(globalAttributeIdKeyEq, attributeEq)
 });
 
 export const hashedConfigurationEq: EqT<HashedConfiguration> = Eq.struct<HashedConfiguration>({
-    isSatisfied: Bool.Eq,
+    isSatisfied: Eq.eqNullable(Bool.Eq),
     attributes: RM.getEq(globalAttributeIdKeyEq, hashedAttributeEq)
 });
 
@@ -477,7 +482,7 @@ export const sessionContextEq: EqT<SessionContext> = Eq.struct<SessionContext>({
 });
 
 export const configurationRawDataEq: EqT<ConfigurationRawData> = Eq.struct<ConfigurationRawData>({
-    isSatisfied: Bool.Eq,
+    isSatisfied: Eq.eqNullable(Bool.Eq),
     canContributeToSatisfaction: RA.getUnsortedArrayEq(globalAttributeIdKeyEq),
     meta: RM.getEq(globalAttributeIdKeyEq, attributeMetaEq),
     decisions: RM.getEq(globalAttributeIdKeyEq, attributeDecisionEq),
@@ -486,6 +491,7 @@ export const configurationRawDataEq: EqT<ConfigurationRawData> = Eq.struct<Confi
 
 export const configurationChangesEq: EqT<ConfigurationChanges> = Eq.struct<ConfigurationChanges>({
     isSatisfied: Eq.eqNullable(Bool.Eq),
+    satisfactionChanged: Eq.eqNullable(Bool.Eq),
     attributes: Eq.struct({
         added: RA.getUnsortedArrayEq(attributeEq),
         changed: RA.getUnsortedArrayEq(attributeEq),

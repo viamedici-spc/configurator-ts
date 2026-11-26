@@ -27,7 +27,7 @@ import {attributeConsequenceMapSe, attributeDecisionMapSe, attributeMetaMapSe} f
 
 export function merge(rawData: ConfigurationRawData, partialData: Partial<ConfigurationRawData>): ConfigurationRawData {
     return pipe({
-            isSatisfied: partialData.isSatisfied ?? rawData.isSatisfied,
+            isSatisfied: partialData.isSatisfied === undefined ? rawData.isSatisfied : partialData.isSatisfied,
             canContributeToSatisfaction: partialData.canContributeToSatisfaction ?? rawData.canContributeToSatisfaction,
             meta: partialData.meta ? attributeMetaMapSe.concat(rawData.meta, partialData.meta) : rawData.meta,
             decisions: partialData.decisions ? attributeDecisionMapSe.concat(rawData.decisions, partialData.decisions) : rawData.decisions,

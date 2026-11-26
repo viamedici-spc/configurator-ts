@@ -1,4 +1,5 @@
-import {identity, O, pipe, RA, RM, some, Str} from "@viamedici-spc/fp-ts-extensions";
+import * as Str from "fp-ts/string";
+import {identity, O, pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
 import * as ML from "monocle-ts/Lens";
 import {
     Attribute,
@@ -104,7 +105,7 @@ export function integrateRawData(partial: Partial<ConfigurationRawData>): Endomo
         return pipe(
             {
                 ...configuration,
-                isSatisfied: partial.isSatisfied ?? configuration.isSatisfied
+                isSatisfied: partial.isSatisfied === undefined ? configuration.isSatisfied : partial.isSatisfied
             },
             applyPartialAttributes([
                 ...(partial.meta ?? RM.empty).values(),
@@ -217,6 +218,6 @@ function removeAttributeHash(attribute: HashedAttribute | Attribute): Attribute 
     const copiedAttribute = {
         ...attribute,
     } satisfies Attribute;
-    delete copiedAttribute["hash"];
+    delete (copiedAttribute as Attribute & {hash?:unknown})["hash"];
     return copiedAttribute;
 }

@@ -1,10 +1,10 @@
 import * as Engine from "./EngineLogic";
 import * as OD from "./OptimisticDecisions";
-import {E, pipe} from "@viamedici-spc/fp-ts-extensions";
+import {E, pipe, TE} from "@viamedici-spc/fp-ts-extensions";
 import {asLeftUnit, asUnit, createStateMutatingWorkItem, createStatePreservingWorkItem, guardSession} from "./WorkItem";
 import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
 import {EngineSuccessResultT} from "./EngineLogic";
-import {ScheduleTaskResult} from "../../contract/Types";
+import {ExplicitDecision, MakeManyDecisionsMode, MakeManyDecisionsResult, ScheduleTaskResult} from "../../contract/Types";
 import {WorkItem, WorkQueueInfo} from "../model/WorkItem";
 
 export const makeDecision = pipe(
@@ -14,11 +14,47 @@ export const makeDecision = pipe(
     asLeftUnit,
     f => createStateMutatingWorkItem(f, OD.makeDecision, true),
 );
+type MakeManyDecisionsArgs = [
+    decisions: ReadonlyArray<ExplicitDecision>,
+    mode: MakeManyDecisionsMode,
+    onScopedWrite: (state: FullQualifiedConfigurationSessionState) => void
+];
 export const makeManyDecisions = pipe(
     Engine.makeManyDecisions,
     guardSession,
     asLeftUnit,
-    f => createStateMutatingWorkItem(f, OD.makeManyDecisions, true),
+    write => createStateMutatingWorkItem<MakeManyDecisionsArgs, MakeManyDecisionsResult>((decisions, mode, onScopedWrite) => {
+        const execute = write(decisions, mode);
+        return (state, info) => pipe(
+            execute(state, info),
+            TE.map(batch => {
+                // A skipped write returns the original state.
+                if (batch.sessionState !== state && batch.sessionState.activeAttributes != null) onScopedWrite(batch.sessionState);
+                return batch;
+            })
+        );
+    }, OD.makeManyDecisions, true),
+);
+const applyScopedDecisionRefreshState = (
+    expected: FullQualifiedConfigurationSessionState, refreshed: FullQualifiedConfigurationSessionState,
+    isLatest: () => boolean, retry: (state: FullQualifiedConfigurationSessionState) => void
+) => (state: FullQualifiedConfigurationSessionState) => {
+    if (!isLatest() || state.sessionId !== expected.sessionId || state.activeAttributes == null) {
+        return TE.right(state);
+    }
+    // Only the serialized queue can confirm that no newer write changed the snapshot.
+    if (state.configurationRawData !== expected.configurationRawData) {
+        retry(state);
+        return TE.right(state);
+    }
+    return TE.right(refreshed);
+};
+export const applyScopedDecisionRefresh = pipe(
+    applyScopedDecisionRefreshState,
+    guardSession,
+    asUnit,
+    asLeftUnit,
+    f => createStateMutatingWorkItem(f, null, false),
 );
 export const setSessionContext = pipe(
     Engine.setSessionContext,
@@ -71,3 +107,10 @@ export const scheduleTask = (signal: AbortSignal | null | undefined): WorkItem<S
 
     return workItem;
 };
+export const setActiveAttributes = pipe(
+    Engine.setActiveAttributes,
+    guardSession,
+    asUnit,
+    asLeftUnit,
+    f => createStateMutatingWorkItem(f, null, false),
+);

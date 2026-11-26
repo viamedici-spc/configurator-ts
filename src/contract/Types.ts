@@ -211,7 +211,8 @@ export type ExplainSolution = {
 
 // ---------------------------------------------------------------------------------------------------------------------
 export type Configuration = {
-    readonly isSatisfied: boolean;
+    /** Null means the engine has not determined satisfaction of the full configuration. */
+    readonly isSatisfied: boolean | null;
     readonly attributes: ReadonlyMap<GlobalAttributeIdKey, Attribute>;
 }
 
@@ -586,6 +587,8 @@ export type AutomaticConflictResolution = {
 
 export type ConfigurationChanges = {
     readonly isSatisfied: boolean | null,
+    /** Distinguishes a transition to unknown satisfaction from no satisfaction change. */
+    readonly satisfactionChanged?: true,
     readonly attributes: {
         readonly added: ReadonlyArray<Attribute>,
         readonly changed: ReadonlyArray<Attribute>,

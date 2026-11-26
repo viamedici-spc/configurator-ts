@@ -1,4 +1,5 @@
 import * as Engine from "../../apiClient/engine/Engine";
+import type {ActiveAttributesResponse, ScopedConsequences} from "../../apiClient/engine/ActiveAttributes";
 import * as EtoD from "../mapper/EngineToDomainMapping";
 import {
     mapConstraintExplanation,
@@ -49,6 +50,7 @@ import {
 import {explicitDecisionByIdEq, globalAttributeIdKeyEq} from "../../contract/Eqs";
 import ConfigurationRawData from "../model/ConfigurationRawData";
 import {attributeConsequenceSe, attributeDecisionSe, attributeMetaSe} from "../Semigroups";
+import {merge} from "./ConfigurationRawData";
 
 function getGlobalAttributeIdKey(attributeId: Engine.GlobalAttributeId): GlobalAttributeIdKey {
     return pipe(
@@ -58,7 +60,7 @@ function getGlobalAttributeIdKey(attributeId: Engine.GlobalAttributeId): GlobalA
     );
 }
 
-export function integratePutDecisionResponse(configuration: HashedConfiguration, response: Engine.PutDecisionResponse): {
+export function integratePutDecisionResponse(configuration: HashedConfiguration, response: ActiveAttributesResponse): {
     configuration: HashedConfiguration,
     rawData: Partial<ConfigurationRawData>
 } {
@@ -84,7 +86,7 @@ export function integratePutDecisionResponse(configuration: HashedConfiguration,
     };
 }
 
-export function createConfiguration(decisions: Engine.Decisions, consequences: Engine.Consequences, meta: Engine.CompleteMeta | null): {
+export function createConfiguration(decisions: Engine.Decisions, consequences: ScopedConsequences, meta: Engine.CompleteMeta | null): {
     configuration: HashedConfiguration,
     rawData: ConfigurationRawData
 } {
@@ -104,6 +106,18 @@ export function createConfiguration(decisions: Engine.Decisions, consequences: E
         configuration: fromRawData(configurationRawData),
         rawData: configurationRawData
     };
+}
+
+export function refreshScopedConfiguration(previous: ConfigurationRawData, decisions: Engine.Decisions, consequences: ScopedConsequences): {
+    configuration: HashedConfiguration,
+    rawData: ConfigurationRawData
+} {
+    const rawData = merge({...previous, decisions: getAttributeDecisions(decisions)}, {
+        isSatisfied: consequences.isConfigurationSatisfied,
+        canContributeToSatisfaction: consequences.canAttributeContributeToConfigurationSatisfaction.map(getGlobalAttributeIdKey),
+        consequences: getAttributeConsequences(consequences)
+    });
+    return {configuration: fromRawData(rawData), rawData};
 }
 
 
@@ -163,7 +177,7 @@ function getAttributeDecisions(decisions: Engine.Decisions): ReadonlyMap<GlobalA
     );
 }
 
-function getAttributeConsequences(consequences: Engine.Consequences): ReadonlyMap<GlobalAttributeIdKey, AttributeConsequence> {
+function getAttributeConsequences(consequences: ScopedConsequences): ReadonlyMap<GlobalAttributeIdKey, AttributeConsequence> {
     type BaseConsequence = { attributeId: Engine.GlobalAttributeId };
     const transformConsequences = <CE extends BaseConsequence, R>(decisions: CE[], resultBuilder: (consequence: CE) => R): ReadonlyArray<R & {
         id: GlobalAttributeId,
@@ -257,7 +271,7 @@ function getAttributeMeta(meta: Engine.CompleteMeta | null): ReadonlyMap<GlobalA
     );
 }
 
-export function integratePutManyDecisionsResponse(configuration: HashedConfiguration, response: Engine.PutManyDecisionsResponse): {
+export function integratePutManyDecisionsResponse(configuration: HashedConfiguration, response: ActiveAttributesResponse & Pick<Engine.PutManyDecisionsResponse, "rejectedDecisions">): {
     configuration: HashedConfiguration,
     rawData: Partial<ConfigurationRawData>,
     result: MakeManyDecisionsResult
@@ -265,7 +279,7 @@ export function integratePutManyDecisionsResponse(configuration: HashedConfigura
     const {
         configuration: updatedConfiguration,
         rawData
-    } = integratePutDecisionResponse(configuration, response satisfies Engine.PutDecisionResponse);
+    } = integratePutDecisionResponse(configuration, response);
     const rejectedDecisions = mapToExplicitDecision(response.rejectedDecisions);
 
     return {
