@@ -1,3 +1,13 @@
+# Improvements
+
+## Public types
+
+- **Configuration model packages can be written without a cast:** the types a side-loaded package is built from
+  (`ConfigurationModelPackage`, `PackageConfigurationModel`, the attribute, inclusion and constraint types) are
+  exported, and `PackageTextualConstraintCollection.operator` is the string union `"And" | "Or"`.
+- **`LogLevel` and the `Logger` type are exported,** so the argument of `Logger.setLogLevel` can be named.
+- **`ConfiguratorErrorText` is exported:** the `title` and `detail` every engine error carries.
+
 # Changes
 
 ## ESM only, for browsers
@@ -13,9 +23,13 @@
 ## Stored configuration types
 
 - **Type declarations without morphic-ts:** the stored-configuration types (`StoredConfiguration`,
-  `StoredConfigurationV1.*`) are plain readonly types now; their arrays are `ReadonlyArray`. Code that changed a stored
-  configuration in place has to copy it instead.
+  `StoredConfigurationV1.*`) are plain readonly types now.
 - **`StoredConfigurationV1` is exported as a type only:** import it with `import type`.
+
+## Readonly types
+
+- **Every public type is readonly:** its properties are `readonly` and its collections `ReadonlyArray`. Code that
+  changed such an object after creating it, a configuration model package say, has to build a new one instead.
 
 ## Error objects
 

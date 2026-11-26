@@ -21,8 +21,8 @@ export type GlobalAttributeId = {
 };
 
 export type GlobalConstraintId = {
-    localId: LocalRuleId;
-    configurationModelId: ConfigurationModelId;
+    readonly localId: LocalRuleId;
+    readonly configurationModelId: ConfigurationModelId;
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -131,14 +131,14 @@ export enum ExplainQuestionSubject {
 export type WhyIsNotSatisfied = WhyIsConfigurationNotSatisfied | WhyIsAttributeNotSatisfied;
 
 export type WhyIsConfigurationNotSatisfied = {
-    question: ExplainQuestionType.whyIsNotSatisfied;
-    subject: ExplainQuestionSubject.configuration;
+    readonly question: ExplainQuestionType.whyIsNotSatisfied;
+    readonly subject: ExplainQuestionSubject.configuration;
 };
 
 export type WhyIsAttributeNotSatisfied = {
-    question: ExplainQuestionType.whyIsNotSatisfied;
-    subject: ExplainQuestionSubject.attribute;
-    attributeId: GlobalAttributeId;
+    readonly question: ExplainQuestionType.whyIsNotSatisfied;
+    readonly subject: ExplainQuestionSubject.attribute;
+    readonly attributeId: GlobalAttributeId;
 };
 
 export type WhyIsStateNotPossible =
@@ -148,54 +148,54 @@ export type WhyIsStateNotPossible =
     | WhyIsComponentStateNotPossible;
 
 export type WhyIsChoiceValueStateNotPossible = {
-    question: ExplainQuestionType.whyIsStateNotPossible;
-    subject: ExplainQuestionSubject.choiceValue;
-    attributeId: GlobalAttributeId;
-    choiceValueId: ChoiceValueId;
-    state: ChoiceValueDecisionState;
+    readonly question: ExplainQuestionType.whyIsStateNotPossible;
+    readonly subject: ExplainQuestionSubject.choiceValue;
+    readonly attributeId: GlobalAttributeId;
+    readonly choiceValueId: ChoiceValueId;
+    readonly state: ChoiceValueDecisionState;
 };
 
 export type WhyIsNumericStateNotPossible = {
-    question: ExplainQuestionType.whyIsStateNotPossible;
-    subject: ExplainQuestionSubject.numeric;
-    attributeId: GlobalAttributeId;
-    state: number;
+    readonly question: ExplainQuestionType.whyIsStateNotPossible;
+    readonly subject: ExplainQuestionSubject.numeric;
+    readonly attributeId: GlobalAttributeId;
+    readonly state: number;
 };
 
 export type WhyIsBooleanStateNotPossible = {
-    question: ExplainQuestionType.whyIsStateNotPossible;
-    subject: ExplainQuestionSubject.boolean;
-    attributeId: GlobalAttributeId;
-    state: boolean;
+    readonly question: ExplainQuestionType.whyIsStateNotPossible;
+    readonly subject: ExplainQuestionSubject.boolean;
+    readonly attributeId: GlobalAttributeId;
+    readonly state: boolean;
 };
 
 export type WhyIsComponentStateNotPossible = {
-    question: ExplainQuestionType.whyIsStateNotPossible;
-    subject: ExplainQuestionSubject.component;
-    attributeId: GlobalAttributeId;
-    state: ComponentDecisionState;
+    readonly question: ExplainQuestionType.whyIsStateNotPossible;
+    readonly subject: ExplainQuestionSubject.component;
+    readonly attributeId: GlobalAttributeId;
+    readonly state: ComponentDecisionState;
 };
 
 export type ExplainAnswer = DecisionsExplainAnswer | ConstraintsExplainAnswer | FullExplainAnswer;
 
 export type DecisionsExplainAnswer = {
-    decisionExplanations: ReadonlyArray<DecisionExplanation>;
+    readonly decisionExplanations: ReadonlyArray<DecisionExplanation>;
 };
 
 export type ConstraintsExplainAnswer = {
-    constraintExplanations: ReadonlyArray<ConstraintExplanation>;
+    readonly constraintExplanations: ReadonlyArray<ConstraintExplanation>;
 };
 
 export type FullExplainAnswer = DecisionsExplainAnswer & ConstraintsExplainAnswer;
 
 export type DecisionExplanation = {
-    causedByDecisions: ReadonlyArray<CausedByDecision>;
-    solution: ExplainSolution;
+    readonly causedByDecisions: ReadonlyArray<CausedByDecision>;
+    readonly solution: ExplainSolution;
 };
 
 export type ConstraintExplanation = {
-    causedByCardinalities: ReadonlyArray<GlobalAttributeId>;
-    causedByRules: ReadonlyArray<GlobalConstraintId>;
+    readonly causedByCardinalities: ReadonlyArray<GlobalAttributeId>;
+    readonly causedByRules: ReadonlyArray<GlobalConstraintId>;
 };
 
 export type ExplainSolution = {
@@ -357,7 +357,7 @@ export type AllowedInExplain = {
     /**
      * Specifies whether all, none, or specific rules are allowed in the explanation result.
      */
-    rules?: AllowedRulesInExplain | null;
+    readonly rules?: AllowedRulesInExplain | null;
 };
 
 export enum AllowedRulesInExplainType {
@@ -372,16 +372,16 @@ export type AllowedRulesInExplain =
     | AllowedRulesInExplainSpecific;
 
 export type AllowedRulesInExplainNone = {
-    type: AllowedRulesInExplainType.none;
+    readonly type: AllowedRulesInExplainType.none;
 };
 
 export type AllowedRulesInExplainAll = {
-    type: AllowedRulesInExplainType.all;
+    readonly type: AllowedRulesInExplainType.all;
 };
 
 export type AllowedRulesInExplainSpecific = {
-    type: AllowedRulesInExplainType.specific;
-    rules: ReadonlyArray<GlobalConstraintId>;
+    readonly type: AllowedRulesInExplainType.specific;
+    readonly rules: ReadonlyArray<GlobalConstraintId>;
 };
 
 export enum ConfigurationModelSourceType {
@@ -390,17 +390,17 @@ export enum ConfigurationModelSourceType {
 }
 
 export type ConfigurationModelFromChannel = {
-    type: ConfigurationModelSourceType.Channel;
+    readonly type: ConfigurationModelSourceType.Channel;
 
     /**
      * Channel name specified for the configuration model deployment.
      */
-    channel: ChannelId;
+    readonly channel: ChannelId;
 
     /**
      * Name of the configuration model deployment.
      */
-    deploymentName: string;
+    readonly deploymentName: string;
 };
 
 /**
@@ -410,58 +410,77 @@ export type ConfigurationModelFromChannel = {
 export type ConfigurationModelPackage = {
     /** ID of the model in {@link ConfigurationModelPackage.configurationModels} the session configures. */
     readonly root: string;
-    readonly configurationModels: PackageConfigurationModel[];
+    /** The root model and every model it uses, as components or shared models. */
+    readonly configurationModels: ReadonlyArray<PackageConfigurationModel>;
 };
 
 /** One configuration model within a {@link ConfigurationModelPackage}. */
 export type PackageConfigurationModel = {
+    /** The model's ID, which the root, components and shared models refer to. */
     readonly configurationModelId: string;
+    /** The attributes the model declares. */
     readonly attributes: PackageAttributes;
     /** IDs of the shared configuration models whose attributes this model uses. */
-    readonly sharedFromConfigurationModels?: string[] | null;
-    readonly constraints?: PackageConstraint[] | null;
+    readonly sharedFromConfigurationModels?: ReadonlyArray<string> | null;
+    /** The model's rules. */
+    readonly constraints?: ReadonlyArray<PackageConstraint> | null;
 };
 
 /** The attributes a {@link PackageConfigurationModel} declares, grouped by kind. */
 export type PackageAttributes = {
-    readonly choiceAttributes?: PackageChoiceAttribute[] | null;
-    readonly numericAttributes?: PackageNumericAttribute[] | null;
-    readonly booleanAttributes?: PackageBooleanAttribute[] | null;
-    readonly componentAttributes?: PackageComponentAttribute[] | null;
+    readonly choiceAttributes?: ReadonlyArray<PackageChoiceAttribute> | null;
+    readonly numericAttributes?: ReadonlyArray<PackageNumericAttribute> | null;
+    readonly booleanAttributes?: ReadonlyArray<PackageBooleanAttribute> | null;
+    readonly componentAttributes?: ReadonlyArray<PackageComponentAttribute> | null;
 };
 
 /** A choice attribute with its values and how many of them may be selected. */
 export type PackageChoiceAttribute = {
+    /** The attribute's ID within its model. */
     readonly attributeId: string;
+    /** The fewest values that must be selected; 0 makes the attribute optional. */
     readonly lowerBound: number;
+    /** The most values that may be selected; 1 makes it a single choice. */
     readonly upperBound: number;
-    readonly choiceValues: PackageChoiceValue[];
+    /** The values that can be selected. */
+    readonly choiceValues: ReadonlyArray<PackageChoiceValue>;
 };
 
 /** A value of a {@link PackageChoiceAttribute}. */
 export type PackageChoiceValue = {
+    /** The value's ID within its choice attribute. */
     readonly choiceValueId: string;
 };
 
 /** A numeric attribute with its range and precision. */
 export type PackageNumericAttribute = {
+    /** The attribute's ID within its model. */
     readonly attributeId: string;
+    /** Whether the configuration is satisfied only once the attribute has a value. */
     readonly isDecisionRequired: boolean;
+    /** The smallest allowed value. */
     readonly min: number;
+    /** The largest allowed value. */
     readonly max: number;
+    /** How many decimal places a value may have. */
     readonly decimalPlaces: number;
 };
 
 /** A boolean attribute. */
 export type PackageBooleanAttribute = {
+    /** The attribute's ID within its model. */
     readonly attributeId: string;
+    /** Whether the configuration is satisfied only once the attribute is decided. */
     readonly isDecisionRequired: boolean;
 };
 
 /** A component attribute that references another configuration model of the package. */
 export type PackageComponentAttribute = {
+    /** The attribute's ID within its model. */
     readonly attributeId: string;
+    /** The model of the package that the component instantiates. */
     readonly configurationModelId: string;
+    /** Whether the component is always part of the configuration or can be included optionally. */
     readonly inclusion: PackageComponentInclusion;
 };
 
@@ -471,6 +490,7 @@ export type PackageComponentInclusion = PackageOptionallyIncluded | PackageAlway
 /** The component can be included or excluded by a decision. */
 export type PackageOptionallyIncluded = {
     readonly type: "OptionallyIncluded";
+    /** Whether the configuration is satisfied only once the component is included or excluded. */
     readonly isDecisionRequired: boolean;
 };
 
@@ -479,37 +499,39 @@ export type PackageAlwaysIncluded = {
     readonly type: "AlwaysIncluded";
 };
 
-/** A rule of a {@link PackageConfigurationModel}, written in the modelling language. */
+/** A rule of a {@link PackageConfigurationModel}, written in the modeling language. */
 export type PackageConstraint = PackageTextualConstraint | PackageTextualConstraintCollection;
 
 /** A single rule. */
 export type PackageTextualConstraint = {
+    /** The rule's ID within its model. */
     readonly constraintId: string;
+    /** The rule, in the modeling language. */
     readonly textualConstraint: string;
     readonly type: "TextualConstraint";
 };
 
 /** Several rules combined into one constraint by {@link PackageTextualConstraintCollection.operator}. */
 export type PackageTextualConstraintCollection = {
+    /** The rule's ID within its model. */
     readonly constraintId: string;
+    /** Whether all rules must hold, or at least one. */
     readonly operator: PackageTextualConstraintCollectionOperator;
-    readonly textualConstraints: string[];
+    /** The rules, in the modeling language. */
+    readonly textualConstraints: ReadonlyArray<string>;
     readonly type: "TextualConstraintCollection";
 };
 
-/** How the rules of a {@link PackageTextualConstraintCollection} are combined. */
-export enum PackageTextualConstraintCollectionOperator {
-    And = "And",
-    Or = "Or",
-}
+/** How the rules of a {@link PackageTextualConstraintCollection} are combined: all of them, or at least one. */
+export type PackageTextualConstraintCollectionOperator = "And" | "Or";
 
 export type ConfigurationModelFromPackage = {
-    type: ConfigurationModelSourceType.Package;
+    readonly type: ConfigurationModelSourceType.Package;
 
     /**
      * A self-contained package that describes the configuration model.
      */
-    configurationModelPackage: ConfigurationModelPackage;
+    readonly configurationModelPackage: ConfigurationModelPackage;
 };
 
 export type ConfigurationModelSource = ConfigurationModelFromChannel | ConfigurationModelFromPackage;
@@ -655,29 +677,29 @@ export type CollectedDecision =
     | CollectedComponentDecision
     | CollectedChoiceDecision;
 
-export type CollectedImplicitDecision = CollectedDecision & {kind: DecisionKind.Implicit};
-export type CollectedExplicitDecision = CollectedDecision & {kind: DecisionKind.Explicit};
+export type CollectedImplicitDecision = CollectedDecision & {readonly kind: DecisionKind.Implicit};
+export type CollectedExplicitDecision = CollectedDecision & {readonly kind: DecisionKind.Explicit};
 
 export type MakeManyDecisionsMode = DropExistingDecisionsMode | KeepExistingDecisionsMode;
 
 export type DropExistingDecisionsMode = {
-    type: "DropExistingDecisions";
-    conflictHandling: ConflictResolution;
+    readonly type: "DropExistingDecisions";
+    readonly conflictHandling: ConflictResolution;
 };
 
 export type KeepExistingDecisionsMode = {
-    type: "KeepExistingDecisions";
+    readonly type: "KeepExistingDecisions";
 };
 
 export type ConflictResolution = ManualConflictResolution | AutomaticConflictResolution;
 
 export type ManualConflictResolution = {
-    type: "Manual";
-    includeConstraintsInConflictExplanation: boolean;
+    readonly type: "Manual";
+    readonly includeConstraintsInConflictExplanation: boolean;
 };
 
 export type AutomaticConflictResolution = {
-    type: "Automatic";
+    readonly type: "Automatic";
 };
 
 export type ConfigurationChanges = {

@@ -15,25 +15,25 @@ import {ExplainQuestionSubject, ExplainQuestionType} from "./Types";
 export type AttributeIdStage<TNext> = (attributeId: GlobalAttributeId) => TNext;
 
 export type ChoiceValueIdStage<TNext> = {
-    choiceValue: (choiceValueId: ChoiceValueId) => TNext;
+    readonly choiceValue: (choiceValueId: ChoiceValueId) => TNext;
 };
 
 export type StateStage<TState, TNext> = {
-    state: (state: TState) => TNext;
+    readonly state: (state: TState) => TNext;
 };
 
 export type ExplainQuestionBuilder = {
-    whyIsNotSatisfied: {
-        configuration: WhyIsConfigurationNotSatisfied;
-        attribute: AttributeIdStage<WhyIsAttributeNotSatisfied>;
+    readonly whyIsNotSatisfied: {
+        readonly configuration: WhyIsConfigurationNotSatisfied;
+        readonly attribute: AttributeIdStage<WhyIsAttributeNotSatisfied>;
     };
-    whyIsStateNotPossible: {
-        choice: AttributeIdStage<
+    readonly whyIsStateNotPossible: {
+        readonly choice: AttributeIdStage<
             ChoiceValueIdStage<StateStage<ChoiceValueDecisionState, WhyIsChoiceValueStateNotPossible>>
         >;
-        numeric: AttributeIdStage<StateStage<number, WhyIsNumericStateNotPossible>>;
-        boolean: AttributeIdStage<StateStage<boolean, WhyIsBooleanStateNotPossible>>;
-        component: AttributeIdStage<StateStage<ComponentDecisionState, WhyIsComponentStateNotPossible>>;
+        readonly numeric: AttributeIdStage<StateStage<number, WhyIsNumericStateNotPossible>>;
+        readonly boolean: AttributeIdStage<StateStage<boolean, WhyIsBooleanStateNotPossible>>;
+        readonly component: AttributeIdStage<StateStage<ComponentDecisionState, WhyIsComponentStateNotPossible>>;
     };
 };
 

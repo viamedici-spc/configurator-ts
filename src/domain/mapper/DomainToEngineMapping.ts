@@ -10,6 +10,10 @@ import type {
     FixedDecision,
     GlobalAttributeId,
     MakeManyDecisionsMode,
+    ConfigurationModelPackage,
+    PackageComponentInclusion,
+    PackageConfigurationModel,
+    PackageConstraint,
     SessionContext,
     WhyIsNotSatisfied,
     WhyIsStateNotPossible,
@@ -115,6 +119,80 @@ function mapFixedDecisionState(state: ChoiceValueDecisionState | ComponentDecisi
         .exhaustive();
 }
 
+/** Maps a list that may be `undefined` or `null`, keeping which of the two it is. */
+function mapOptionalList<A, B>(list: ReadonlyArray<A> | null | undefined, map: (a: A) => B): B[] | null | undefined {
+    return list == null ? list : list.map(map);
+}
+
+function mapConfigurationModelPackage(
+    configurationModelPackage: ConfigurationModelPackage,
+): Engine.ConfigurationModelPackage {
+    return {
+        root: configurationModelPackage.root,
+        configurationModels: configurationModelPackage.configurationModels.map(mapPackageConfigurationModel),
+    };
+}
+
+function mapPackageConfigurationModel(model: PackageConfigurationModel): Engine.ConfigurationModel {
+    return {
+        configurationModelId: model.configurationModelId,
+        attributes: {
+            choiceAttributes: mapOptionalList(model.attributes.choiceAttributes, a => ({
+                attributeId: a.attributeId,
+                lowerBound: a.lowerBound,
+                upperBound: a.upperBound,
+                choiceValues: a.choiceValues.map(v => ({choiceValueId: v.choiceValueId})),
+            })),
+            numericAttributes: mapOptionalList(model.attributes.numericAttributes, a => ({
+                attributeId: a.attributeId,
+                isDecisionRequired: a.isDecisionRequired,
+                min: a.min,
+                max: a.max,
+                decimalPlaces: a.decimalPlaces,
+            })),
+            booleanAttributes: mapOptionalList(model.attributes.booleanAttributes, a => ({
+                attributeId: a.attributeId,
+                isDecisionRequired: a.isDecisionRequired,
+            })),
+            componentAttributes: mapOptionalList(model.attributes.componentAttributes, a => ({
+                attributeId: a.attributeId,
+                configurationModelId: a.configurationModelId,
+                inclusion: mapPackageComponentInclusion(a.inclusion),
+            })),
+        },
+        sharedFromConfigurationModels: mapOptionalList(model.sharedFromConfigurationModels, id => id),
+        constraints: mapOptionalList(model.constraints, mapPackageConstraint),
+    };
+}
+
+function mapPackageComponentInclusion(inclusion: PackageComponentInclusion): Engine.ComponentInclusionType {
+    return match(inclusion)
+        .returnType<Engine.ComponentInclusionType>()
+        .with({type: "OptionallyIncluded"}, i => ({
+            type: "OptionallyIncluded",
+            isDecisionRequired: i.isDecisionRequired,
+        }))
+        .with({type: "AlwaysIncluded"}, () => ({type: "AlwaysIncluded"}))
+        .exhaustive();
+}
+
+function mapPackageConstraint(constraint: PackageConstraint): Engine.Constraint {
+    return match(constraint)
+        .returnType<Engine.Constraint>()
+        .with({type: "TextualConstraint"}, c => ({
+            type: "TextualConstraint",
+            constraintId: c.constraintId,
+            textualConstraint: c.textualConstraint,
+        }))
+        .with({type: "TextualConstraintCollection"}, c => ({
+            type: "TextualConstraintCollection",
+            constraintId: c.constraintId,
+            operator: c.operator,
+            textualConstraints: [...c.textualConstraints],
+        }))
+        .exhaustive();
+}
+
 export function mapSessionContext(sessionContext: SessionContext): Engine.CreateSessionRequest {
     const configurationModelSource = match(sessionContext.configurationModelSource)
         .returnType<Engine.ConfigurationModelSource>()
@@ -132,7 +210,7 @@ export function mapSessionContext(sessionContext: SessionContext): Engine.Create
             p =>
                 ({
                     type: "Package",
-                    configurationModelPackage: p.configurationModelPackage,
+                    configurationModelPackage: mapConfigurationModelPackage(p.configurationModelPackage),
                 }) satisfies Engine.ConfigurationModelFromPackage,
         )
         .exhaustive();

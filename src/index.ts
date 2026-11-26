@@ -40,6 +40,7 @@ import type {
     SessionClosed,
     StoredConfigurationInvalid,
     ConfiguratorError,
+    ConfiguratorErrorText,
     MakeManyDecisionsConflict,
     SessionParametersInvalid,
 } from "./contract/ConfiguratorError";
@@ -105,6 +106,21 @@ import type {
     ConfigurationModelSource,
     ConfigurationModelFromChannel,
     ConfigurationModelFromPackage,
+    ConfigurationModelPackage,
+    PackageConfigurationModel,
+    PackageAttributes,
+    PackageChoiceAttribute,
+    PackageChoiceValue,
+    PackageNumericAttribute,
+    PackageBooleanAttribute,
+    PackageComponentAttribute,
+    PackageComponentInclusion,
+    PackageOptionallyIncluded,
+    PackageAlwaysIncluded,
+    PackageConstraint,
+    PackageTextualConstraint,
+    PackageTextualConstraintCollection,
+    PackageTextualConstraintCollectionOperator,
     Attribute,
     BaseAttribute,
     Decision,
@@ -170,9 +186,11 @@ import type ISessionFactory from "./ISessionFactory";
 import GlobalAttributeIdKeyBuilder from "./crossCutting/GlobalAttributeIdKeyBuilder";
 import {globalAttributeIdEq, globalAttributeIdKeyEq, globalConstraintIdEq, sessionContextEq} from "./contract/Eqs";
 import Logger from "./contract/Logger";
+import type {LogLevel} from "./contract/Logger";
 
 export {
     Logger,
+    type LogLevel,
     type IConfigurationSession,
     type ISessionFactory,
     SessionFactory,
@@ -232,6 +250,7 @@ export {
     type SessionClosed,
     type StoredConfigurationInvalid,
     type ConfiguratorError,
+    type ConfiguratorErrorText,
     ConfiguratorErrorType,
 
     // Contract Definitions
@@ -300,6 +319,21 @@ export {
     type ConfigurationModelSource,
     type ConfigurationModelFromChannel,
     type ConfigurationModelFromPackage,
+    type ConfigurationModelPackage,
+    type PackageConfigurationModel,
+    type PackageAttributes,
+    type PackageChoiceAttribute,
+    type PackageChoiceValue,
+    type PackageNumericAttribute,
+    type PackageBooleanAttribute,
+    type PackageComponentAttribute,
+    type PackageComponentInclusion,
+    type PackageOptionallyIncluded,
+    type PackageAlwaysIncluded,
+    type PackageConstraint,
+    type PackageTextualConstraint,
+    type PackageTextualConstraintCollection,
+    type PackageTextualConstraintCollectionOperator,
     type Attribute,
     AttributeType,
     type BaseAttribute,

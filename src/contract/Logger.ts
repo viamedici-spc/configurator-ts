@@ -1,7 +1,25 @@
 import memize from "memize";
 
-type LogLevel = "debug" | "info" | "warning" | "error" | "silent";
-// Errors only; consumers raise the level with Logger.setLogLevel.
+/**
+ * How much the library logs to the console. Each level includes the ones after it: `"debug"` logs everything,
+ * `"error"` only errors, `"silent"` nothing.
+ */
+export type LogLevel = "debug" | "info" | "warning" | "error" | "silent";
+
+/** Writes the library's messages to the console, filtered by the {@link LogLevel} set with `setLogLevel`. */
+export type Logger = {
+    /** Sets how much the library logs from now on; until it is called, the level is `"error"`. */
+    readonly setLogLevel: (level: LogLevel) => void;
+    /** Logs at level `"debug"`. */
+    readonly debug: (...args: Parameters<typeof console.log>) => void;
+    /** Logs at level `"info"`. */
+    readonly info: (...args: Parameters<typeof console.log>) => void;
+    /** Logs at level `"warning"`. */
+    readonly warn: (...args: Parameters<typeof console.log>) => void;
+    /** Logs at level `"error"`. */
+    readonly error: (...args: Parameters<typeof console.log>) => void;
+};
+
 let logLevel: LogLevel = "error";
 const getValidLogLevels = memize((logLevel: LogLevel) => {
     switch (logLevel) {
@@ -41,7 +59,7 @@ const log =
         }
     };
 
-const Logger = {
+const Logger: Logger = {
     setLogLevel: (level: LogLevel) => {
         logLevel = level;
     },
