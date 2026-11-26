@@ -1,7 +1,7 @@
 import memize from "memize";
 
 type LogLevel = "debug" | "info" | "warning" | "error" | "silent";
-// Errors only, as in every published build so far; consumers raise it with Logger.setLogLevel.
+// Errors only; consumers raise the level with Logger.setLogLevel.
 let logLevel: LogLevel = "error";
 const getValidLogLevels = memize((logLevel: LogLevel) => {
     switch (logLevel) {

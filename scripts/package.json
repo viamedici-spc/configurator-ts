@@ -6,6 +6,7 @@
     "generate-engine-types": "bun generate-engine-types.ts"
   },
   "devDependencies": {
+    "@types/bun": "^1.4.5",
     "openapi-typescript": "7.13.0",
     "typescript": "5.9.3"
   }

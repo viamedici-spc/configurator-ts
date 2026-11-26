@@ -45,9 +45,10 @@ runs the wrong runner.
   breaking change is listed under *Changes* in the changelog with what a consumer has to do.
 - **Public types are immutable**: `readonly` properties, `ReadonlyArray`, `ReadonlyMap`. A consumer never receives
   something it is expected not to mutate without the type saying so.
-- **Explicit types on every export.** The build emits `.d.ts` files through `isolatedDeclarations`, so an exported
-  function states its return type and an exported constant its type. The type checker enforces it; the point is that the
-  declaration a consumer reads is the one written, not an inferred one that changes with the implementation.
+- **Explicit types on the public API.** The build emits the `.d.ts` files with the TypeScript 7 compiler, which infers
+  what is not written; so an exported function of the public API states its return type and an exported constant its
+  type, and the declaration a consumer reads is the one written, not an inferred one that changes with the
+  implementation.
 - **No wire types through the entry point.** Generated client types stay behind the mapping layer; a consumer sees only
   the library's own domain types.
 - **ESM only, browser only.** No `node:*` imports, no `process`, no `Buffer`, nothing that needs a Node.js runtime. A
@@ -57,6 +58,7 @@ runs the wrong runner.
 The layers: `src/contract/` holds the public types, `src/domain/mapper/` maps between them and the generated
 wire types in `src/apiClient/engine/`, which never leave the library through `src/index.ts`. A new field on a public
 type also updates its `Eq` in `src/contract/Eqs.ts`, since `Eq.struct` requires every key.
+
 ### TSDoc on the public API
 
 **Every public type, property, function, hook, component and method carries TSDoc.** Its readers are application
@@ -104,6 +106,7 @@ but not from their spirit: no history, no dates, no internals
 
 The public error type is `ConfiguratorError`, a union tagged by `type` (`ConfiguratorErrorType`); a session's
 methods reject their promise with it.
+
 ## A union is consumed exhaustively, with `ts-pattern`
 
 Nothing about a union makes it safe on its own: a chain of `if`s over one still compiles the day a member is added, and

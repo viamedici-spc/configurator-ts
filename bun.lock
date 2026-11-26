@@ -34,6 +34,7 @@
     "scripts": {
       "name": "scripts",
       "devDependencies": {
+        "@types/bun": "^1.4.5",
         "openapi-typescript": "7.13.0",
         "typescript": "5.9.3",
       },
