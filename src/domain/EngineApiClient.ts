@@ -107,16 +107,23 @@ export type EngineApi = ReturnType<typeof createEngineApi>;
 const apiClients = new Map<string, EngineApi>();
 const serverSideSessionCreationApiClients = new Map<string, EngineApi>();
 
+/** Requests send no `Referer`, so the application's page URL does not reach the engine. */
+const referrerPolicy: ReferrerPolicy = "no-referrer";
+
 // The global fetch is looked up on every request, not once when the client is created, so that a fetch replaced later
 // (by a test or an application) takes effect for the cached clients too.
-const currentFetch = (request: Request): Promise<Response> => globalThis.fetch(request);
+function currentFetch(input: Request | string, init?: RequestInit): Promise<Response> {
+    return globalThis.fetch(input, init);
+}
 
 export function getApiClient(apiBaseUrl: string | undefined): EngineApi {
     const baseUrl = apiBaseUrl ?? defaultEngineBaseUrl;
 
     let apiClient = apiClients.get(baseUrl);
     if (!apiClient) {
-        apiClient = createEngineApi(createClient<Paths>({baseUrl, fetch: currentFetch}));
+        apiClient = createEngineApi(
+            createClient<Paths>({baseUrl, fetch: request => currentFetch(request), referrerPolicy}),
+        );
         apiClients.set(baseUrl, apiClient);
     }
 
@@ -127,8 +134,17 @@ export function getServerSideSessionCreationApiClient(sessionCreateUrl: string):
     let apiClient = serverSideSessionCreationApiClients.get(sessionCreateUrl);
     if (!apiClient) {
         // Every request of this client goes to the sessionCreateUrl, keeping method, headers and body.
-        const redirectingFetch = (request: Request): Promise<Response> =>
-            globalThis.fetch(new Request(sessionCreateUrl, request));
+        // ⚠️ The body is forwarded as bytes. A `Request` passed as the `init` of a new request hands over its body as a
+        // stream: Chrome then rejects the request over HTTP/1.1, and Firefox sends it with an empty body.
+        const redirectingFetch = async (request: Request): Promise<Response> =>
+            currentFetch(sessionCreateUrl, {
+                method: request.method,
+                headers: request.headers,
+                body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.arrayBuffer(),
+                signal: request.signal,
+                credentials: request.credentials,
+                referrerPolicy,
+            });
         apiClient = createEngineApi(createClient<Paths>({baseUrl: defaultEngineBaseUrl, fetch: redirectingFetch}));
         serverSideSessionCreationApiClients.set(sessionCreateUrl, apiClient);
     }

@@ -61,6 +61,7 @@ import {
     makeManyDecisionsConflictEq,
 } from "../../../src/contract/Eqs";
 import * as ConfigurationRawDataL from "../../../src/domain/logic/ConfigurationRawData";
+import * as DtoE from "../../../src/domain/mapper/DomainToEngineMapping";
 import type {OnDecisionsChangedHandler, OnStoredConfigurationChangedHandler} from "../../../src";
 import type {BooleanDecision} from "../../../src/contract/storedConfiguration/StoredConfigurationV1";
 
@@ -125,8 +126,10 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             const fetch = global.fetch;
             // describeFetchCall normalizes the URL, so an origin-only URL gains a trailing slash.
             const requestedSessionCreateUrl = new URL(sessionCreateUrl).href;
+            let sessionCreateRequest: RequestInit | undefined;
             const fetchMock = mock<FetchFunction>((input, init) => {
                 if (describeFetchCall(input, init).url === requestedSessionCreateUrl) {
+                    sessionCreateRequest = init;
                     return Promise.resolve(
                         jsonResponse({
                             sessionId: sessionId,
@@ -140,18 +143,19 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             setFetch(fetchMock);
 
             // Create a session using the sessionCreateUrl.
-            const session = await SessionFactory.createSession({
+            const serverSideSessionContext: SessionContext = {
                 ...sessionContext,
                 sessionInitialisationOptions: {
                     sessionCreateUrl: sessionCreateUrl,
                 } satisfies ServerSideSessionInitialisationOptions,
-            });
+            };
+            const session = await SessionFactory.createSession(serverSideSessionContext);
             const expectations = getConfigurationSessionExpectations(session);
 
-            // Any request should point to the sessionCreateUrl.
-            expect(fetchMock.mock.calls).toSatisfyAny(
-                (call: Parameters<typeof global.fetch>) => describeFetchCall(...call).url === requestedSessionCreateUrl,
-            );
+            // The session request went to the sessionCreateUrl with its method and its JSON body.
+            expect(sessionCreateRequest?.method).toBe("POST");
+            const sentBody: unknown = JSON.parse(new TextDecoder().decode(sessionCreateRequest?.body as ArrayBuffer));
+            expect(sentBody).toEqual(JSON.parse(JSON.stringify(DtoE.mapSessionContext(serverSideSessionContext))));
             expectations.expectRawDataToBeSameAsConfiguration();
 
             await session.close();
