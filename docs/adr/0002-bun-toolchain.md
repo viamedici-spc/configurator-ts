@@ -20,8 +20,8 @@ drift, and the published package mixed formats.
 - **oxlint** lints, until Bun ships a linter of its own.
 - **tsdown** builds the package: one ES module bundle with the dependencies external, and its declarations from the
   TypeScript 7 compiler (`typescript` is a dev dependency for that alone). Isolated declarations are not used: the
-  generated engine client cannot carry the explicit types they need. publint and arethetypeswrong check the packed
-  result.
+  morphic codecs and the openapi-fetch client have inferred types that cannot be written out by hand at reasonable
+  cost. publint and arethetypeswrong check the packed result.
 - **`bun run verify`** is the one gate, locally and in CI; its independent steps run in parallel
   (`bun run --parallel`).
 - **Publishing** goes through the shared CI workflow: Bun packs the tarball, `npm publish` uploads it with npm trusted
@@ -37,7 +37,8 @@ drift, and the published package mixed formats.
 ## Alternatives considered
 
 - **npm and Vite as before:** the install breakage and the format mix came from there.
-- **Isolated declarations:** would need explicit types on every exported member, including the generated engine client
-  and internal modules no consumer sees.
+- **Isolated declarations:** would need explicit types on every exported member, including internal modules no consumer
+  sees; the inferred types of the morphic codecs (`src/contract/storedConfiguration/StoredConfigurationCodec.ts`) and
+  of the openapi-fetch client (`src/domain/EngineApiClient.ts`, `src/domain/logic/SessionLogic.ts`) block it.
 - **Vitest for tests:** the tests need no DOM, and `bun test` runs them without another tool; jest-extended is replaced
   by the two matchers `bun:test` lacks (`tests/testSetup.ts`).
