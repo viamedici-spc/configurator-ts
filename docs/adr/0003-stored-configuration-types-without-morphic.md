@@ -14,8 +14,9 @@ no longer resolve to the intended shapes at all. morphic-ts is no longer maintai
 
 ## Decision
 
-`src/contract/storedConfiguration/StoredConfigurationV1.ts` and `StoredConfiguration.ts` declare the types by hand as
-readonly types. The morphic codecs stay, internal, for validation (`StoredConfigurationCodec.ts`). The test
+`src/contract/storedConfiguration/StoredConfigurationV1.ts` and
+`src/contract/storedConfiguration/StoredConfiguration.ts` declare the types by hand as readonly types. The morphic
+codecs stay, internal, for validation (`src/contract/storedConfiguration/StoredConfigurationCodec.ts`). The test
 `tests/area/internal/StoredConfiguration.test.ts` validates a configuration with every decision type, typed with the
 public type, so codecs and types cannot drift apart unnoticed.
 
