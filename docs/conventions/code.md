@@ -90,9 +90,10 @@ readonly fixedDecisions?: ReadonlyArray<FixedDecision>;
 
 Link related members with `{@link Name}` rather than describing them. **In existing code TSDoc is added whenever a
 public member is touched**, for that member and the type it belongs to; a pull request that changes the public API and
-leaves it undocumented is not done. TSDoc is exempt from the comment rules below where they would cut a contract short,
-but not from their spirit: no history, no dates, no internals
-([documentation.md](documentation.md#this-repository-is-public)).
+leaves it undocumented is not done. A change that leaves a member's signature and behavior as they were does not count
+as touching it: formatting, type-only imports and writing out a type that was already inferred are such changes. TSDoc
+is exempt from the comment rules below where they would cut a contract short, but not from their spirit: no history, no
+dates, no internals ([documentation.md](documentation.md#this-repository-is-public)).
 
 ## Formatting and naming
 
