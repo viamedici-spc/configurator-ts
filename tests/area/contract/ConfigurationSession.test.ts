@@ -1,7 +1,7 @@
 // noinspection DuplicatedCode
 
 import {afterEach, beforeAll, describe, expect, it, mock, spyOn} from "bun:test";
-import {type FetchFunction, setFetch} from "../../setup/Fetch";
+import {describeFetchCall, type FetchFunction, jsonResponse, setFetch} from "../../setup/Fetch";
 import {rejectionOf} from "../../setup/Rejection";
 import SessionFactory from "../../../src/SessionFactory";
 import type {
@@ -123,16 +123,16 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
 
             // Intercept fetch and return the previous generated sessionId once the sessionCreateUrl is requested.
             const fetch = global.fetch;
+            // describeFetchCall normalizes the URL, so an origin-only URL gains a trailing slash.
+            const requestedSessionCreateUrl = new URL(sessionCreateUrl).href;
             const fetchMock = mock<FetchFunction>((input, init) => {
-                if (input === sessionCreateUrl) {
-                    return Promise.resolve({
-                        ok: true,
-                        status: 200,
-                        json: (): Promise<any> =>
-                            Promise.resolve({
-                                sessionId: sessionId,
-                            } satisfies Engine.CreateSessionSuccessResponse),
-                    } as Response);
+                if (describeFetchCall(input, init).url === requestedSessionCreateUrl) {
+                    return Promise.resolve(
+                        jsonResponse({
+                            sessionId: sessionId,
+                            timeout: {absolute: "2100-01-01T00:00:00Z", slidingInSeconds: 600},
+                        } satisfies Engine.CreateSessionSuccessResponse),
+                    );
                 }
                 return fetch(input, init);
             });
@@ -149,9 +149,9 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             const expectations = getConfigurationSessionExpectations(session);
 
             // Any request should point to the sessionCreateUrl.
-            expect(fetchMock.mock.calls).toSatisfyAny(([input]: Parameters<typeof global.fetch>) => {
-                return input === sessionCreateUrl;
-            });
+            expect(fetchMock.mock.calls).toSatisfyAny(
+                (call: Parameters<typeof global.fetch>) => describeFetchCall(...call).url === requestedSessionCreateUrl,
+            );
             expectations.expectRawDataToBeSameAsConfiguration();
 
             await session.close();
@@ -251,25 +251,21 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         let gotRejected = false;
         const fetch = global.fetch;
         setFetch((input: Parameters<typeof global.fetch>[0], init: Parameters<typeof global.fetch>[1]) => {
-            if (
-                typeof input === "string" &&
-                input.endsWith("decision") &&
-                init &&
-                init.method === "PUT" &&
-                (init.headers as Record<string, string>)["X-SESSION-ID"] === sessionIdToReject
-            ) {
+            const {url, method, headers} = describeFetchCall(input, init);
+            if (url.endsWith("decision") && method === "PUT" && headers.get("X-SESSION-ID") === sessionIdToReject) {
                 gotRejected = true;
-                return Promise.resolve({
-                    ok: false,
-                    status: 401,
-                    json: (): Promise<any> =>
-                        Promise.resolve({
+                return Promise.resolve(
+                    jsonResponse(
+                        {
                             type: "SessionNotFound",
+                            status: 401,
                             sessionId: {tenantId: "", sessionId: sessionIdToReject},
                             title: "",
                             detail: "",
-                        } satisfies SessionNotFound),
-                } as Response);
+                        } satisfies SessionNotFound,
+                        401,
+                    ),
+                );
             }
 
             return fetch(input, init);
@@ -1519,9 +1515,9 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
 
         // Expect that a DELETE request was send to close the session.
         expect(fetchMock.mock.calls).toSatisfyAny(call => {
-            const [input, init] = call as Parameters<typeof globalFetch>;
+            const {url, method} = describeFetchCall(...(call as Parameters<typeof globalFetch>));
 
-            return typeof input === "string" && input.includes("session") && init?.method === "DELETE";
+            return url.includes("session") && method === "DELETE";
         });
     });
 

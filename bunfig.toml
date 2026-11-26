@@ -1,4 +1,7 @@
 [install]
+# Every workspace package sees only its own dependencies: the generator in scripts/ needs TypeScript 5's compiler
+# API, the library builds its declarations with TypeScript 7.
+linker = "isolated"
 # Supply-chain guard: install only versions that have been public for at least three days; our own packages are
 # exempt, so a fresh prerelease of a library below can be consumed right away.
 minimumReleaseAge = 259200

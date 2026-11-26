@@ -1,4 +1,4 @@
-import * as Engine from "../../apiClient/engine/Engine";
+import type * as Engine from "../../apiClient/engine/Engine";
 import {match, P} from "ts-pattern";
 import type {
     ChoiceValueId,
@@ -61,15 +61,9 @@ function mapExplicitDecisionState(
     state: ChoiceValueDecisionState | ComponentDecisionState | null | undefined,
 ): Engine.DecisionState {
     return match(state)
-        .with(P.nullish, () => Engine.DecisionState.Undefined)
-        .with(
-            P.union(ChoiceValueDecisionState.Included, ComponentDecisionState.Included),
-            () => Engine.DecisionState.Included,
-        )
-        .with(
-            P.union(ChoiceValueDecisionState.Excluded, ComponentDecisionState.Excluded),
-            () => Engine.DecisionState.Excluded,
-        )
+        .with(P.nullish, () => "Undefined" as const)
+        .with(P.union(ChoiceValueDecisionState.Included, ComponentDecisionState.Included), () => "Included" as const)
+        .with(P.union(ChoiceValueDecisionState.Excluded, ComponentDecisionState.Excluded), () => "Excluded" as const)
         .exhaustive();
 }
 
@@ -116,14 +110,8 @@ export function mapFixedDecision(decision: FixedDecision): Engine.FixedDecision 
 // two-valued FixedDecisionState.
 function mapFixedDecisionState(state: ChoiceValueDecisionState | ComponentDecisionState): Engine.FixedDecisionState {
     return match(state)
-        .with(
-            P.union(ChoiceValueDecisionState.Included, ComponentDecisionState.Included),
-            () => Engine.FixedDecisionState.Included,
-        )
-        .with(
-            P.union(ChoiceValueDecisionState.Excluded, ComponentDecisionState.Excluded),
-            () => Engine.FixedDecisionState.Excluded,
-        )
+        .with(P.union(ChoiceValueDecisionState.Included, ComponentDecisionState.Included), () => "Included" as const)
+        .with(P.union(ChoiceValueDecisionState.Excluded, ComponentDecisionState.Excluded), () => "Excluded" as const)
         .exhaustive();
 }
 
@@ -350,8 +338,8 @@ export function mapWhyStateNotPossible(explainQuestion: WhyIsStateNotPossible): 
                     type: "Component",
                     attributeId: mapGlobalAttributeId(q.attributeId),
                     state: match(q.state)
-                        .with(ComponentDecisionState.Included, () => Engine.PossibleDecisionState.Included)
-                        .with(ComponentDecisionState.Excluded, () => Engine.PossibleDecisionState.Excluded)
+                        .with(ComponentDecisionState.Included, () => "Included" as const)
+                        .with(ComponentDecisionState.Excluded, () => "Excluded" as const)
                         .exhaustive(),
                 }) satisfies Engine.WhyComponentStateNotPossibleRequest,
         )
@@ -363,8 +351,8 @@ export function mapWhyStateNotPossible(explainQuestion: WhyIsStateNotPossible): 
                     attributeId: mapGlobalAttributeId(q.attributeId),
                     choiceValueId: q.choiceValueId,
                     state: match(q.state)
-                        .with(ChoiceValueDecisionState.Included, () => Engine.PossibleDecisionState.Included)
-                        .with(ChoiceValueDecisionState.Excluded, () => Engine.PossibleDecisionState.Excluded)
+                        .with(ChoiceValueDecisionState.Included, () => "Included" as const)
+                        .with(ChoiceValueDecisionState.Excluded, () => "Excluded" as const)
                         .exhaustive(),
                 }) satisfies Engine.WhyChoiceValueStateNotPossibleRequest,
         )

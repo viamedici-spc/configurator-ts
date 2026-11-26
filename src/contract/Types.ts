@@ -1,5 +1,4 @@
 import type {ExplainQuestionBuilder} from "./ExplainQuestionBuilder";
-import type * as Engine from "../apiClient/engine/Engine";
 import type {StoredConfiguration} from "./storedConfiguration/StoredConfiguration";
 
 export type LocalAttributeId = string;
@@ -404,13 +403,113 @@ export type ConfigurationModelFromChannel = {
     deploymentName: string;
 };
 
+/**
+ * A self-contained description of a configuration model and the models it references, sent with the session request
+ * instead of loading a deployed model from a channel.
+ */
+export type ConfigurationModelPackage = {
+    /** ID of the model in {@link ConfigurationModelPackage.configurationModels} the session configures. */
+    readonly root: string;
+    readonly configurationModels: PackageConfigurationModel[];
+};
+
+/** One configuration model within a {@link ConfigurationModelPackage}. */
+export type PackageConfigurationModel = {
+    readonly configurationModelId: string;
+    readonly attributes: PackageAttributes;
+    /** IDs of the shared configuration models whose attributes this model uses. */
+    readonly sharedFromConfigurationModels?: string[] | null;
+    readonly constraints?: PackageConstraint[] | null;
+};
+
+/** The attributes a {@link PackageConfigurationModel} declares, grouped by kind. */
+export type PackageAttributes = {
+    readonly choiceAttributes?: PackageChoiceAttribute[] | null;
+    readonly numericAttributes?: PackageNumericAttribute[] | null;
+    readonly booleanAttributes?: PackageBooleanAttribute[] | null;
+    readonly componentAttributes?: PackageComponentAttribute[] | null;
+};
+
+/** A choice attribute with its values and how many of them may be selected. */
+export type PackageChoiceAttribute = {
+    readonly attributeId: string;
+    readonly lowerBound: number;
+    readonly upperBound: number;
+    readonly choiceValues: PackageChoiceValue[];
+};
+
+/** A value of a {@link PackageChoiceAttribute}. */
+export type PackageChoiceValue = {
+    readonly choiceValueId: string;
+};
+
+/** A numeric attribute with its range and precision. */
+export type PackageNumericAttribute = {
+    readonly attributeId: string;
+    readonly isDecisionRequired: boolean;
+    readonly min: number;
+    readonly max: number;
+    readonly decimalPlaces: number;
+};
+
+/** A boolean attribute. */
+export type PackageBooleanAttribute = {
+    readonly attributeId: string;
+    readonly isDecisionRequired: boolean;
+};
+
+/** A component attribute that references another configuration model of the package. */
+export type PackageComponentAttribute = {
+    readonly attributeId: string;
+    readonly configurationModelId: string;
+    readonly inclusion: PackageComponentInclusion;
+};
+
+/** Whether a component is always part of the configuration or can be included optionally. */
+export type PackageComponentInclusion = PackageOptionallyIncluded | PackageAlwaysIncluded;
+
+/** The component can be included or excluded by a decision. */
+export type PackageOptionallyIncluded = {
+    readonly type: "OptionallyIncluded";
+    readonly isDecisionRequired: boolean;
+};
+
+/** The component is always part of the configuration. */
+export type PackageAlwaysIncluded = {
+    readonly type: "AlwaysIncluded";
+};
+
+/** A rule of a {@link PackageConfigurationModel}, written in the modelling language. */
+export type PackageConstraint = PackageTextualConstraint | PackageTextualConstraintCollection;
+
+/** A single rule. */
+export type PackageTextualConstraint = {
+    readonly constraintId: string;
+    readonly textualConstraint: string;
+    readonly type: "TextualConstraint";
+};
+
+/** Several rules combined into one constraint by {@link PackageTextualConstraintCollection.operator}. */
+export type PackageTextualConstraintCollection = {
+    readonly constraintId: string;
+    readonly operator: PackageTextualConstraintCollectionOperator;
+    readonly textualConstraints: string[];
+    readonly type: "TextualConstraintCollection";
+};
+
+/** How the rules of a {@link PackageTextualConstraintCollection} are combined. */
+export enum PackageTextualConstraintCollectionOperator {
+    And = "And",
+    Or = "Or",
+}
+
 export type ConfigurationModelFromPackage = {
     type: ConfigurationModelSourceType.Package;
 
     /**
      * A self-contained package that describes the configuration model.
      */
-    configurationModelPackage: Engine.ConfigurationModelPackage;
+    configurationModelPackage: ConfigurationModelPackage;
 };
 
 export type ConfigurationModelSource = ConfigurationModelFromChannel | ConfigurationModelFromPackage;

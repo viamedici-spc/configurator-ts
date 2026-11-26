@@ -1,4 +1,4 @@
-import * as Engine from "../../apiClient/engine/Engine";
+import type * as Engine from "../../apiClient/engine/Engine";
 import {match} from "ts-pattern";
 import type {
     BooleanAttribute,
@@ -34,6 +34,7 @@ import type {
     ChoiceAttributeNotFound,
     ChoiceValueNotFound,
     ComponentAttributeNotFound,
+    ConfigurationInitializationFailure,
     ConfigurationModelInvalid,
     ConfigurationModelLoadFailure,
     ConfigurationModelNotFeasible,
@@ -68,7 +69,6 @@ import type {
 } from "../../contract/ConfiguratorError";
 import {ConfiguratorErrorType} from "../../contract/ConfiguratorError";
 import {pipe, RA} from "@viamedici-spc/fp-ts-extensions";
-import type {ConfigurationInitializationFailure} from "../../apiClient/engine/Engine";
 
 const serverError: ServerError = {
     type: ConfiguratorErrorType.ServerError,
@@ -97,52 +97,43 @@ export function mapConfiguratorError(problemDetails: Engine.ProblemDetails): Con
             .with({type: "InternalServerError"}, () => serverError)
             .with(
                 {type: "RequestTimeout"},
-                p => changeType(p, ConfiguratorErrorType.RequestTimeout) satisfies RequestTimeout,
+                p => mapProblem(p, ConfiguratorErrorType.RequestTimeout) satisfies RequestTimeout,
             )
-            .with(
-                {type: "RequestFailure"},
-                p => changeType(p, ConfiguratorErrorType.RequestFailure) satisfies RequestFailure,
-            )
-            .with(
-                {type: "SerializationError"},
-                p => changeType(p, ConfiguratorErrorType.SerializationError) satisfies SerializationError,
-            )
+            .with({type: "RequestFailure"}, mapRequestFailure)
+            .with({type: "SerializationError"}, mapSerializationError)
             .with(
                 {type: "MissingTenantIdClaim"},
-                p => changeType(p, ConfiguratorErrorType.MissingTenantIdClaim) satisfies MissingTenantIdClaim,
+                p => mapProblem(p, ConfiguratorErrorType.MissingTenantIdClaim) satisfies MissingTenantIdClaim,
             )
             .with(
                 {type: "MissingSessionIdClaim"},
-                p => changeType(p, ConfiguratorErrorType.MissingSessionIdClaim) satisfies MissingSessionIdClaim,
+                p => mapProblem(p, ConfiguratorErrorType.MissingSessionIdClaim) satisfies MissingSessionIdClaim,
             )
             .with(
                 {type: "TenantAccessForbidden"},
-                p => changeType(p, ConfiguratorErrorType.TenantAccessForbidden) satisfies TenantAccessForbidden,
+                p => mapProblem(p, ConfiguratorErrorType.TenantAccessForbidden) satisfies TenantAccessForbidden,
             )
             .with(
                 {type: "SessionIdInvalid"},
-                p => changeType(p, ConfiguratorErrorType.SessionIdInvalid) satisfies SessionIdInvalid,
+                p => mapProblem(p, ConfiguratorErrorType.SessionIdInvalid) satisfies SessionIdInvalid,
             )
             .with(
                 {type: "AuthenticationFailure"},
-                p => changeType(p, ConfiguratorErrorType.AuthenticationFailure) satisfies AuthenticationFailure,
+                p => mapProblem(p, ConfiguratorErrorType.AuthenticationFailure) satisfies AuthenticationFailure,
             )
             .with(
                 {type: "SideLoadingForbidden"},
-                p => changeType(p, ConfiguratorErrorType.SideLoadingForbidden) satisfies SideLoadingForbidden,
+                p => mapProblem(p, ConfiguratorErrorType.SideLoadingForbidden) satisfies SideLoadingForbidden,
             )
-            .with(
-                {type: "ConfigurationModelInvalid"},
-                p => changeType(p, ConfiguratorErrorType.ConfigurationModelInvalid) satisfies ConfigurationModelInvalid,
-            )
+            .with({type: "ConfigurationModelInvalid"}, mapConfigurationModelInvalid)
             .with(
                 {type: "SolutionNotFeasible"},
-                p => changeType(p, ConfiguratorErrorType.SolutionNotFeasible) satisfies SolutionNotFeasible,
+                p => mapProblem(p, ConfiguratorErrorType.SolutionNotFeasible) satisfies SolutionNotFeasible,
             )
             .with(
                 {type: "ConfigurationModelNotFound"},
                 p =>
-                    changeType(
+                    mapProblem(
                         p,
                         ConfiguratorErrorType.ConfigurationModelNotFound,
                     ) satisfies ConfigurationModelNotFound,
@@ -150,7 +141,7 @@ export function mapConfiguratorError(problemDetails: Engine.ProblemDetails): Con
             .with(
                 {type: "SolverInitializationFailure"},
                 p =>
-                    changeType(
+                    mapProblem(
                         p,
                         ConfiguratorErrorType.SolverInitializationFailure,
                     ) satisfies SolverInitializationFailure,
@@ -158,66 +149,110 @@ export function mapConfiguratorError(problemDetails: Engine.ProblemDetails): Con
             .with(
                 {type: "ConfigurationModelLoadFailure"},
                 p =>
-                    changeType(
+                    mapProblem(
                         p,
                         ConfiguratorErrorType.ConfigurationModelLoadFailure,
                     ) satisfies ConfigurationModelLoadFailure,
             )
-            .with(
-                {type: "ConfigurationInitializationFailure"},
-                p =>
-                    changeType(
-                        p,
-                        ConfiguratorErrorType.ConfigurationInitializationFailure,
-                    ) satisfies ConfigurationInitializationFailure,
-            )
+            .with({type: "ConfigurationInitializationFailure"}, mapConfigurationInitializationFailure)
             .with(
                 {type: "SolverPoolInitializationFailure"},
                 p =>
-                    changeType(
+                    mapProblem(
                         p,
                         ConfiguratorErrorType.SolverPoolInitializationFailure,
                     ) satisfies SolverPoolInitializationFailure,
             )
             .with(
                 {type: "SetDecisionConflict"},
-                p => changeType(p, ConfiguratorErrorType.SetDecisionConflict) satisfies SetDecisionConflict,
+                p => mapProblem(p, ConfiguratorErrorType.SetDecisionConflict) satisfies SetDecisionConflict,
             )
-            .with(
-                {type: "SolveOperationTimeout"},
-                p => changeType(p, ConfiguratorErrorType.SolveOperationTimeout) satisfies SolveOperationTimeout,
-            )
-            .with(
-                {type: "ExplainConflict"},
-                p => changeType(p, ConfiguratorErrorType.ExplainConflict) satisfies ExplainConflict,
-            )
-            .with(
-                {type: "ExplainFailure"},
-                p => changeType(p, ConfiguratorErrorType.ExplainFailure) satisfies ExplainFailure,
-            )
-            .with(
-                {type: "SnapshotInvalid"},
-                p => changeType(p, ConfiguratorErrorType.SnapshotInvalid) satisfies SnapshotInvalid,
-            )
+            .with({type: "SolveOperationTimeout"}, mapSolveOperationTimeout)
+            .with({type: "ExplainConflict"}, mapExplainConflict)
+            .with({type: "ExplainFailure"}, mapExplainFailure)
+            .with({type: "SnapshotInvalid"}, mapSnapshotInvalid)
             .with(
                 {type: "SnapshotNotFound"},
-                p => changeType(p, ConfiguratorErrorType.SnapshotNotFound) satisfies SnapshotNotFound,
+                p => mapProblem(p, ConfiguratorErrorType.SnapshotNotFound) satisfies SnapshotNotFound,
             )
             .with(
                 {type: "SessionParametersInvalid"},
-                p => changeType(p, ConfiguratorErrorType.SessionParametersInvalid) satisfies SessionParametersInvalid,
+                p => mapProblem(p, ConfiguratorErrorType.SessionParametersInvalid) satisfies SessionParametersInvalid,
             )
             .otherwise(() => serverError)
     );
 }
 
-function changeType<E extends {type: string}, T extends ConfiguratorErrorType>(
-    engine: E,
-    errorType: T,
-): Omit<E, "type"> & {type: T} {
+type ProblemBase = Pick<Engine.ProblemDetails, "title" | "detail">;
+
+/** Copies the fields every engine problem carries; wire-only fields such as `status` stay behind. */
+function mapProblem<T extends ConfiguratorErrorType>(
+    problem: ProblemBase,
+    type: T,
+): {readonly type: T; readonly title: string; readonly detail: string} {
     return {
-        ...engine,
-        type: errorType,
+        type: type,
+        title: problem.title,
+        detail: problem.detail,
+    };
+}
+
+function mapRequestFailure(problem: Engine.RequestFailure): RequestFailure {
+    return {
+        ...mapProblem(problem, ConfiguratorErrorType.RequestFailure),
+        exception: problem.exception,
+    };
+}
+
+function mapSerializationError(problem: Engine.SerializationError): SerializationError {
+    return {
+        ...mapProblem(problem, ConfiguratorErrorType.SerializationError),
+        jsonException: problem.jsonException,
+    };
+}
+
+function mapConfigurationModelInvalid(problem: Engine.ConfigurationModelInvalid): ConfigurationModelInvalid {
+    return {
+        ...mapProblem(problem, ConfiguratorErrorType.ConfigurationModelInvalid),
+        validationMessage: problem.validationMessage,
+    };
+}
+
+function mapConfigurationInitializationFailure(
+    problem: Engine.ConfigurationInitializationFailure,
+): ConfigurationInitializationFailure {
+    return {
+        ...mapProblem(problem, ConfiguratorErrorType.ConfigurationInitializationFailure),
+        deploymentId: problem.deploymentId,
+    };
+}
+
+function mapSolveOperationTimeout(problem: Engine.SolveOperationTimeout): SolveOperationTimeout {
+    return {
+        ...mapProblem(problem, ConfiguratorErrorType.SolveOperationTimeout),
+        timeout: problem.timeout,
+    };
+}
+
+function mapExplainConflict(problem: Engine.ExplainConflict): ExplainConflict {
+    return {
+        ...mapProblem(problem, ConfiguratorErrorType.ExplainConflict),
+        source: problem.source,
+    };
+}
+
+function mapExplainFailure(problem: Engine.ExplainFailure): ExplainFailure {
+    return {
+        ...mapProblem(problem, ConfiguratorErrorType.ExplainFailure),
+        source: problem.source,
+    };
+}
+
+function mapSnapshotInvalid(problem: Engine.SnapshotInvalid): SnapshotInvalid {
+    return {
+        ...mapProblem(problem, ConfiguratorErrorType.SnapshotInvalid),
+        validationMessage: problem.validationMessage,
+        validationPath: problem.validationPath,
     };
 }
 
@@ -225,89 +260,83 @@ function mapConfigurationModelNotFeasible(
     problem: Engine.ConfigurationModelNotFeasible,
 ): ConfigurationModelNotFeasible {
     return {
-        ...problem,
-        type: ConfiguratorErrorType.ConfigurationModelNotFeasible,
+        ...mapProblem(problem, ConfiguratorErrorType.ConfigurationModelNotFeasible),
         constraintExplanations: pipe(problem.constraintExplanations ?? [], RA.map(mapConstraintExplanation)),
     };
 }
 
 function mapSpecifiedDeploymentForbidden(problem: Engine.SpecifiedDeploymentForbidden): SpecifiedDeploymentForbidden {
     return {
-        ...problem,
-        type: ConfiguratorErrorType.SpecifiedDeploymentForbidden,
+        ...mapProblem(problem, ConfiguratorErrorType.SpecifiedDeploymentForbidden),
+        channel: problem.channel,
+        deploymentName: problem.deploymentName,
     };
 }
 
 function mapAttributeNotFound(problem: Engine.AttributeNotFound): AttributeNotFound {
     return {
-        ...problem,
-        type: ConfiguratorErrorType.AttributeNotFound,
+        ...mapProblem(problem, ConfiguratorErrorType.AttributeNotFound),
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId),
     };
 }
 
 function mapChoiceAttributeNotFound(problem: Engine.ChoiceAttributeNotFound): ChoiceAttributeNotFound {
     return {
-        ...problem,
-        type: ConfiguratorErrorType.ChoiceAttributeNotFound,
+        ...mapProblem(problem, ConfiguratorErrorType.ChoiceAttributeNotFound),
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId),
     };
 }
 
 function mapComponentAttributeNotFound(problem: Engine.ComponentAttributeNotFound): ComponentAttributeNotFound {
     return {
-        ...problem,
-        type: ConfiguratorErrorType.ComponentAttributeNotFound,
+        ...mapProblem(problem, ConfiguratorErrorType.ComponentAttributeNotFound),
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId),
     };
 }
 
 function mapNumericAttributeNotFound(problem: Engine.NumericAttributeNotFound): NumericAttributeNotFound {
     return {
-        ...problem,
-        type: ConfiguratorErrorType.NumericAttributeNotFound,
+        ...mapProblem(problem, ConfiguratorErrorType.NumericAttributeNotFound),
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId),
     };
 }
 
 function mapBooleanAttributeNotFound(problem: Engine.BooleanAttributeNotFound): BooleanAttributeNotFound {
     return {
-        ...problem,
-        type: ConfiguratorErrorType.BooleanAttributeNotFound,
+        ...mapProblem(problem, ConfiguratorErrorType.BooleanAttributeNotFound),
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId),
     };
 }
 
 function mapChoiceValueNotFound(problem: Engine.ChoiceValueNotFound): ChoiceValueNotFound {
-    const {globalChoiceValueId, ...otherProps} = problem;
     return {
-        ...otherProps,
-        type: ConfiguratorErrorType.ChoiceValueNotFound,
-        globalAttributeId: mapGlobalAttributeId(globalChoiceValueId.attributeId),
-        choiceValueId: globalChoiceValueId.choiceValueId,
+        ...mapProblem(problem, ConfiguratorErrorType.ChoiceValueNotFound),
+        globalAttributeId: mapGlobalAttributeId(problem.globalChoiceValueId.attributeId),
+        choiceValueId: problem.globalChoiceValueId.choiceValueId,
     };
 }
 
 function mapNumericDecisionOutOfRange(problem: Engine.NumericDecisionOutOfRange): NumericDecisionOutOfRange {
     return {
-        ...problem,
-        type: ConfiguratorErrorType.NumericDecisionOutOfRange,
+        ...mapProblem(problem, ConfiguratorErrorType.NumericDecisionOutOfRange),
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId),
+        range: problem.range,
+        decision: problem.decision,
     };
 }
 
 function mapConflictWithConsequence(problem: Engine.ConflictWithConsequence): ConflictWithConsequence {
     return {
-        ...problem,
-        type: ConfiguratorErrorType.ConflictWithConsequence,
+        ...mapProblem(problem, ConfiguratorErrorType.ConflictWithConsequence),
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId),
+        choiceValueId: problem.choiceValueId,
     };
 }
 
 function mapDecisionsToRespectInvalid(problem: Engine.DecisionsToRespectInvalid): DecisionsToRespectInvalid {
     return {
-        ...problem,
-        type: ConfiguratorErrorType.DecisionsToRespectInvalid,
+        ...mapProblem(problem, ConfiguratorErrorType.DecisionsToRespectInvalid),
+        validationMessage: problem.validationMessage,
         globalAttributeId: mapGlobalAttributeId(problem.globalAttributeId),
     };
 }
@@ -414,22 +443,22 @@ function mapGlobalConstraintId(constraintId: Engine.GlobalConstraintId): GlobalC
 
 export function mapPossibleDecisionStateToComponent(state: Engine.PossibleDecisionState): ComponentDecisionState {
     return match(state)
-        .with(Engine.PossibleDecisionState.Included, () => ComponentDecisionState.Included)
-        .with(Engine.PossibleDecisionState.Excluded, () => ComponentDecisionState.Excluded)
+        .with("Included", () => ComponentDecisionState.Included)
+        .with("Excluded", () => ComponentDecisionState.Excluded)
         .exhaustive();
 }
 
 export function mapPossibleDecisionStateToChoice(state: Engine.PossibleDecisionState): ChoiceValueDecisionState {
     return match(state)
-        .with(Engine.PossibleDecisionState.Included, () => ChoiceValueDecisionState.Included)
-        .with(Engine.PossibleDecisionState.Excluded, () => ChoiceValueDecisionState.Excluded)
+        .with("Included", () => ChoiceValueDecisionState.Included)
+        .with("Excluded", () => ChoiceValueDecisionState.Excluded)
         .exhaustive();
 }
 
 export function mapDecisionKind(kind: Engine.DecisionKind): DecisionKind {
     return match(kind)
-        .with(Engine.DecisionKind.Explicit, () => DecisionKind.Explicit)
-        .with(Engine.DecisionKind.Implicit, () => DecisionKind.Implicit)
+        .with("Explicit", () => DecisionKind.Explicit)
+        .with("Implicit", () => DecisionKind.Implicit)
         .exhaustive();
 }
 
@@ -456,11 +485,11 @@ export function mapNumericDecision({state, kind}: Engine.NumericDecision): Numer
 }
 
 export function mapComponentDecision({state, kind}: Engine.ComponentDecision): ComponentAttribute["decision"] {
-    if (state === Engine.DecisionState.Included || state === Engine.DecisionState.Excluded) {
+    if (state === "Included" || state === "Excluded") {
         return {
             state: match(state)
-                .with(Engine.DecisionState.Included, () => ComponentDecisionState.Included)
-                .with(Engine.DecisionState.Excluded, () => ComponentDecisionState.Excluded)
+                .with("Included", () => ComponentDecisionState.Included)
+                .with("Excluded", () => ComponentDecisionState.Excluded)
                 .exhaustive(),
             kind: mapDecisionKind(kind),
         };
@@ -470,11 +499,11 @@ export function mapComponentDecision({state, kind}: Engine.ComponentDecision): C
 }
 
 export function mapChoiceValueDecision({state, kind}: Engine.ChoiceValueDecision): ChoiceValue["decision"] {
-    if (state === Engine.DecisionState.Included || state === Engine.DecisionState.Excluded) {
+    if (state === "Included" || state === "Excluded") {
         return {
             state: match(state)
-                .with(Engine.DecisionState.Included, () => ChoiceValueDecisionState.Included)
-                .with(Engine.DecisionState.Excluded, () => ChoiceValueDecisionState.Excluded)
+                .with("Included", () => ChoiceValueDecisionState.Included)
+                .with("Excluded", () => ChoiceValueDecisionState.Excluded)
                 .exhaustive(),
             kind: mapDecisionKind(kind),
         };
@@ -485,15 +514,15 @@ export function mapChoiceValueDecision({state, kind}: Engine.ChoiceValueDecision
 
 export function mapSelection(selection: Engine.Selection): Selection {
     return match(selection)
-        .with(Engine.Selection.Mandatory, () => Selection.Mandatory)
-        .with(Engine.Selection.Optional, () => Selection.Optional)
+        .with("Mandatory", () => Selection.Mandatory)
+        .with("Optional", () => Selection.Optional)
         .exhaustive();
 }
 
 export function mapInclusion(inclusion: Engine.Inclusion): Inclusion {
     return match(inclusion)
-        .with(Engine.Inclusion.Always, () => Inclusion.Always)
-        .with(Engine.Inclusion.Optional, () => Inclusion.Optional)
+        .with("Always", () => Inclusion.Always)
+        .with("Optional", () => Inclusion.Optional)
         .exhaustive();
 }
 
@@ -554,15 +583,15 @@ export function mapToExplicitDecision(decisions: Engine.Decisions): ReadonlyArra
 
 function mapFixedChoiceState(state: Engine.FixedDecisionState): ChoiceValueDecisionState {
     return match(state)
-        .with(Engine.FixedDecisionState.Included, () => ChoiceValueDecisionState.Included)
-        .with(Engine.FixedDecisionState.Excluded, () => ChoiceValueDecisionState.Excluded)
+        .with("Included", () => ChoiceValueDecisionState.Included)
+        .with("Excluded", () => ChoiceValueDecisionState.Excluded)
         .exhaustive();
 }
 
 function mapFixedComponentState(state: Engine.FixedDecisionState): ComponentDecisionState {
     return match(state)
-        .with(Engine.FixedDecisionState.Included, () => ComponentDecisionState.Included)
-        .with(Engine.FixedDecisionState.Excluded, () => ComponentDecisionState.Excluded)
+        .with("Included", () => ComponentDecisionState.Included)
+        .with("Excluded", () => ComponentDecisionState.Excluded)
         .exhaustive();
 }
 
@@ -601,10 +630,9 @@ export function mapToFixedDecisions(decisions: ReadonlyArray<Engine.FixedDecisio
 }
 
 function mapFixedDecisionsInvalid(problem: Engine.FixedDecisionsInvalid): FixedDecisionsInvalid {
-    const {rejectedDecisions, ...rest} = problem;
     return {
-        ...rest,
-        type: ConfiguratorErrorType.FixedDecisionsInvalid,
-        rejectedDecisions: mapToFixedDecisions(rejectedDecisions),
+        ...mapProblem(problem, ConfiguratorErrorType.FixedDecisionsInvalid),
+        rejectedDecisions: mapToFixedDecisions(problem.rejectedDecisions),
+        validationMessage: problem.validationMessage,
     };
 }

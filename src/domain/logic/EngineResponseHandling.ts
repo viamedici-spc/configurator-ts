@@ -68,7 +68,7 @@ export function integratePutDecisionResponse(
     const attributeDecisions = getAttributeDecisions(response.affectedDecisions);
 
     const partialConfigurationRawData: Partial<ConfigurationRawData> = {
-        isSatisfied: response.consequences.isConfigurationSatisfied,
+        isSatisfied: response.consequences.isConfigurationSatisfied ?? undefined,
         canContributeToSatisfaction: pipe(
             response.consequences.canAttributeContributeToConfigurationSatisfaction,
             RA.map(getGlobalAttributeIdKey),
@@ -102,7 +102,8 @@ export function createConfiguration(
     const attributeDecisions = getAttributeDecisions(decisions);
 
     const configurationRawData: ConfigurationRawData = {
-        isSatisfied: consequences.isConfigurationSatisfied,
+        // The engine leaves satisfaction undetermined (null) only for active attributes, which this client never sets.
+        isSatisfied: consequences.isConfigurationSatisfied ?? false,
         canContributeToSatisfaction: pipe(
             consequences.canAttributeContributeToConfigurationSatisfaction,
             RA.map(getGlobalAttributeIdKey),
@@ -342,7 +343,7 @@ export function processPutManyDecisionsConflict(
     mode: MakeManyDecisionsMode,
 ): (error: Engine.Unspecified | Engine.PutManyDecisionsConflict) => Option<ConfiguratorError> {
     return error => {
-        if (error.type !== "PutManyDecisionsConflict") {
+        if (!isPutManyDecisionsConflict(error)) {
             return none;
         }
 
@@ -357,6 +358,12 @@ export function processPutManyDecisionsConflict(
             constraintExplanations: constraintExplanations,
         } satisfies MakeManyDecisionsConflict);
     };
+}
+
+function isPutManyDecisionsConflict(
+    error: Engine.Unspecified | Engine.PutManyDecisionsConflict,
+): error is Engine.PutManyDecisionsConflict {
+    return error.type === "PutManyDecisionsConflict";
 }
 
 export function processExplainResult(question: ExplainQuestion): (response: Engine.ExplainResult) => FullExplainAnswer {

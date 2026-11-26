@@ -16,6 +16,7 @@ import {ConfiguratorErrorType} from "../../contract/ConfiguratorError";
 import type {TaskEither} from "@viamedici-spc/fp-ts-extensions";
 import {E, I, identity, O, pipe, RA, T, TE} from "@viamedici-spc/fp-ts-extensions";
 import {getApiClient, getServerSideSessionCreationApiClient} from "../EngineApiClient";
+import type {EngineApi, EngineResponse, RequestParams} from "../EngineApiClient";
 import * as DtoE from "../mapper/DomainToEngineMapping";
 import * as EtoD from "../mapper/EngineToDomainMapping";
 import * as ResponseHandling from "./EngineResponseHandling";
@@ -52,10 +53,7 @@ export function createSession(
 ): TaskEither<ConfiguratorError, FullQualifiedConfigurationSessionState> {
     const hcaApiClient = getApiClient(sessionContext.apiBaseUrl);
 
-    const getSessionPostRequest = (
-        sessionPost: Engine.Api<unknown>["session"]["sessionPost"],
-        additionalHeaders?: HeadersInit,
-    ) =>
+    const getSessionPostRequest = (sessionPost: EngineApi["session"]["sessionPost"], additionalHeaders?: HeadersInit) =>
         request(() =>
             sessionPost(DtoE.mapSessionContext(sessionContext), {
                 headers: {
@@ -215,27 +213,18 @@ export function explain(
         question: Q,
         requestMapper: (q: Q) => R,
         dec: (
-            e: Engine.Api<unknown>["explain"],
-        ) => (
-            request: R,
-            params: Engine.RequestParams,
-        ) => Promise<Engine.HttpResponse<Engine.DecisionExplanation[], Engine.Unspecified>>,
+            e: EngineApi["explain"],
+        ) => (request: R, params: RequestParams) => Promise<EngineResponse<Engine.DecisionExplanation[]>>,
         con: (
-            e: Engine.Api<unknown>["explain"],
-        ) => (
-            request: R,
-            params: Engine.RequestParams,
-        ) => Promise<Engine.HttpResponse<Engine.ConstraintExplanation[], Engine.Unspecified>>,
+            e: EngineApi["explain"],
+        ) => (request: R, params: RequestParams) => Promise<EngineResponse<Engine.ConstraintExplanation[]>>,
         full: (
-            e: Engine.Api<unknown>["explain"],
-        ) => (
-            request: R,
-            params: Engine.RequestParams,
-        ) => Promise<Engine.HttpResponse<Engine.ExplainResult, Engine.Unspecified>>,
+            e: EngineApi["explain"],
+        ) => (request: R, params: RequestParams) => Promise<EngineResponse<Engine.ExplainResult>>,
     ) => {
         const body = requestMapper(question);
 
-        return (apiClient: Engine.Api<unknown>, params: Engine.RequestParams) =>
+        return (apiClient: EngineApi, params: RequestParams) =>
             match(answer)
                 .with("decisions", () =>
                     pipe(
@@ -361,34 +350,36 @@ export function createSessionWithData(
     );
 }
 
-function request<T, E>(
-    request: () => Promise<Engine.HttpResponse<T, E>>,
+function request<T, E = unknown>(
+    request: () => Promise<EngineResponse<T>>,
     customConfiguratorErrorMapper?: (e: E) => Option<ConfiguratorError>,
 ): TaskEither<ConfiguratorError, T> {
     return pipe(
-        TE.tryCatch(request, e => e as Engine.HttpResponse<T, E>),
+        // A rejection means the request did not reach the engine (network, CORS, aborted).
+        TE.tryCatch(request, (): EngineResponse<T> => ({})),
         TE.match(identity, identity),
-        T.map<Engine.HttpResponse<T, E>, E.Either<ConfiguratorError, T>>(r => {
-            if (r == null || (r.data == null && r.error == null)) {
+        T.map<EngineResponse<T>, E.Either<ConfiguratorError, T>>(r => {
+            if (r.response == null) {
                 return E.left({
                     type: ConfiguratorErrorType.ConnectionError,
                 } satisfies ConnectionError);
             }
 
-            if (r.data != null) {
-                return E.right(r.data);
+            if (r.response.ok) {
+                // A response without content (e.g. closing a session) carries no data.
+                return E.right(r.data as T);
             }
 
-            // Check if all required properties of a ProblemDetail are present.
             if (r.error != null) {
-                const customMapped = customConfiguratorErrorMapper?.(r.error) ?? none;
+                const customMapped = customConfiguratorErrorMapper?.(r.error as E) ?? none;
                 if (O.isSome(customMapped)) {
                     return E.left(customMapped.value);
                 }
 
+                // Check if all required properties of a ProblemDetail are present.
                 const error = r.error as Partial<Record<"type" | "title" | "detail", unknown>>;
                 if (error.type != null && error.title != null && error.detail != null) {
-                    return pipe(r.error as any as Engine.ProblemDetails, EtoD.mapConfiguratorError, E.left);
+                    return pipe(r.error as Engine.ProblemDetails, EtoD.mapConfiguratorError, E.left);
                 }
             }
 
