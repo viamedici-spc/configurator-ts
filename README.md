@@ -16,9 +16,10 @@ Configuration Engine_ (HCE).
 It offers all the features of the HCE through a strongly typed API, eliminating the need to
 interact directly with the HCE's REST API.
 
-This library is made for the **browser**: through a bundler (Vite, webpack 5, Rollup, esbuild, …) or as part of a
-bundle loaded from a CDN. It ships **ES modules only**. It is not made for server environments like **Node.js**; there,
-use the engine's REST API directly. In server-side rendering frameworks, use it on the client only.
+This library is made for the **browser**: through a bundler (Vite, webpack 5, Rollup, esbuild, …) or as part of a bundle
+loaded from a CDN. It ships **ES modules only**. It is not made for server environments like **Node.js**; there, use the
+engine's REST API directly. In server-side rendering frameworks, use it on the client only. TypeScript resolves it with
+`moduleResolution` `bundler`, `node16` or `nodenext`.
 
 ## Framework Independence
 
