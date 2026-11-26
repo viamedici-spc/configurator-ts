@@ -21,13 +21,15 @@ import type {
     MakeManyDecisionsResult,
     MakeManyDecisionsMode,
 } from "./contract/Types";
-// oxlint-disable-next-line no-unused-vars -- referenced by the TSDoc of the methods below (@throws, {@link})
+// Referenced only by the TSDoc of the methods below (@throws, {@link}).
+/* oxlint-disable no-unused-vars */
 import type {
     ConfiguratorError,
     SessionClosed,
     TaskCancelled,
     MakeManyDecisionsConflict,
 } from "./contract/ConfiguratorError";
+/* oxlint-enable no-unused-vars */
 import type {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
 
 export default interface IConfigurationSession {
