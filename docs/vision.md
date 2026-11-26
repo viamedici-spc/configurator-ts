@@ -20,3 +20,8 @@ status: accepted
 ## Audiences
 
 Developers of configurator applications, and the coding agents that help them, reading the TSDoc and these documents.
+
+## Place among the SPC libraries
+
+The library builds on fp-ts-extensions, and configurator-react and configurator-framer build on it. It adds the
+TypeScript client of the engine's REST API: sessions, decisions, explain, and storing and restoring a configuration.
