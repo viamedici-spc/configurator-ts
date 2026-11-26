@@ -35,7 +35,7 @@ export const BooleanDecision_ = summon(F =>
             attributeId: GlobalAttributeId_(F),
             state: F.boolean(),
         },
-        "NumericDecision",
+        "BooleanDecision",
     ),
 );
 
