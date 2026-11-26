@@ -6,7 +6,7 @@ import type {Option} from "fp-ts/Option";
 import memize from "memize";
 
 export default class SubscriptionHandler<V, T extends ReadonlyArray<unknown>> {
-    private readonly listeners = new Map<string, (...args: T) => void>;
+    private readonly listeners = new Map<string, (...args: T) => void>();
     private readonly changesHandler: GenericChangesHandler<V, T>;
     private readonly calculateChangeSetFn: (previousValue: V | null, currentValue: V | null) => Option<T>;
     private currentValue: V | null = null;
@@ -28,7 +28,7 @@ export default class SubscriptionHandler<V, T extends ReadonlyArray<unknown>> {
         return {
             unsubscribe: () => {
                 this.listeners.delete(listenerId);
-            }
+            },
         };
     }
 
@@ -39,7 +39,7 @@ export default class SubscriptionHandler<V, T extends ReadonlyArray<unknown>> {
         if (this.listeners.size > 0) {
             const changes = this.changesHandler.getChanges();
             if (O.isSome(changes)) {
-                this.listeners.forEach((listener) => listener(...changes.value));
+                this.listeners.forEach(listener => listener(...changes.value));
             }
         }
 

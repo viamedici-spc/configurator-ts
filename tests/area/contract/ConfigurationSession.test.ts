@@ -29,16 +29,17 @@ import type {
     SessionClosed,
     SessionContext,
     StoredConfiguration,
-    StoredConfigurationInvalid
+    StoredConfigurationInvalid,
 } from "../../../src";
 import {
     AllowedRulesInExplainType,
     AttributeType,
-    ChoiceValueDecisionState, ComponentDecisionState,
+    ChoiceValueDecisionState,
+    ComponentDecisionState,
     ConfigurationModelSourceType,
     ConfiguratorErrorType,
     DecisionKind,
-    Selection
+    Selection,
 } from "../../../src";
 import config, {engineAvailable} from "../../config";
 import getConfigurationSessionExpectations from "../../setup/ConfigurationSessionExpectations";
@@ -57,7 +58,7 @@ import {
     fullExplainAnswerEq,
     globalAttributeIdEq,
     hashedConfigurationEq,
-    makeManyDecisionsConflictEq
+    makeManyDecisionsConflictEq,
 } from "../../../src/contract/Eqs";
 import * as ConfigurationRawDataL from "../../../src/domain/logic/ConfigurationRawData";
 import type {OnDecisionsChangedHandler, OnStoredConfigurationChangedHandler} from "../../../src";
@@ -73,18 +74,18 @@ const getSessionContext = (deploymentName: string): SessionContext => ({
         makeManyDecisions: true,
         makeDecision: true,
         applySolution: true,
-        restoreConfiguration: true
+        restoreConfiguration: true,
     },
     allowedInExplain: {
         rules: {
-            type: AllowedRulesInExplainType.all
-        }
+            type: AllowedRulesInExplainType.all,
+        },
     },
     configurationModelSource: {
         type: ConfigurationModelSourceType.Channel,
         channel: "release",
-        deploymentName: deploymentName
-    }
+        deploymentName: deploymentName,
+    },
 });
 
 describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
@@ -93,11 +94,10 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
     beforeAll(() => {
         // Log all failed requests.
         setFetch((...args: Parameters<typeof globalFetch>): ReturnType<typeof globalFetch> => {
-            return globalFetch(...args)
-                .catch((reason) => {
-                    console.log(reason);
-                    return Promise.reject(reason);
-                });
+            return globalFetch(...args).catch(reason => {
+                console.log(reason);
+                return Promise.reject(reason);
+            });
         });
     });
     afterEach(() => {
@@ -128,9 +128,10 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                     return Promise.resolve({
                         ok: true,
                         status: 200,
-                        json: (): Promise<any> => Promise.resolve({
-                            sessionId: sessionId
-                        } satisfies Engine.CreateSessionSuccessResponse)
+                        json: (): Promise<any> =>
+                            Promise.resolve({
+                                sessionId: sessionId,
+                            } satisfies Engine.CreateSessionSuccessResponse),
                     } as Response);
                 }
                 return fetch(input, init);
@@ -142,8 +143,8 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             const session = await SessionFactory.createSession({
                 ...sessionContext,
                 sessionInitialisationOptions: {
-                    sessionCreateUrl: sessionCreateUrl
-                } satisfies  ServerSideSessionInitialisationOptions
+                    sessionCreateUrl: sessionCreateUrl,
+                } satisfies ServerSideSessionInitialisationOptions,
             });
             const expectations = getConfigurationSessionExpectations(session);
 
@@ -168,9 +169,9 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                 type: ConfigurationModelSourceType.Package,
                 configurationModelPackage: {
                     root: "<Empty>",
-                    configurationModels: []
-                }
-            }
+                    configurationModels: [],
+                },
+            },
         };
 
         // Set a falsy SessionContext.
@@ -182,29 +183,31 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
     });
 
     it("reinitialize", async () => {
-        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+        const session = (await SessionFactory.createSession(
+            getSessionContext("Configurator-TS-Model1"),
+        )) as ConfigurationSession;
         const expectations = getConfigurationSessionExpectations(session);
 
         await session.makeDecision({
             type: AttributeType.Boolean,
             attributeId: {localId: "Bool1"},
-            state: true
+            state: true,
         });
         await session.makeDecision({
             type: AttributeType.Numeric,
             attributeId: {localId: "Num1"},
-            state: 11
+            state: 11,
         });
         await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
             expect(a.decision).toEqual({
                 kind: DecisionKind.Explicit,
-                state: true
+                state: true,
             } satisfies Decision<boolean>);
         });
         await expectations.expectNumericAttribute({localId: "Num1"}, a => {
             expect(a.decision).toEqual({
                 kind: DecisionKind.Explicit,
-                state: 11
+                state: 11,
             } satisfies Decision<number>);
         });
         expectations.expectRawDataToBeSameAsConfiguration();
@@ -214,19 +217,28 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         await session.reinitialize();
 
         expectations.expectRawDataToBeSameAsConfiguration();
-        expect(configurationRawDataEq.equals(previousSessionState.configurationRawData, session.sessionState.configurationRawData)).toBeTruthy();
-        expect(hashedConfigurationEq.equals(previousSessionState.configuration, session.sessionState.configuration)).toBeTruthy();
+        expect(
+            configurationRawDataEq.equals(
+                previousSessionState.configurationRawData,
+                session.sessionState.configurationRawData,
+            ),
+        ).toBeTruthy();
+        expect(
+            hashedConfigurationEq.equals(previousSessionState.configuration, session.sessionState.configuration),
+        ).toBeTruthy();
         expect(configurationEq.equals(previousConfiguration, session.getConfiguration())).toBeTruthy();
     });
 
     it("Session recreation when SessionNotFound", async () => {
         // Create a session and make a decision.
-        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+        const session = (await SessionFactory.createSession(
+            getSessionContext("Configurator-TS-Model1"),
+        )) as ConfigurationSession;
         const expectations = getConfigurationSessionExpectations(session);
         await session.makeDecision({
             type: AttributeType.Boolean,
             attributeId: {localId: "Bool1"},
-            state: true
+            state: true,
         });
         // Expect decision to be applied.
         await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
@@ -239,17 +251,24 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         let gotRejected = false;
         const fetch = global.fetch;
         setFetch((input: Parameters<typeof global.fetch>[0], init: Parameters<typeof global.fetch>[1]) => {
-            if (typeof input === "string" && input.endsWith("decision") && init && init.method === "PUT" && (init.headers as Record<string, string>)["X-SESSION-ID"] === sessionIdToReject) {
+            if (
+                typeof input === "string" &&
+                input.endsWith("decision") &&
+                init &&
+                init.method === "PUT" &&
+                (init.headers as Record<string, string>)["X-SESSION-ID"] === sessionIdToReject
+            ) {
                 gotRejected = true;
                 return Promise.resolve({
                     ok: false,
                     status: 401,
-                    json: (): Promise<any> => Promise.resolve({
-                        type: "SessionNotFound",
-                        sessionId: {tenantId: "", sessionId: sessionIdToReject},
-                        title: "",
-                        detail: ""
-                    } satisfies SessionNotFound)
+                    json: (): Promise<any> =>
+                        Promise.resolve({
+                            type: "SessionNotFound",
+                            sessionId: {tenantId: "", sessionId: sessionIdToReject},
+                            title: "",
+                            detail: "",
+                        } satisfies SessionNotFound),
                 } as Response);
             }
 
@@ -259,7 +278,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         await session.makeDecision({
             type: AttributeType.Numeric,
             attributeId: {localId: "Num1"},
-            state: 10
+            state: 10,
         });
 
         // The sessionId must have been rejected and the new sessionId must be different to the old.
@@ -298,7 +317,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             type: AttributeType.Choice,
             attributeId: {localId: "Attr1"},
             choiceValueId: "Value1",
-            state: ChoiceValueDecisionState.Included
+            state: ChoiceValueDecisionState.Included,
         });
 
         expectations.expectSatisfaction(true);
@@ -335,7 +354,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             type: AttributeType.Choice,
             attributeId: {localId: "Choice1"},
             choiceValueId: "Value2",
-            state: ChoiceValueDecisionState.Included
+            state: ChoiceValueDecisionState.Included,
         });
 
         await expectations.expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
@@ -346,16 +365,16 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                 expect(v.isPossibleDecisionStatesImmutable).toBeFalsy();
             });
         });
-        await expectations.expectBooleanAttribute({localId: "Boolean1"}, (a) => {
+        await expectations.expectBooleanAttribute({localId: "Boolean1"}, a => {
             expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
         });
-        await expectations.expectNumericAttribute({localId: "Numeric1"}, (a) => {
+        await expectations.expectNumericAttribute({localId: "Numeric1"}, a => {
             expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
         });
-        await expectations.expectComponentAttribute({localId: "Component1"}, async (a) => {
+        await expectations.expectComponentAttribute({localId: "Component1"}, async a => {
             expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
 
-            await expectations.expectBooleanAttribute({componentPath: [a.id.localId], localId: "Boolean1"}, (a) => {
+            await expectations.expectBooleanAttribute({componentPath: [a.id.localId], localId: "Boolean1"}, a => {
                 expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
             });
         });
@@ -379,7 +398,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             type: AttributeType.Choice,
             attributeId: {localId: "Choice1"},
             choiceValueId: "Value2",
-            state: ChoiceValueDecisionState.Included
+            state: ChoiceValueDecisionState.Included,
         });
 
         await expectations.expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
@@ -390,16 +409,16 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                 expect(v.isPossibleDecisionStatesImmutable).toBeFalsy();
             });
         });
-        await expectations.expectBooleanAttribute({localId: "Boolean1"}, (a) => {
+        await expectations.expectBooleanAttribute({localId: "Boolean1"}, a => {
             expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
         });
-        await expectations.expectNumericAttribute({localId: "Numeric1"}, (a) => {
+        await expectations.expectNumericAttribute({localId: "Numeric1"}, a => {
             expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
         });
-        await expectations.expectComponentAttribute({localId: "Component1"}, async (a) => {
+        await expectations.expectComponentAttribute({localId: "Component1"}, async a => {
             expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
 
-            await expectations.expectBooleanAttribute({componentPath: [a.id.localId], localId: "Boolean1"}, (a) => {
+            await expectations.expectBooleanAttribute({componentPath: [a.id.localId], localId: "Boolean1"}, a => {
                 expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
                 expect(a.possibleDecisionStates).toBeEmpty();
             });
@@ -414,7 +433,10 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             e.expectChoiceValue("Value2", v => {
                 expect(v.decision).toBeFalsy();
                 expect(v.isPossibleDecisionStatesImmutable).toBeFalsy();
-                expect(v.possibleDecisionStates).toIncludeSameMembers([ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded]);
+                expect(v.possibleDecisionStates).toIncludeSameMembers([
+                    ChoiceValueDecisionState.Included,
+                    ChoiceValueDecisionState.Excluded,
+                ]);
             });
         });
 
@@ -422,12 +444,14 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         // immutably - the end user can no longer change it.
         const withFixed = await SessionFactory.createSession({
             ...getSessionContext("Configurator-TS-Trimming"),
-            fixedDecisions: [{
-                type: AttributeType.Choice,
-                attributeId: {localId: "Choice1"},
-                choiceValueId: "Value2",
-                state: ChoiceValueDecisionState.Included
-            }]
+            fixedDecisions: [
+                {
+                    type: AttributeType.Choice,
+                    attributeId: {localId: "Choice1"},
+                    choiceValueId: "Value2",
+                    state: ChoiceValueDecisionState.Included,
+                },
+            ],
         });
         await getConfigurationSessionExpectations(withFixed).expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
             e.expectChoiceValue("Value2", v => {
@@ -440,31 +464,41 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
 
     it("Invalid fixed decision rejects session creation with FixedDecisionsInvalid", async () => {
         // Fixing a choice value that does not exist in the model is rejected at session creation.
-        expect(await rejectionOf(SessionFactory.createSession({
-            ...getSessionContext("Configurator-TS-Trimming"),
-            fixedDecisions: [{
-                type: AttributeType.Choice,
-                attributeId: {localId: "Choice1"},
-                choiceValueId: "NonExistentValue",
-                state: ChoiceValueDecisionState.Included
-            }]
-        }))).toSatisfy(e => {
+        expect(
+            await rejectionOf(
+                SessionFactory.createSession({
+                    ...getSessionContext("Configurator-TS-Trimming"),
+                    fixedDecisions: [
+                        {
+                            type: AttributeType.Choice,
+                            attributeId: {localId: "Choice1"},
+                            choiceValueId: "NonExistentValue",
+                            state: ChoiceValueDecisionState.Included,
+                        },
+                    ],
+                }),
+            ),
+        ).toSatisfy(e => {
             const error = e as FixedDecisionsInvalid;
-            return error.type === ConfiguratorErrorType.FixedDecisionsInvalid
-                && Array.isArray(error.rejectedDecisions)
-                && typeof error.validationMessage === "string";
+            return (
+                error.type === ConfiguratorErrorType.FixedDecisionsInvalid &&
+                Array.isArray(error.rejectedDecisions) &&
+                typeof error.validationMessage === "string"
+            );
         });
     });
 
     it("Fixed decision is Implicit; an explicit override and its reset round-trip back to Implicit", async () => {
         const session = await SessionFactory.createSession({
             ...getSessionContext("Configurator-TS-Trimming"),
-            fixedDecisions: [{
-                type: AttributeType.Choice,
-                attributeId: {localId: "Choice1"},
-                choiceValueId: "Value2",
-                state: ChoiceValueDecisionState.Included
-            }]
+            fixedDecisions: [
+                {
+                    type: AttributeType.Choice,
+                    attributeId: {localId: "Choice1"},
+                    choiceValueId: "Value2",
+                    state: ChoiceValueDecisionState.Included,
+                },
+            ],
         });
 
         // A fixed decision surfaces as an Implicit decision (the engine derived it from the fixed constraint).
@@ -481,7 +515,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             type: AttributeType.Choice,
             attributeId: {localId: "Choice1"},
             choiceValueId: "Value2",
-            state: ChoiceValueDecisionState.Included
+            state: ChoiceValueDecisionState.Included,
         });
         await getConfigurationSessionExpectations(session).expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
             e.expectChoiceValue("Value2", v => {
@@ -497,7 +531,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             type: AttributeType.Choice,
             attributeId: {localId: "Choice1"},
             choiceValueId: "Value2",
-            state: undefined
+            state: undefined,
         });
         await getConfigurationSessionExpectations(session).expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
             e.expectChoiceValue("Value2", v => {
@@ -510,55 +544,73 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
 
     it("Fixed Choice decision on a Boolean attribute is rejected as FixedDecisionsInvalid", async () => {
         // Type mismatch: Boolean1 is a Boolean attribute, so fixing it with a Choice decision must be rejected.
-        expect(await rejectionOf(SessionFactory.createSession({
-            ...getSessionContext("Configurator-TS-Trimming"),
-            fixedDecisions: [{
-                type: AttributeType.Choice,
-                attributeId: {localId: "Boolean1"},
-                choiceValueId: "true",
-                state: ChoiceValueDecisionState.Included
-            }]
-        }))).toSatisfy(e => {
+        expect(
+            await rejectionOf(
+                SessionFactory.createSession({
+                    ...getSessionContext("Configurator-TS-Trimming"),
+                    fixedDecisions: [
+                        {
+                            type: AttributeType.Choice,
+                            attributeId: {localId: "Boolean1"},
+                            choiceValueId: "true",
+                            state: ChoiceValueDecisionState.Included,
+                        },
+                    ],
+                }),
+            ),
+        ).toSatisfy(e => {
             const error = e as FixedDecisionsInvalid;
-            return error.type === ConfiguratorErrorType.FixedDecisionsInvalid
-                && Array.isArray(error.rejectedDecisions)
-                && typeof error.validationMessage === "string";
+            return (
+                error.type === ConfiguratorErrorType.FixedDecisionsInvalid &&
+                Array.isArray(error.rejectedDecisions) &&
+                typeof error.validationMessage === "string"
+            );
         });
     });
 
     it("Fixed Boolean decision on a Choice attribute is rejected as FixedDecisionsInvalid", async () => {
         // Type mismatch: Choice1 is a Choice attribute, so fixing it with a Boolean decision must be rejected.
-        expect(await rejectionOf(SessionFactory.createSession({
-            ...getSessionContext("Configurator-TS-Trimming"),
-            fixedDecisions: [{
-                type: AttributeType.Boolean,
-                attributeId: {localId: "Choice1"},
-                state: true
-            }]
-        }))).toSatisfy(e => {
+        expect(
+            await rejectionOf(
+                SessionFactory.createSession({
+                    ...getSessionContext("Configurator-TS-Trimming"),
+                    fixedDecisions: [
+                        {
+                            type: AttributeType.Boolean,
+                            attributeId: {localId: "Choice1"},
+                            state: true,
+                        },
+                    ],
+                }),
+            ),
+        ).toSatisfy(e => {
             const error = e as FixedDecisionsInvalid;
-            return error.type === ConfiguratorErrorType.FixedDecisionsInvalid
-                && Array.isArray(error.rejectedDecisions)
-                && typeof error.validationMessage === "string";
+            return (
+                error.type === ConfiguratorErrorType.FixedDecisionsInvalid &&
+                Array.isArray(error.rejectedDecisions) &&
+                typeof error.validationMessage === "string"
+            );
         });
     });
 
     it("Empty makeManyDecisions with DropExistingDecisions keeps the fixed decision", async () => {
         const session = await SessionFactory.createSession({
             ...getSessionContext("Configurator-TS-Trimming"),
-            fixedDecisions: [{
-                type: AttributeType.Choice,
-                attributeId: {localId: "Choice1"},
-                choiceValueId: "Value2",
-                state: ChoiceValueDecisionState.Included
-            }]
+            fixedDecisions: [
+                {
+                    type: AttributeType.Choice,
+                    attributeId: {localId: "Choice1"},
+                    choiceValueId: "Value2",
+                    state: ChoiceValueDecisionState.Included,
+                },
+            ],
         });
         const expectations = getConfigurationSessionExpectations(session);
 
         // Dropping all explicit decisions (with an empty set) must not drop the fixed decision.
         await session.makeManyDecisions([], {
             type: "DropExistingDecisions",
-            conflictHandling: {type: "Automatic"}
+            conflictHandling: {type: "Automatic"},
         } satisfies DropExistingDecisionsMode as MakeManyDecisionsMode);
 
         await expectations.expectChoiceAttribute({localId: "Choice1"}, (a, e) => {
@@ -574,22 +626,27 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Trimming"));
         const expectations = getConfigurationSessionExpectations(session);
 
-        await expectations.expectComponentAttribute({localId: "Component1"}, async (a) => {
+        await expectations.expectComponentAttribute({localId: "Component1"}, async a => {
             expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
             expect(a.decision?.state).toBe(ComponentDecisionState.Excluded);
 
-            await expectations.expectBooleanAttribute({
-                componentPath: [a.id.localId],
-                localId: "Boolean1"
-            }, async (a) => {
-                expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
-                expect(a.possibleDecisionStates).toBeEmpty();
-            });
+            await expectations.expectBooleanAttribute(
+                {
+                    componentPath: [a.id.localId],
+                    localId: "Boolean1",
+                },
+                async a => {
+                    expect(a.isPossibleDecisionStatesImmutable).toBeTruthy();
+                    expect(a.possibleDecisionStates).toBeEmpty();
+                },
+            );
         });
     });
 
     it("Optimistic decisions", async () => {
-        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+        const session = (await SessionFactory.createSession(
+            getSessionContext("Configurator-TS-Model1"),
+        )) as ConfigurationSession;
         const expectations = getConfigurationSessionExpectations(session);
 
         const deferredPromise = pDefer();
@@ -603,13 +660,13 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         const mkDec1 = session.makeDecision({
             type: AttributeType.Boolean,
             attributeId: {localId: "Bool1"},
-            state: true
+            state: true,
         });
         await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
             // The decision must be applied optimistically.
             expect(a.decision).toEqual({
                 kind: DecisionKind.Explicit,
-                state: true
+                state: true,
             } satisfies Decision<boolean>);
             // The non-optimistic decision must be nil.
             expect(a.nonOptimisticDecision).toBeNil();
@@ -618,13 +675,13 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         const mkDec2 = session.makeDecision({
             type: AttributeType.Numeric,
             attributeId: {localId: "Num1"},
-            state: 10
+            state: 10,
         });
         // The decision must be applied optimistically.
         await expectations.expectNumericAttribute({localId: "Num1"}, a => {
             expect(a.decision).toEqual({
                 kind: DecisionKind.Explicit,
-                state: 10
+                state: 10,
             } satisfies Decision<number>);
             // The non-optimistic decision must be nil.
             expect(a.nonOptimisticDecision).toBeNil();
@@ -633,8 +690,14 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         // Due to the optimistic decisions, the rawData cannot be converted to the same configuration.
         expect(() => expectations.expectRawDataToBeSameAsConfiguration()).toThrow();
 
-        const getBool1 = () => session.getConfiguration().attributes.get(GlobalAttributeIdKeyBuilder({localId: "Bool1"}))! as BooleanAttribute;
-        const getNum1 = () => session.getConfiguration().attributes.get(GlobalAttributeIdKeyBuilder({localId: "Num1"}))! as NumericAttribute;
+        const getBool1 = () =>
+            session
+                .getConfiguration()
+                .attributes.get(GlobalAttributeIdKeyBuilder({localId: "Bool1"}))! as BooleanAttribute;
+        const getNum1 = () =>
+            session
+                .getConfiguration()
+                .attributes.get(GlobalAttributeIdKeyBuilder({localId: "Num1"}))! as NumericAttribute;
 
         const previousBool1 = getBool1();
         const previousNum1 = getNum1();
@@ -654,16 +717,20 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         expect(configurationChanges.attributes.added).toHaveLength(0);
         // The two attributes have changes because their satisfaction is changed and the optimistic decision became applied.
         expect(configurationChanges.attributes.changed).toHaveLength(2);
-        expect<unknown>(getBool1()).toEqual(hashAttribute({
-            ...previousBool1,
-            isSatisfied: true,
-            nonOptimisticDecision: previousBool1.decision
-        }));
-        expect<unknown>(getNum1()).toEqual(hashAttribute({
-            ...previousNum1,
-            isSatisfied: true,
-            nonOptimisticDecision: previousNum1.decision
-        }));
+        expect<unknown>(getBool1()).toEqual(
+            hashAttribute({
+                ...previousBool1,
+                isSatisfied: true,
+                nonOptimisticDecision: previousBool1.decision,
+            }),
+        );
+        expect<unknown>(getNum1()).toEqual(
+            hashAttribute({
+                ...previousNum1,
+                isSatisfied: true,
+                nonOptimisticDecision: previousNum1.decision,
+            }),
+        );
         expect(configurationChanges.attributes.removed).toHaveLength(0);
 
         expectations.expectRawDataToBeSameAsConfiguration();
@@ -679,7 +746,9 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             expect(error).toEqual({type: ConfiguratorErrorType.SessionClosed} satisfies SessionClosed);
         };
 
-        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+        const session = (await SessionFactory.createSession(
+            getSessionContext("Configurator-TS-Model1"),
+        )) as ConfigurationSession;
         await session.close();
 
         expectSessionClosed(() => session.getSessionContext());
@@ -700,7 +769,9 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
 
     describe("Explain", () => {
         it("whyIsNotSatisfied", async () => {
-            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const session = (await SessionFactory.createSession(
+                getSessionContext("Configurator-TS-Model1"),
+            )) as ConfigurationSession;
 
             const answer = await session.explain(q => q.whyIsNotSatisfied.attribute({localId: "Num1"}), "full");
             expect(answer.decisionExplanations).toHaveLength(0);
@@ -712,13 +783,15 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         });
 
         it("whyIsStateNotPossible", async () => {
-            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const session = (await SessionFactory.createSession(
+                getSessionContext("Configurator-TS-Model1"),
+            )) as ConfigurationSession;
             const expectations = getConfigurationSessionExpectations(session);
 
             await session.makeDecision({
                 type: AttributeType.Boolean,
                 attributeId: {localId: "Bool2"},
-                state: true
+                state: true,
             });
 
             // Expect that only false is possible because setting Bool2 to true prevents GetBlocked1 to be true.
@@ -726,56 +799,75 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                 expect(a.possibleDecisionStates).toIncludeSameMembers([false]);
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Implicit,
-                    state: false
+                    state: false,
                 } satisfies Decision<boolean>);
             });
 
             // The decision should fail.
-            expect(await rejectionOf(session.makeDecision({
-                type: AttributeType.Boolean,
-                attributeId: {localId: "GetBlocked1"},
-                state: true
-            }))).toSatisfy(e => {
+            expect(
+                await rejectionOf(
+                    session.makeDecision({
+                        type: AttributeType.Boolean,
+                        attributeId: {localId: "GetBlocked1"},
+                        state: true,
+                    }),
+                ),
+            ).toSatisfy(e => {
                 const error = e as ConfiguratorError;
-                return error.type === "ConflictWithConsequence" && globalAttributeIdEq.equals(error.globalAttributeId, {localId: "GetBlocked1"}) && error.choiceValueId == null;
+                return (
+                    error.type === "ConflictWithConsequence" &&
+                    globalAttributeIdEq.equals(error.globalAttributeId, {localId: "GetBlocked1"}) &&
+                    error.choiceValueId == null
+                );
             });
 
-            const answer = await session.explain(q => q.whyIsStateNotPossible.boolean({localId: "GetBlocked1"}).state(true), "full");
+            const answer = await session.explain(
+                q => q.whyIsStateNotPossible.boolean({localId: "GetBlocked1"}).state(true),
+                "full",
+            );
 
             const expectedAnswer: FullExplainAnswer = {
-                constraintExplanations: [{
-                    causedByCardinalities: [],
-                    causedByRules: [{
-                        configurationModelId: "Model1",
-                        localId: "Group1::Rule1"
-                    }]
-                }],
-                decisionExplanations: [{
-                    causedByDecisions: [{
-                        type: AttributeType.Boolean,
-                        attributeId: {localId: "Bool2"},
-                        state: true
-                    }],
-                    solution: {
-                        decisions: [
-                            // The attribute with the explained state must always be part of the solution.
+                constraintExplanations: [
+                    {
+                        causedByCardinalities: [],
+                        causedByRules: [
                             {
-                                type: AttributeType.Boolean,
-                                attributeId: {localId: "GetBlocked1"},
-                                state: true
-                            } satisfies ExplicitBooleanDecision,
-                            // The attribute that is causing the attribute to be blocked must be reset.
+                                configurationModelId: "Model1",
+                                localId: "Group1::Rule1",
+                            },
+                        ],
+                    },
+                ],
+                decisionExplanations: [
+                    {
+                        causedByDecisions: [
                             {
                                 type: AttributeType.Boolean,
                                 attributeId: {localId: "Bool2"},
-                                state: null
-                            } satisfies ExplicitBooleanDecision
+                                state: true,
+                            },
                         ],
-                        mode: {
-                            type: "KeepExistingDecisions"
-                        }
-                    }
-                }],
+                        solution: {
+                            decisions: [
+                                // The attribute with the explained state must always be part of the solution.
+                                {
+                                    type: AttributeType.Boolean,
+                                    attributeId: {localId: "GetBlocked1"},
+                                    state: true,
+                                } satisfies ExplicitBooleanDecision,
+                                // The attribute that is causing the attribute to be blocked must be reset.
+                                {
+                                    type: AttributeType.Boolean,
+                                    attributeId: {localId: "Bool2"},
+                                    state: null,
+                                } satisfies ExplicitBooleanDecision,
+                            ],
+                            mode: {
+                                type: "KeepExistingDecisions",
+                            },
+                        },
+                    },
+                ],
             };
 
             expect(fullExplainAnswerEq.equals(answer, expectedAnswer)).toBeTruthy();
@@ -784,7 +876,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         it("Trimming - enabled", async () => {
             const session = await SessionFactory.createSession({
                 ...getSessionContext("Configurator-TS-Trimming"),
-                disableConfigurationModelTrimming: false
+                disableConfigurationModelTrimming: false,
             });
             const expectations = getConfigurationSessionExpectations(session);
 
@@ -795,7 +887,16 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                 });
 
                 // A trimmed attribute can not be explained
-                await expect(session.explain(b => b.whyIsStateNotPossible.choice(a.id).choiceValue("Value2").state(ChoiceValueDecisionState.Included), "full")).resolves.toEqual({
+                await expect(
+                    session.explain(
+                        b =>
+                            b.whyIsStateNotPossible
+                                .choice(a.id)
+                                .choiceValue("Value2")
+                                .state(ChoiceValueDecisionState.Included),
+                        "full",
+                    ),
+                ).resolves.toEqual({
                     constraintExplanations: [],
                     decisionExplanations: [],
                 } satisfies FullExplainAnswer);
@@ -806,7 +907,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
     it("Trimming - disabled", async () => {
         const session = await SessionFactory.createSession({
             ...getSessionContext("Configurator-TS-Trimming"),
-            disableConfigurationModelTrimming: true
+            disableConfigurationModelTrimming: true,
         });
         const expectations = getConfigurationSessionExpectations(session);
 
@@ -815,7 +916,16 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                 expect(v.isPossibleDecisionStatesImmutable).toBeTruthy();
                 expect(v.possibleDecisionStates).toIncludeSameMembers([ChoiceValueDecisionState.Excluded]);
             });
-            await expect(session.explain(b => b.whyIsStateNotPossible.choice(a.id).choiceValue("Value2").state(ChoiceValueDecisionState.Included), "full")).resolves.toEqual({
+            await expect(
+                session.explain(
+                    b =>
+                        b.whyIsStateNotPossible
+                            .choice(a.id)
+                            .choiceValue("Value2")
+                            .state(ChoiceValueDecisionState.Included),
+                    "full",
+                ),
+            ).resolves.toEqual({
                 constraintExplanations: [
                     {
                         causedByCardinalities: [],
@@ -825,7 +935,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                                 localId: "New Rule Group::New Textual Rule 5",
                             },
                         ],
-                    }
+                    },
                 ],
                 decisionExplanations: [],
             } satisfies FullExplainAnswer);
@@ -839,48 +949,52 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                     type: "DropExistingDecisions",
                     conflictHandling: {
                         type: "Manual",
-                        includeConstraintsInConflictExplanation: true
-                    }
+                        includeConstraintsInConflictExplanation: true,
+                    },
                 } satisfies DropExistingDecisionsMode as MakeManyDecisionsMode,
                 {
                     type: "DropExistingDecisions",
                     conflictHandling: {
-                        type: "Automatic"
-                    }
+                        type: "Automatic",
+                    },
                 } satisfies DropExistingDecisionsMode as MakeManyDecisionsMode,
                 {
                     type: "KeepExistingDecisions",
-                } satisfies KeepExistingDecisionsMode as MakeManyDecisionsMode
-            ])
-            ("Compatible decisions", async (makeManyDecisionsMode: MakeManyDecisionsMode) => {
-                const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+                } satisfies KeepExistingDecisionsMode as MakeManyDecisionsMode,
+            ])("Compatible decisions", async (makeManyDecisionsMode: MakeManyDecisionsMode) => {
+                const session = (await SessionFactory.createSession(
+                    getSessionContext("Configurator-TS-Model1"),
+                )) as ConfigurationSession;
                 const expectations = getConfigurationSessionExpectations(session);
 
                 const desiredBool1Decision: ExplicitBooleanDecision = {
                     type: AttributeType.Boolean,
                     attributeId: {localId: "Bool1"},
-                    state: true
+                    state: true,
                 };
                 const desiredNum1Decision: ExplicitNumericDecision = {
                     type: AttributeType.Numeric,
                     attributeId: {localId: "Num1"},
-                    state: 10
+                    state: 10,
                 };
 
                 // Make two decisions compatible decisions.
-                const makeManyDecisions = await session.makeManyDecisions([desiredBool1Decision, desiredNum1Decision], makeManyDecisionsMode);
+                const makeManyDecisions = await session.makeManyDecisions(
+                    [desiredBool1Decision, desiredNum1Decision],
+                    makeManyDecisionsMode,
+                );
 
                 expect(makeManyDecisions.rejectedDecisions).toHaveLength(0);
                 await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
                     expect(a.decision).toEqual({
                         kind: DecisionKind.Explicit,
-                        state: true
+                        state: true,
                     } satisfies Decision<boolean>);
                 });
                 await expectations.expectNumericAttribute({localId: "Num1"}, a => {
                     expect(a.decision).toEqual({
                         kind: DecisionKind.Explicit,
-                        state: 10
+                        state: 10,
                     } satisfies Decision<number>);
                 });
                 expectations.expectRawDataToBeSameAsConfiguration();
@@ -889,31 +1003,36 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
 
         describe("Incompatible decisions", () => {
             it("DropExistingDecisions - ManualConflictResolution", async () => {
-                const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+                const session = (await SessionFactory.createSession(
+                    getSessionContext("Configurator-TS-Model1"),
+                )) as ConfigurationSession;
 
                 const independentNumericDecision: ExplicitNumericDecision = {
                     type: AttributeType.Numeric,
                     attributeId: {localId: "Num1"},
-                    state: 10
+                    state: 10,
                 };
                 const desiredBool2Decision: ExplicitBooleanDecision & CausedByBooleanDecision = {
                     type: AttributeType.Boolean,
                     attributeId: {localId: "Bool2"},
-                    state: true
+                    state: true,
                 };
                 const desiredGetBlocked1Decision: ExplicitBooleanDecision & CausedByBooleanDecision = {
                     type: AttributeType.Boolean,
                     attributeId: {localId: "GetBlocked1"},
-                    state: true
+                    state: true,
                 };
 
                 const makeManyDecisionsMode: MakeManyDecisionsMode = {
                     type: "DropExistingDecisions",
-                    conflictHandling: {type: "Manual", includeConstraintsInConflictExplanation: true}
+                    conflictHandling: {type: "Manual", includeConstraintsInConflictExplanation: true},
                 };
 
                 // Make two decisions that are not compatible due to rules.
-                const makeManyDecisions = session.makeManyDecisions([desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision], makeManyDecisionsMode);
+                const makeManyDecisions = session.makeManyDecisions(
+                    [desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision],
+                    makeManyDecisionsMode,
+                );
 
                 const expected: MakeManyDecisionsConflict = {
                     type: ConfiguratorErrorType.MakeManyDecisionsConflict,
@@ -921,87 +1040,95 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                     detail: "",
                     decisionExplanations: [
                         {
-                            causedByDecisions: [
-                                desiredBool2Decision
-                            ],
+                            causedByDecisions: [desiredBool2Decision],
                             solution: {
                                 mode: makeManyDecisionsMode,
                                 decisions: [
                                     desiredGetBlocked1Decision,
                                     {
                                         ...desiredBool2Decision,
-                                        state: undefined
+                                        state: undefined,
                                     },
-                                    independentNumericDecision
+                                    independentNumericDecision,
                                 ],
-
-                            }
+                            },
                         },
                         {
-                            causedByDecisions: [
-                                desiredGetBlocked1Decision
-                            ],
+                            causedByDecisions: [desiredGetBlocked1Decision],
                             solution: {
                                 mode: makeManyDecisionsMode,
                                 decisions: [
                                     desiredBool2Decision,
                                     {
                                         ...desiredGetBlocked1Decision,
-                                        state: undefined
+                                        state: undefined,
                                     },
-                                    independentNumericDecision
+                                    independentNumericDecision,
                                 ],
-
-                            }
-                        }
+                            },
+                        },
                     ],
-                    constraintExplanations: [{
-                        causedByCardinalities: [],
-                        causedByRules: [{
-                            configurationModelId: "Model1",
-                            localId: "Group1::Rule1"
-                        }]
-                    }]
+                    constraintExplanations: [
+                        {
+                            causedByCardinalities: [],
+                            causedByRules: [
+                                {
+                                    configurationModelId: "Model1",
+                                    localId: "Group1::Rule1",
+                                },
+                            ],
+                        },
+                    ],
                 };
 
-                expect(await rejectionOf(makeManyDecisions)).toSatisfy(e => makeManyDecisionsConflictEq.equals({
-                    ...e as MakeManyDecisionsConflict,
-                    // Reset the title and detail because this test is about the explanations.
-                    title: "",
-                    detail: ""
-                }, expected));
+                expect(await rejectionOf(makeManyDecisions)).toSatisfy(e =>
+                    makeManyDecisionsConflictEq.equals(
+                        {
+                            ...(e as MakeManyDecisionsConflict),
+                            // Reset the title and detail because this test is about the explanations.
+                            title: "",
+                            detail: "",
+                        },
+                        expected,
+                    ),
+                );
             });
 
             it("DropExistingDecisions - AutomaticConflictResolution", async () => {
-                const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+                const session = (await SessionFactory.createSession(
+                    getSessionContext("Configurator-TS-Model1"),
+                )) as ConfigurationSession;
                 const expectations = getConfigurationSessionExpectations(session);
 
                 const independentNumericDecision: ExplicitNumericDecision = {
                     type: AttributeType.Numeric,
                     attributeId: {localId: "Num1"},
-                    state: 10
+                    state: 10,
                 };
                 const desiredBool2Decision: ExplicitBooleanDecision & CausedByBooleanDecision = {
                     type: AttributeType.Boolean,
                     attributeId: {localId: "Bool2"},
-                    state: true
+                    state: true,
                 };
                 const desiredGetBlocked1Decision: ExplicitBooleanDecision & CausedByBooleanDecision = {
                     type: AttributeType.Boolean,
                     attributeId: {localId: "GetBlocked1"},
-                    state: true
+                    state: true,
                 };
 
                 // Make two decisions that are not compatible due to rules.
-                const makeManyDecisions = await session.makeManyDecisions([desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision], {
-                    type: "DropExistingDecisions",
-                    conflictHandling: {type: "Automatic"}
-                });
+                const makeManyDecisions = await session.makeManyDecisions(
+                    [desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision],
+                    {
+                        type: "DropExistingDecisions",
+                        conflictHandling: {type: "Automatic"},
+                    },
+                );
 
                 await expectations.expectNumericAttribute({localId: "Num1"}, a => {
                     expect(a.decision).toEqual({
                         kind: DecisionKind.Explicit,
-                        state: 10
+                        state: 10,
                     } satisfies Decision<number>);
                 });
                 expect(makeManyDecisions.rejectedDecisions).toHaveLength(1);
@@ -1011,13 +1138,13 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                         expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
                             expect(a.decision).toEqual({
                                 kind: DecisionKind.Explicit,
-                                state: true
+                                state: true,
                             } satisfies Decision<boolean>);
                         });
                         expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
                             expect(a.decision).toEqual({
                                 kind: DecisionKind.Implicit,
-                                state: false
+                                state: false,
                             } satisfies Decision<boolean>);
                         });
                         expect(makeManyDecisions.rejectedDecisions[0]).toEqual(desiredBool2Decision);
@@ -1025,13 +1152,13 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                         expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
                             expect(a.decision).toEqual({
                                 kind: DecisionKind.Implicit,
-                                state: false
+                                state: false,
                             } satisfies Decision<boolean>);
                         });
                         expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
                             expect(a.decision).toEqual({
                                 kind: DecisionKind.Explicit,
-                                state: true
+                                state: true,
                             } satisfies Decision<boolean>);
                         });
                         expect(makeManyDecisions.rejectedDecisions[0]).toEqual(desiredGetBlocked1Decision);
@@ -1042,30 +1169,37 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             });
 
             it("KeepExistingDecisions", async () => {
-                const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+                const session = (await SessionFactory.createSession(
+                    getSessionContext("Configurator-TS-Model1"),
+                )) as ConfigurationSession;
 
                 const independentNumericDecision: ExplicitNumericDecision = {
                     type: AttributeType.Numeric,
                     attributeId: {localId: "Num1"},
-                    state: 10
+                    state: 10,
                 };
                 const desiredBool2Decision: ExplicitBooleanDecision & CausedByBooleanDecision = {
                     type: AttributeType.Boolean,
                     attributeId: {localId: "Bool2"},
-                    state: true
+                    state: true,
                 };
                 const desiredGetBlocked1Decision: ExplicitBooleanDecision & CausedByBooleanDecision = {
                     type: AttributeType.Boolean,
                     attributeId: {localId: "GetBlocked1"},
-                    state: true
+                    state: true,
                 };
 
                 // Make two decisions that are not compatible due to rules.
-                const makeManyDecisions = session.makeManyDecisions([desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision], {
-                    type: "KeepExistingDecisions"
-                });
+                const makeManyDecisions = session.makeManyDecisions(
+                    [desiredBool2Decision, desiredGetBlocked1Decision, independentNumericDecision],
+                    {
+                        type: "KeepExistingDecisions",
+                    },
+                );
 
-                expect(await rejectionOf(makeManyDecisions)).toSatisfy(e => (e as ConfiguratorError).type === "MakeManyDecisionsConflict");
+                expect(await rejectionOf(makeManyDecisions)).toSatisfy(
+                    e => (e as ConfiguratorError).type === "MakeManyDecisionsConflict",
+                );
             });
         });
     });
@@ -1083,7 +1217,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         await session.makeDecision({
             type: AttributeType.Boolean,
             attributeId: {localId: "Bool1"},
-            state: true
+            state: true,
         });
 
         // After a decision is made, the configuration have to be resettable.
@@ -1103,25 +1237,31 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             // On a new session the stored configuration must be empty due to missing explicit decisions.
             await expect(session.storeConfiguration()).resolves.toEqual({
                 schemaVersion: 1,
-                explicitDecisions: []
+                explicitDecisions: [],
             } satisfies StoredConfiguration);
 
             // Do some decisions of any kind.
             await session.makeDecision({
                 type: AttributeType.Boolean,
                 attributeId: {localId: "Bool1"},
-                state: true
+                state: true,
             });
 
-            await session.makeManyDecisions([{
-                type: AttributeType.Boolean,
-                attributeId: {localId: "Bool2"},
-                state: true
-            }, {
-                type: AttributeType.Numeric,
-                attributeId: {localId: "Num1"},
-                state: 12
-            }], {type: "KeepExistingDecisions"});
+            await session.makeManyDecisions(
+                [
+                    {
+                        type: AttributeType.Boolean,
+                        attributeId: {localId: "Bool2"},
+                        state: true,
+                    },
+                    {
+                        type: AttributeType.Numeric,
+                        attributeId: {localId: "Num1"},
+                        state: 12,
+                    },
+                ],
+                {type: "KeepExistingDecisions"},
+            );
 
             const storedConfiguration = await session.storeConfiguration();
 
@@ -1130,7 +1270,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                 type: AttributeType.Choice,
                 attributeId: {localId: "Ch1"},
                 choiceValueId: "Value1",
-                state: ChoiceValueDecisionState.Included
+                state: ChoiceValueDecisionState.Included,
             });
 
             // Expect that every made decision is present in the configuration.
@@ -1138,32 +1278,32 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
-                    state: true
+                    state: true,
                 } satisfies Decision<boolean>);
             });
             await expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
-                    state: true
+                    state: true,
                 } satisfies Decision<boolean>);
             });
             await expectations.expectNumericAttribute({localId: "Num1"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
-                    state: 12
+                    state: 12,
                 } satisfies Decision<number>);
             });
             await expectations.expectChoiceValue({localId: "Ch1"}, "Value1", a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
-                    state: ChoiceValueDecisionState.Included
+                    state: ChoiceValueDecisionState.Included,
                 } satisfies Decision<ChoiceValueDecisionState>);
             });
 
             // Restore the session to the previously stored state.
             await session.restoreConfiguration(storedConfiguration, {
                 type: "DropExistingDecisions",
-                conflictHandling: {type: "Automatic"}
+                conflictHandling: {type: "Automatic"},
             });
 
             // Expect that every decision state the same, except for ChoiceDecision that was made after storing the configuration.
@@ -1171,19 +1311,19 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             await expectations.expectBooleanAttribute({localId: "Bool1"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
-                    state: true
+                    state: true,
                 } satisfies Decision<boolean>);
             });
             await expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
-                    state: true
+                    state: true,
                 } satisfies Decision<boolean>);
             });
             await expectations.expectNumericAttribute({localId: "Num1"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Explicit,
-                    state: 12
+                    state: 12,
                 } satisfies Decision<number>);
             });
             expectations.expectChoiceValue({localId: "Ch1"}, "Value1", a => {
@@ -1192,58 +1332,86 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         });
 
         it("Restore to other session", async () => {
-            const session1 = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const session1 = (await SessionFactory.createSession(
+                getSessionContext("Configurator-TS-Model1"),
+            )) as ConfigurationSession;
 
             // Do some decisions of any kind.
             await session1.makeDecision({
                 type: AttributeType.Boolean,
                 attributeId: {localId: "Bool1"},
-                state: true
+                state: true,
             });
 
-            await session1.makeManyDecisions([{
-                type: AttributeType.Boolean,
-                attributeId: {localId: "Bool2"},
-                state: true
-            }, {
-                type: AttributeType.Numeric,
-                attributeId: {localId: "Num1"},
-                state: 12
-            }], {type: "KeepExistingDecisions"});
+            await session1.makeManyDecisions(
+                [
+                    {
+                        type: AttributeType.Boolean,
+                        attributeId: {localId: "Bool2"},
+                        state: true,
+                    },
+                    {
+                        type: AttributeType.Numeric,
+                        attributeId: {localId: "Num1"},
+                        state: 12,
+                    },
+                ],
+                {type: "KeepExistingDecisions"},
+            );
 
             const storedConfiguration = await session1.storeConfiguration();
 
-            const session2 = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const session2 = (await SessionFactory.createSession(
+                getSessionContext("Configurator-TS-Model1"),
+            )) as ConfigurationSession;
 
             // Restore the session2 to the previously stored state.
             await session2.restoreConfiguration(storedConfiguration, {
                 type: "DropExistingDecisions",
-                conflictHandling: {type: "Automatic"}
+                conflictHandling: {type: "Automatic"},
             });
 
             // Session2 must have the same state as Session1
-            expect(configurationRawDataEq.equals(session1.sessionState.configurationRawData, session2.sessionState.configurationRawData)).toBeTruthy();
-            expect(hashedConfigurationEq.equals(session1.sessionState.configuration, session2.sessionState.configuration)).toBeTruthy();
+            expect(
+                configurationRawDataEq.equals(
+                    session1.sessionState.configurationRawData,
+                    session2.sessionState.configurationRawData,
+                ),
+            ).toBeTruthy();
+            expect(
+                hashedConfigurationEq.equals(session1.sessionState.configuration, session2.sessionState.configuration),
+            ).toBeTruthy();
             expect(configurationEq.equals(session1.getConfiguration(), session2.getConfiguration())).toBeTruthy();
         });
 
         it("StoredConfiguration is malformed", async () => {
-            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const session = (await SessionFactory.createSession(
+                getSessionContext("Configurator-TS-Model1"),
+            )) as ConfigurationSession;
 
-            await expect(session.restoreConfiguration({
-                schemaVersion: 2,
-                decisions: []
-            } as any as StoredConfiguration, {
-                type: "DropExistingDecisions",
-                conflictHandling: {type: "Automatic"}
-            })).rejects.toEqual({type: ConfiguratorErrorType.StoredConfigurationInvalid} satisfies StoredConfigurationInvalid);
+            await expect(
+                session.restoreConfiguration(
+                    {
+                        schemaVersion: 2,
+                        decisions: [],
+                    } as any as StoredConfiguration,
+                    {
+                        type: "DropExistingDecisions",
+                        conflictHandling: {type: "Automatic"},
+                    },
+                ),
+            ).rejects.toEqual({
+                type: ConfiguratorErrorType.StoredConfigurationInvalid,
+            } satisfies StoredConfigurationInvalid);
         });
     });
 
     it("getDecisions", async () => {
         const getCollectedDecisionsMock = spyOn(ConfigurationRawDataL, "getCollectedDecisions");
 
-        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+        const session = (await SessionFactory.createSession(
+            getSessionContext("Configurator-TS-Model1"),
+        )) as ConfigurationSession;
         const expectations = getConfigurationSessionExpectations(session);
 
         const suspendFetchDeferredPromise = pDefer();
@@ -1257,14 +1425,14 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         const makeDecision = session.makeDecision({
             type: AttributeType.Boolean,
             attributeId: {localId: "Bool2"},
-            state: true
+            state: true,
         });
 
         // Expect the decision to be applied optimistically.
         await expectations.expectBooleanAttribute({localId: "Bool2"}, a => {
             expect(a.decision).toEqual({
                 kind: DecisionKind.Explicit,
-                state: true
+                state: true,
             } satisfies Decision<boolean>);
             expect(a.nonOptimisticDecision).toBeNil();
         });
@@ -1280,11 +1448,11 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             expect(a.possibleDecisionStates).toIncludeSameMembers([false]);
             expect(a.decision).toEqual({
                 kind: DecisionKind.Implicit,
-                state: false
+                state: false,
             } satisfies Decision<boolean>);
             expect(a.nonOptimisticDecision).toEqual({
                 kind: DecisionKind.Implicit,
-                state: false
+                state: false,
             } satisfies Decision<boolean>);
         });
 
@@ -1293,14 +1461,14 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             attributeId: {localId: "Bool2"},
             attributeKey: GlobalAttributeIdKeyBuilder({localId: "Bool2"}),
             kind: DecisionKind.Explicit,
-            state: true
+            state: true,
         };
         const implicitCD: CollectedBooleanDecision = {
             attributeType: AttributeType.Boolean,
             attributeId: {localId: "GetBlocked1"},
             attributeKey: GlobalAttributeIdKeyBuilder({localId: "GetBlocked1"}),
             kind: DecisionKind.Implicit,
-            state: false
+            state: false,
         };
 
         // Call getDecisions multiple times to ensure that the initial result is cached.
@@ -1320,20 +1488,20 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             type: AttributeType.Choice,
             attributeId: {localId: "Ch2"},
             choiceValueId: "Value1",
-            state: ChoiceValueDecisionState.Included
+            state: ChoiceValueDecisionState.Included,
         });
 
         await expectations.expectChoiceAttribute({localId: "Ch2"}, (_, e) => {
             e.expectChoiceValue("Value1", v => {
                 expect(v.decision).toEqual({
                     kind: DecisionKind.Explicit,
-                    state: ChoiceValueDecisionState.Included
+                    state: ChoiceValueDecisionState.Included,
                 } satisfies Decision<ChoiceValueDecisionState>);
             });
             e.expectChoiceValue("Value2", v => {
                 expect(v.decision).toEqual({
                     kind: DecisionKind.Implicit,
-                    state: ChoiceValueDecisionState.Included
+                    state: ChoiceValueDecisionState.Included,
                 } satisfies Decision<ChoiceValueDecisionState>);
             });
         });
@@ -1344,12 +1512,14 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         const fetchMock = mock<FetchFunction>((input, init) => globalFetch(input, init));
         setFetch(fetchMock);
 
-        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+        const session = (await SessionFactory.createSession(
+            getSessionContext("Configurator-TS-Model1"),
+        )) as ConfigurationSession;
         await expect(session.close()).resolves.toBeNil();
 
         // Expect that a DELETE request was send to close the session.
         expect(fetchMock.mock.calls).toSatisfyAny(call => {
-            const [input, init] = (call as Parameters<typeof globalFetch>);
+            const [input, init] = call as Parameters<typeof globalFetch>;
 
             return typeof input === "string" && input.includes("session") && init?.method === "DELETE";
         });
@@ -1357,21 +1527,27 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
 
     describe("ExecuteMaybeQueued", () => {
         it("Non queued execution returns result directly", async () => {
-            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const session = (await SessionFactory.createSession(
+                getSessionContext("Configurator-TS-Model1"),
+            )) as ConfigurationSession;
             const result = session.executeMaybeQueued(false, () => 5);
 
             expect(result).toBe(5);
         });
 
         it("Queued execution returns result as promise", async () => {
-            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const session = (await SessionFactory.createSession(
+                getSessionContext("Configurator-TS-Model1"),
+            )) as ConfigurationSession;
             const result = session.executeMaybeQueued(true, () => 5);
 
             await expect(result).resolves.toBe(5);
         });
 
         it("Aborting the signal rejects the promise", async () => {
-            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const session = (await SessionFactory.createSession(
+                getSessionContext("Configurator-TS-Model1"),
+            )) as ConfigurationSession;
             const signal = AbortSignal.abort("AbortReason");
 
             const callback = mock(() => 5);
@@ -1384,26 +1560,34 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
     });
 
     it("Queued operations return the same result as normal operations", async () => {
-        const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+        const session = (await SessionFactory.createSession(
+            getSessionContext("Configurator-TS-Model1"),
+        )) as ConfigurationSession;
 
         // Make a decision to not be at the initial state
         await session.makeDecision({
             type: AttributeType.Boolean,
             attributeId: {localId: "Bool2"},
-            state: true
+            state: true,
         });
 
         await expect(session.getConfiguration(true)).resolves.toEqual(session.getConfiguration());
         await expect(session.getSessionContext(true)).resolves.toEqual(session.getSessionContext());
         await expect(session.getDecisions(true)).resolves.toEqual(session.getDecisions());
-        await expect(session.getDecisions(DecisionKind.Implicit, true)).resolves.toEqual(session.getDecisions(DecisionKind.Implicit));
-        await expect(session.getDecisions(DecisionKind.Explicit, true)).resolves.toEqual(session.getDecisions(DecisionKind.Explicit));
+        await expect(session.getDecisions(DecisionKind.Implicit, true)).resolves.toEqual(
+            session.getDecisions(DecisionKind.Implicit),
+        );
+        await expect(session.getDecisions(DecisionKind.Explicit, true)).resolves.toEqual(
+            session.getDecisions(DecisionKind.Explicit),
+        );
         await expect(session.canResetConfiguration(true)).resolves.toEqual(session.canResetConfiguration());
     });
 
     describe("Handler", () => {
         it("addStoredConfigurationChangedListener", async () => {
-            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const session = (await SessionFactory.createSession(
+                getSessionContext("Configurator-TS-Model1"),
+            )) as ConfigurationSession;
 
             const handler = mock<OnStoredConfigurationChangedHandler>();
             session.addStoredConfigurationChangedListener(handler);
@@ -1414,7 +1598,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             await session.makeDecision({
                 type: AttributeType.Boolean,
                 attributeId: {localId: "Bool2"},
-                state: true
+                state: true,
             });
 
             expect(handler).toHaveBeenCalledTimes(2);
@@ -1426,16 +1610,18 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                         attributeId: {
                             sharedConfigurationModelId: undefined,
                             componentPath: undefined,
-                            localId: "Bool2"
+                            localId: "Bool2",
                         },
-                        state: true
-                    } satisfies BooleanDecision
-                ]
+                        state: true,
+                    } satisfies BooleanDecision,
+                ],
             } satisfies StoredConfiguration);
         });
 
         it("addCanResetConfigurationChangedListener", async () => {
-            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const session = (await SessionFactory.createSession(
+                getSessionContext("Configurator-TS-Model1"),
+            )) as ConfigurationSession;
 
             const handler = mock<OnCanResetConfigurationChangedHandler>();
             session.addCanResetConfigurationChangedListener(handler);
@@ -1447,7 +1633,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             await session.makeDecision({
                 type: AttributeType.Boolean,
                 attributeId: {localId: "Bool2"},
-                state: true
+                state: true,
             });
 
             // After making a decision, the configuration can be resetted.
@@ -1457,7 +1643,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             await session.makeDecision({
                 type: AttributeType.Boolean,
                 attributeId: {localId: "Bool2"},
-                state: null
+                state: null,
             });
 
             // Removing the decision must reset the handler.
@@ -1466,13 +1652,13 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
         });
 
         it("addConfigurationChangedListener", async () => {
-            const session = await SessionFactory.createSession({
+            const session = (await SessionFactory.createSession({
                 ...getSessionContext("Configurator-TS-Model1"),
                 provideSourceId: false,
                 optimisticDecisionOptions: {
-                    makeDecision: true
-                }
-            }) as ConfigurationSession;
+                    makeDecision: true,
+                },
+            })) as ConfigurationSession;
 
             const handler = mock<OnConfigurationChangedHandler>();
             session.addConfigurationChangedListener(handler);
@@ -1490,7 +1676,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             const makeDecision = session.makeDecision({
                 type: AttributeType.Boolean,
                 attributeId: {localId: "Bool2"},
-                state: true
+                state: true,
             });
 
             // Handler must have been called a second time with the optimistic decision.
@@ -1511,13 +1697,13 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                             isPossibleDecisionStatesImmutable: false,
                             decision: {
                                 kind: DecisionKind.Explicit,
-                                state: true
+                                state: true,
                             },
                             nonOptimisticDecision: null,
                         } satisfies BooleanAttribute),
                     ]),
-                    removed: []
-                }
+                    removed: [],
+                },
             } satisfies ConfigurationChanges);
 
             suspendFetchDeferredPromise.resolve();
@@ -1541,11 +1727,11 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                             isPossibleDecisionStatesImmutable: false,
                             decision: {
                                 kind: DecisionKind.Explicit,
-                                state: true
+                                state: true,
                             },
                             nonOptimisticDecision: {
                                 kind: DecisionKind.Explicit,
-                                state: true
+                                state: true,
                             },
                         } satisfies BooleanAttribute),
                         expect.objectContaining({
@@ -1559,21 +1745,23 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                             isPossibleDecisionStatesImmutable: false,
                             decision: {
                                 kind: DecisionKind.Implicit,
-                                state: false
+                                state: false,
                             },
                             nonOptimisticDecision: {
                                 kind: DecisionKind.Implicit,
-                                state: false
+                                state: false,
                             },
-                        } satisfies BooleanAttribute)
+                        } satisfies BooleanAttribute),
                     ]),
-                    removed: []
-                }
+                    removed: [],
+                },
             } satisfies ConfigurationChanges);
         });
 
         it("addDecisionsChangedListener", async () => {
-            const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
+            const session = (await SessionFactory.createSession(
+                getSessionContext("Configurator-TS-Model1"),
+            )) as ConfigurationSession;
             const expectations = getConfigurationSessionExpectations(session);
 
             const allHandler = mock<OnDecisionsChangedHandler<CollectedDecision>>();
@@ -1595,14 +1783,14 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
             await session.makeDecision({
                 type: AttributeType.Boolean,
                 attributeId: {localId: "Bool2"},
-                state: true
+                state: true,
             });
 
             // GetBlocked1 must be implicit false.
             await expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
                 expect(a.decision).toEqual({
                     kind: DecisionKind.Implicit,
-                    state: false
+                    state: false,
                 } satisfies Decision<boolean>);
             });
 
@@ -1611,14 +1799,14 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                 attributeId: {localId: "Bool2"},
                 attributeKey: GlobalAttributeIdKeyBuilder({localId: "Bool2"}),
                 kind: DecisionKind.Explicit,
-                state: true
+                state: true,
             };
             const GetBlocked1_CollectedDecision: CollectedImplicitDecision = {
                 attributeType: AttributeType.Boolean,
                 attributeId: {localId: "GetBlocked1"},
                 attributeKey: GlobalAttributeIdKeyBuilder({localId: "GetBlocked1"}),
                 kind: DecisionKind.Implicit,
-                state: false
+                state: false,
             };
 
             expect(allHandler).toHaveBeenCalledTimes(2);

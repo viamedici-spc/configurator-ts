@@ -1,13 +1,9 @@
 import type {
     ConfigurationSessionState,
-    FullQualifiedConfigurationSessionState
+    FullQualifiedConfigurationSessionState,
 } from "../../src/domain/model/ConfigurationSessionState";
-import type {
-    Attribute, AttributeType,
-    ConfigurationModelFromPackage, GlobalAttributeIdKey
-} from "../../src";
-import { ConfigurationModelSourceType
-} from "../../src";
+import type {Attribute, AttributeType, ConfigurationModelFromPackage, GlobalAttributeIdKey} from "../../src";
+import {ConfigurationModelSourceType} from "../../src";
 import {getBooleanAttribute, getComponentAttribute, getNumericAttribute} from "./AttributeGeneration";
 import type ConfigurationRawData from "../../src/domain/model/ConfigurationRawData";
 import {RM} from "@viamedici-spc/fp-ts-extensions";
@@ -17,56 +13,56 @@ export const sessionStateWithOneMandatoryBoolean: FullQualifiedConfigurationSess
     sessionId: "Session1",
     sessionContext: {
         sessionInitialisationOptions: {
-            accessToken: "n/a"
+            accessToken: "n/a",
         },
         configurationModelSource: {
             type: ConfigurationModelSourceType.Package,
             configurationModelPackage: {
                 root: "n/a",
-                configurationModels: []
-            }
+                configurationModels: [],
+            },
         } satisfies ConfigurationModelFromPackage,
     },
-    ...getConfiguration(getBooleanAttribute("A1"))
+    ...getConfiguration(getBooleanAttribute("A1")),
 };
 
 export const sessionStateWithOneMandatoryNumeric: FullQualifiedConfigurationSessionState = {
     sessionId: "Session1",
     sessionContext: {
         sessionInitialisationOptions: {
-            accessToken: "n/a"
+            accessToken: "n/a",
         },
         configurationModelSource: {
             type: ConfigurationModelSourceType.Package,
             configurationModelPackage: {
                 root: "n/a",
-                configurationModels: []
-            }
+                configurationModels: [],
+            },
         } satisfies ConfigurationModelFromPackage,
     },
-    ...getConfiguration(getNumericAttribute("A1"))
+    ...getConfiguration(getNumericAttribute("A1")),
 };
 
 export const sessionStateWithOneMandatoryComponent: FullQualifiedConfigurationSessionState = {
     sessionId: "Session1",
     sessionContext: {
         sessionInitialisationOptions: {
-            accessToken: "n/a"
+            accessToken: "n/a",
         },
         configurationModelSource: {
             type: ConfigurationModelSourceType.Package,
             configurationModelPackage: {
                 root: "n/a",
-                configurationModels: []
-            }
+                configurationModels: [],
+            },
         } satisfies ConfigurationModelFromPackage,
     },
-    ...getConfiguration(getComponentAttribute("A1"))
+    ...getConfiguration(getComponentAttribute("A1")),
 };
 
-function getConfiguration(a: [GlobalAttributeIdKey, Attribute & { type: Exclude<AttributeType, AttributeType.Choice> }]):
-    Pick<ConfigurationSessionState, "configuration" | "configurationRawData"> {
-
+function getConfiguration(
+    a: [GlobalAttributeIdKey, Attribute & {type: Exclude<AttributeType, AttributeType.Choice>}],
+): Pick<ConfigurationSessionState, "configuration" | "configurationRawData"> {
     const rawData: ConfigurationRawData = {
         isSatisfied: false,
         canContributeToSatisfaction: [],

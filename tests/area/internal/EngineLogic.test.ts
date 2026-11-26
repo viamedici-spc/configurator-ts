@@ -1,4 +1,3 @@
-
 import {afterAll, afterEach, describe, expect, it, mock} from "bun:test";
 import {type FetchFunction, setFetch} from "../../setup/Fetch";
 import * as Logic from "../../../src/domain/logic/EngineLogic";
@@ -32,14 +31,17 @@ describe("EngineLogic", () => {
     });
 
     it("createSession - ServerError if response is malformed", async () => {
-        fetchMock.mockImplementation(() => Promise.resolve({
-            ok: false,
-            status: 500,
-            json: (): Promise<any> => Promise.resolve({
-                // The response is malformed if the mandatory properties (type, title, detail) are not present.
-                type: "Abc"
-            })
-        } as Response));
+        fetchMock.mockImplementation(() =>
+            Promise.resolve({
+                ok: false,
+                status: 500,
+                json: (): Promise<any> =>
+                    Promise.resolve({
+                        // The response is malformed if the mandatory properties (type, title, detail) are not present.
+                        type: "Abc",
+                    }),
+            } as Response),
+        );
         const createSessionResult = await Logic.createSession(SessionContextWithModelWithOneMandatoryChoice)();
 
         const problemDetail = expectToBeLeft(createSessionResult) as ServerError;
@@ -47,15 +49,18 @@ describe("EngineLogic", () => {
     });
 
     it("createSession - Any valid shaped ProblemDetail is becomes a ServerError", async () => {
-        fetchMock.mockImplementation(() => Promise.resolve({
-            ok: false,
-            status: 500,
-            json: (): Promise<any> => Promise.resolve({
-                type: "AnyProblemType",
-                title: "AnyProblemType Title",
-                detail: "AnyProblemType Detail"
-            })
-        } as Response));
+        fetchMock.mockImplementation(() =>
+            Promise.resolve({
+                ok: false,
+                status: 500,
+                json: (): Promise<any> =>
+                    Promise.resolve({
+                        type: "AnyProblemType",
+                        title: "AnyProblemType Title",
+                        detail: "AnyProblemType Detail",
+                    }),
+            } as Response),
+        );
         const createSessionResult = await Logic.createSession(SessionContextWithModelWithOneMandatoryChoice)();
 
         const problemDetail = expectToBeLeft(createSessionResult);
@@ -63,81 +68,87 @@ describe("EngineLogic", () => {
     });
 
     it("createSession - Success", async () => {
-        fetchMock.mockImplementation((input) => {
+        fetchMock.mockImplementation(input => {
             console.log("Fetch", stringify(input));
             if (typeof input === "string") {
                 if (input.endsWith("session")) {
                     return Promise.resolve({
                         ok: true,
                         status: 200,
-                        json: (): Promise<any> => Promise.resolve({
-                            sessionId: "SessionId"
-                        } satisfies Engine.CreateSessionSuccessResponse)
+                        json: (): Promise<any> =>
+                            Promise.resolve({
+                                sessionId: "SessionId",
+                            } satisfies Engine.CreateSessionSuccessResponse),
                     } as Response);
                 }
                 if (input.endsWith("consequence")) {
                     return Promise.resolve({
                         ok: true,
                         status: 200,
-                        json: (): Promise<any> => Promise.resolve({
-                            isConfigurationSatisfied: false,
-                            canAttributeContributeToConfigurationSatisfaction: [],
-                            choiceConsequences: [{
-                                attributeId: {localId: "a1"},
-                                isSatisfied: false,
-                                cardinality: {
-                                    upperBound: 1,
-                                    lowerBound: 1
-                                },
-                                values: [
+                        json: (): Promise<any> =>
+                            Promise.resolve({
+                                isConfigurationSatisfied: false,
+                                canAttributeContributeToConfigurationSatisfaction: [],
+                                choiceConsequences: [
                                     {
-                                        choiceValueId: "v1",
-                                        possibleDecisionStates: [
-                                            PossibleDecisionState.Included,
-                                            PossibleDecisionState.Excluded
+                                        attributeId: {localId: "a1"},
+                                        isSatisfied: false,
+                                        cardinality: {
+                                            upperBound: 1,
+                                            lowerBound: 1,
+                                        },
+                                        values: [
+                                            {
+                                                choiceValueId: "v1",
+                                                possibleDecisionStates: [
+                                                    PossibleDecisionState.Included,
+                                                    PossibleDecisionState.Excluded,
+                                                ],
+                                                isPossibleDecisionStatesImmutable: false,
+                                            },
+                                            {
+                                                choiceValueId: "v2",
+                                                possibleDecisionStates: [
+                                                    PossibleDecisionState.Included,
+                                                    PossibleDecisionState.Excluded,
+                                                ],
+                                                isPossibleDecisionStatesImmutable: false,
+                                            },
                                         ],
-                                        isPossibleDecisionStatesImmutable: false,
                                     },
-                                    {
-                                        choiceValueId: "v2",
-                                        possibleDecisionStates: [
-                                            PossibleDecisionState.Included,
-                                            PossibleDecisionState.Excluded
-                                        ],
-                                        isPossibleDecisionStatesImmutable: false,
-                                    }
-                                ]
-                            }],
-                            componentConsequences: [],
-                            numericConsequences: [],
-                            booleanConsequences: []
-                        } satisfies Engine.Consequences)
+                                ],
+                                componentConsequences: [],
+                                numericConsequences: [],
+                                booleanConsequences: [],
+                            } satisfies Engine.Consequences),
                     } as Response);
                 }
                 if (input.endsWith("decision")) {
                     return Promise.resolve({
                         ok: true,
                         status: 200,
-                        json: (): Promise<any> => Promise.resolve({
-                            choiceValueDecisions: [],
-                            numericDecisions: [],
-                            booleanDecisions: [],
-                            componentDecisions: []
-                        } satisfies Engine.Decisions)
+                        json: (): Promise<any> =>
+                            Promise.resolve({
+                                choiceValueDecisions: [],
+                                numericDecisions: [],
+                                booleanDecisions: [],
+                                componentDecisions: [],
+                            } satisfies Engine.Decisions),
                     } as Response);
                 }
                 if (input.endsWith("meta")) {
                     return Promise.resolve({
                         ok: true,
                         status: 200,
-                        json: (): Promise<any> => Promise.resolve({
-                            configurationModels: [{
-                                configurationModelId: "model1",
-                                globalAttributeIds: [
-                                    {localId: "a1"}
-                                ]
-                            }],
-                        } satisfies Engine.CompleteMeta)
+                        json: (): Promise<any> =>
+                            Promise.resolve({
+                                configurationModels: [
+                                    {
+                                        configurationModelId: "model1",
+                                        globalAttributeIds: [{localId: "a1"}],
+                                    },
+                                ],
+                            } satisfies Engine.CompleteMeta),
                     } as Response);
                 }
             }
@@ -147,9 +158,9 @@ describe("EngineLogic", () => {
         const createSessionResult = await Logic.createSession({
             ...SessionContextWithModelWithOneMandatoryChoice,
             sessionInitialisationOptions: {
-                accessToken: "Token1"
+                accessToken: "Token1",
             },
-            provideSourceId: true
+            provideSourceId: true,
         })();
 
         const result = expectToBeRight(createSessionResult);
@@ -160,53 +171,55 @@ describe("EngineLogic", () => {
         expect(headersOf(fetchMock.mock.calls[0][1])["Authorization"]).toBe("Bearer Token1");
 
         // Every further call must have a SessionId header
-        fetchMock.mock.calls.slice(1)
-            .forEach(call => expect(headersOf(call[1])["X-SESSION-ID"]).toBe("SessionId"));
+        fetchMock.mock.calls.slice(1).forEach(call => expect(headersOf(call[1])["X-SESSION-ID"]).toBe("SessionId"));
 
         const attribute = result.configuration.attributes.get(GlobalAttributeIdKeyBuilder({localId: "a1"}))!;
         expect(attribute.sourceId).toEqual({
             configurationModel: "model1",
-            localId: "a1"
-        } satisfies  SourceAttributeId);
+            localId: "a1",
+        } satisfies SourceAttributeId);
         expect(attribute.isSatisfied).toBeFalse();
     });
 
     it("createSession - forwards additionalRequestHeaders on the CreateSession request only and never overrides Authorization", async () => {
-        fetchMock.mockImplementation((input) => {
+        fetchMock.mockImplementation(input => {
             if (typeof input === "string") {
                 if (input.endsWith("session")) {
                     return Promise.resolve({
                         ok: true,
                         status: 200,
-                        json: (): Promise<any> => Promise.resolve({
-                            sessionId: "SessionId"
-                        } satisfies Engine.CreateSessionSuccessResponse)
+                        json: (): Promise<any> =>
+                            Promise.resolve({
+                                sessionId: "SessionId",
+                            } satisfies Engine.CreateSessionSuccessResponse),
                     } as Response);
                 }
                 if (input.endsWith("consequence")) {
                     return Promise.resolve({
                         ok: true,
                         status: 200,
-                        json: (): Promise<any> => Promise.resolve({
-                            isConfigurationSatisfied: false,
-                            canAttributeContributeToConfigurationSatisfaction: [],
-                            choiceConsequences: [],
-                            componentConsequences: [],
-                            numericConsequences: [],
-                            booleanConsequences: []
-                        } satisfies Engine.Consequences)
+                        json: (): Promise<any> =>
+                            Promise.resolve({
+                                isConfigurationSatisfied: false,
+                                canAttributeContributeToConfigurationSatisfaction: [],
+                                choiceConsequences: [],
+                                componentConsequences: [],
+                                numericConsequences: [],
+                                booleanConsequences: [],
+                            } satisfies Engine.Consequences),
                     } as Response);
                 }
                 if (input.endsWith("decision")) {
                     return Promise.resolve({
                         ok: true,
                         status: 200,
-                        json: (): Promise<any> => Promise.resolve({
-                            choiceValueDecisions: [],
-                            numericDecisions: [],
-                            booleanDecisions: [],
-                            componentDecisions: []
-                        } satisfies Engine.Decisions)
+                        json: (): Promise<any> =>
+                            Promise.resolve({
+                                choiceValueDecisions: [],
+                                numericDecisions: [],
+                                booleanDecisions: [],
+                                componentDecisions: [],
+                            } satisfies Engine.Decisions),
                     } as Response);
                 }
             }
@@ -221,10 +234,10 @@ describe("EngineLogic", () => {
                 additionalRequestHeaders: {
                     "X-TENANT-ID": "tenant1",
                     // The library's own Authorization must win over a consumer-supplied one.
-                    "Authorization": "Bearer Spoofed"
-                }
+                    Authorization: "Bearer Spoofed",
+                },
             },
-            provideSourceId: false
+            provideSourceId: false,
         })();
 
         expectToBeRight(createSessionResult);
@@ -236,8 +249,7 @@ describe("EngineLogic", () => {
         expect(headersOf(fetchMock.mock.calls[0][1])["Authorization"]).toBe("Bearer Token1");
 
         // Subsequent session-scoped calls must NOT carry the additional header (CreateSession only).
-        fetchMock.mock.calls.slice(1)
-            .forEach(call => expect(headersOf(call[1])["X-TENANT-ID"]).toBeUndefined());
+        fetchMock.mock.calls.slice(1).forEach(call => expect(headersOf(call[1])["X-TENANT-ID"]).toBeUndefined());
     });
 });
 

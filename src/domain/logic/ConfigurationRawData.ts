@@ -1,43 +1,49 @@
 import type ConfigurationRawData from "../model/ConfigurationRawData";
-import type { OrdT} from "@viamedici-spc/fp-ts-extensions";
+import type {OrdT} from "@viamedici-spc/fp-ts-extensions";
 import {flow, O, Ord, pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
 import type {
     AttributeDecision,
     BooleanAttributeDecision,
     ChoiceAttributeDecision,
     ComponentAttributeDecision,
-    NumericAttributeDecision
+    NumericAttributeDecision,
 } from "../model/PartialAttribute";
 import {match} from "ts-pattern";
-import type { BaseCollectedDecision,
+import type {
+    BaseCollectedDecision,
     ChoiceValueDecisionState,
-    CollectedBooleanDecision, CollectedChoiceDecision, CollectedComponentDecision,
+    CollectedBooleanDecision,
+    CollectedChoiceDecision,
+    CollectedComponentDecision,
     CollectedDecision,
-    CollectedNumericDecision, ComponentDecisionState,
+    CollectedNumericDecision,
+    ComponentDecisionState,
     Decision,
     ExplicitBooleanDecision,
     ExplicitChoiceDecision,
     ExplicitComponentDecision,
     ExplicitDecision,
-    ExplicitNumericDecision
+    ExplicitNumericDecision,
 } from "../../contract/Types";
-import {
-    AttributeType,
-    DecisionKind
-} from "../../contract/Types";
-import type { Option} from "fp-ts/Option";
+import {AttributeType, DecisionKind} from "../../contract/Types";
+import type {Option} from "fp-ts/Option";
 import {none} from "fp-ts/Option";
 import {attributeConsequenceMapSe, attributeDecisionMapSe, attributeMetaMapSe} from "../Semigroups";
 
 export function merge(rawData: ConfigurationRawData, partialData: Partial<ConfigurationRawData>): ConfigurationRawData {
-    return pipe({
+    return pipe(
+        {
             isSatisfied: partialData.isSatisfied ?? rawData.isSatisfied,
             canContributeToSatisfaction: partialData.canContributeToSatisfaction ?? rawData.canContributeToSatisfaction,
             meta: partialData.meta ? attributeMetaMapSe.concat(rawData.meta, partialData.meta) : rawData.meta,
-            decisions: partialData.decisions ? attributeDecisionMapSe.concat(rawData.decisions, partialData.decisions) : rawData.decisions,
-            consequences: partialData.consequences ? attributeConsequenceMapSe.concat(rawData.consequences, partialData.consequences) : rawData.consequences,
+            decisions: partialData.decisions
+                ? attributeDecisionMapSe.concat(rawData.decisions, partialData.decisions)
+                : rawData.decisions,
+            consequences: partialData.consequences
+                ? attributeConsequenceMapSe.concat(rawData.consequences, partialData.consequences)
+                : rawData.consequences,
         },
-        removeUndefinedDecisions
+        removeUndefinedDecisions,
     );
 }
 
@@ -46,59 +52,93 @@ function removeUndefinedDecisions(rawData: ConfigurationRawData): ConfigurationR
         rawData.decisions,
         RM.filterMap<AttributeDecision, AttributeDecision>(a => {
             if (a.type === AttributeType.Choice) {
-                return pipe({
+                return pipe(
+                    {
                         ...a,
                         values: pipe(
                             a.values,
                             RA.filter(v => v.decision != null),
-                        )
+                        ),
                     } satisfies ChoiceAttributeDecision,
-                    O.fromPredicate(a => RA.isNonEmpty(a.values))
+                    O.fromPredicate(a => RA.isNonEmpty(a.values)),
                 );
             }
             return a.decision != null ? some(a) : none;
-        })
+        }),
     );
 
     return {
         ...rawData,
-        decisions: clearedDecisions
+        decisions: clearedDecisions,
     };
 }
 
 export function hasAnyExplicitDecision(configurationRawData: ConfigurationRawData): boolean {
     return [...configurationRawData.decisions.values()].some(d =>
-        d.type === AttributeType.Choice ?
-            d.values.some((v => v.decision?.kind === DecisionKind.Explicit))
-            : d.decision?.kind === DecisionKind.Explicit);
+        d.type === AttributeType.Choice
+            ? d.values.some(v => v.decision?.kind === DecisionKind.Explicit)
+            : d.decision?.kind === DecisionKind.Explicit,
+    );
 }
 
 export function getCollectedDecisions(configurationRawData: ConfigurationRawData): ReadonlyArray<CollectedDecision> {
-    const getDecisions = <Type extends AttributeType, T extends number | boolean | ComponentDecisionState | ChoiceValueDecisionState, TAdditional>(
-        attribute: AttributeDecision & { type: Type },
+    const getDecisions = <
+        Type extends AttributeType,
+        T extends number | boolean | ComponentDecisionState | ChoiceValueDecisionState,
+        TAdditional,
+    >(
+        attribute: AttributeDecision & {type: Type},
         decision: Decision<T> | null,
-        additionalProps: TAdditional): ReadonlyArray<BaseCollectedDecision<T> & {
-        attributeType: Type
-    } & TAdditional> =>
-        decision ? [{
-            attributeType: attribute.type,
-            attributeId: attribute.id,
-            attributeKey: attribute.key,
-            kind: decision.kind,
-            state: decision.state,
-            ...additionalProps
-        }] : [];
+        additionalProps: TAdditional,
+    ): ReadonlyArray<
+        BaseCollectedDecision<T> & {
+            attributeType: Type;
+        } & TAdditional
+    > =>
+        decision
+            ? [
+                  {
+                      attributeType: attribute.type,
+                      attributeId: attribute.id,
+                      attributeKey: attribute.key,
+                      kind: decision.kind,
+                      state: decision.state,
+                      ...additionalProps,
+                  },
+              ]
+            : [];
 
     return pipe(
         configurationRawData.decisions,
         RM.values(Ord.trivial as OrdT<AttributeDecision>),
-        RA.chain(a => match(a)
-            .returnType<ReadonlyArray<CollectedDecision>>()
-            .with({type: AttributeType.Boolean}, b => getDecisions(b, b.decision, {}) satisfies ReadonlyArray<CollectedBooleanDecision>)
-            .with({type: AttributeType.Numeric}, n => getDecisions(n, n.decision, {}) satisfies ReadonlyArray<CollectedNumericDecision>)
-            .with({type: AttributeType.Component}, c => getDecisions(c, c.decision, {}) satisfies ReadonlyArray<CollectedComponentDecision>)
-            .with({type: AttributeType.Choice}, c => pipe(c.values, RA.chain(v => getDecisions(c, v.decision, {choiceValueId: v.id}) satisfies ReadonlyArray<CollectedChoiceDecision>)))
-            .exhaustive())
+        RA.chain(a =>
+            match(a)
+                .returnType<ReadonlyArray<CollectedDecision>>()
+                .with(
+                    {type: AttributeType.Boolean},
+                    b => getDecisions(b, b.decision, {}) satisfies ReadonlyArray<CollectedBooleanDecision>,
+                )
+                .with(
+                    {type: AttributeType.Numeric},
+                    n => getDecisions(n, n.decision, {}) satisfies ReadonlyArray<CollectedNumericDecision>,
+                )
+                .with(
+                    {type: AttributeType.Component},
+                    c => getDecisions(c, c.decision, {}) satisfies ReadonlyArray<CollectedComponentDecision>,
+                )
+                .with({type: AttributeType.Choice}, c =>
+                    pipe(
+                        c.values,
+                        RA.chain(
+                            v =>
+                                getDecisions(c, v.decision, {
+                                    choiceValueId: v.id,
+                                }) satisfies ReadonlyArray<CollectedChoiceDecision>,
+                        ),
+                    ),
+                )
+                .exhaustive(),
+        ),
     );
 }
 
@@ -106,11 +146,13 @@ export function getAllExplicitDecisions(configurationRawData: ConfigurationRawDa
     return pipe(
         configurationRawData.decisions,
         RM.values(Ord.trivial as OrdT<AttributeDecision>),
-        RA.chain(getExplicitDecisionsForAttribute)
+        RA.chain(getExplicitDecisionsForAttribute),
     );
 }
 
-export function getExplicitDecisionsForAttribute(attributeDecision: AttributeDecision): ReadonlyArray<ExplicitDecision> {
+export function getExplicitDecisionsForAttribute(
+    attributeDecision: AttributeDecision,
+): ReadonlyArray<ExplicitDecision> {
     return match(attributeDecision)
         .returnType<ReadonlyArray<ExplicitDecision>>()
         .with({type: AttributeType.Boolean}, flow(getBooleanExplicitDecision, RA.fromOption))
@@ -125,7 +167,7 @@ function getBooleanExplicitDecision(attribute: BooleanAttributeDecision): Option
         return some({
             type: AttributeType.Boolean,
             attributeId: attribute.id,
-            state: attribute.decision.state
+            state: attribute.decision.state,
         });
     }
 
@@ -137,7 +179,7 @@ function getNumericExplicitDecision(attribute: NumericAttributeDecision): Option
         return some({
             type: AttributeType.Numeric,
             attributeId: attribute.id,
-            state: attribute.decision.state
+            state: attribute.decision.state,
         });
     }
 
@@ -149,7 +191,7 @@ function getComponentExplicitDecision(attribute: ComponentAttributeDecision): Op
         return some({
             type: AttributeType.Component,
             attributeId: attribute.id,
-            state: attribute.decision.state
+            state: attribute.decision.state,
         });
     }
 
@@ -160,11 +202,14 @@ function getChoiceExplicitDecision(attribute: ChoiceAttributeDecision): Readonly
     return pipe(
         attribute.values,
         RA.filter(v => v.decision?.kind === DecisionKind.Explicit),
-        RA.map(v => ({
-            type: AttributeType.Choice,
-            attributeId: attribute.id,
-            choiceValueId: v.id,
-            state: v.decision!.state
-        } satisfies ExplicitChoiceDecision))
+        RA.map(
+            v =>
+                ({
+                    type: AttributeType.Choice,
+                    attributeId: attribute.id,
+                    choiceValueId: v.id,
+                    state: v.decision!.state,
+                }) satisfies ExplicitChoiceDecision,
+        ),
     );
 }

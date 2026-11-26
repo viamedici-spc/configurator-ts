@@ -5,7 +5,7 @@ export function stringify(value: any): string {
 function replacer(_key: string, value: unknown): unknown {
     if (value instanceof Map) {
         return {
-            dataType: 'Map',
+            dataType: "Map",
             value: Array.from(value.entries()),
         };
     } else {

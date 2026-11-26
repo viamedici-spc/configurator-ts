@@ -2,15 +2,29 @@
   "name": "@viamedici-spc/configurator-ts",
   "version": "0.0.0",
   "description": "TypeScript library to build configurator web applications based on the Viamedici Headless Configuration Engine (HCE).",
+  "keywords": [
+    "configuration",
+    "constraint",
+    "csp",
+    "hce",
+    "problem",
+    "product",
+    "satisfaction",
+    "solver",
+    "spc",
+    "viamedici"
+  ],
+  "license": "MIT",
+  "author": "Viamedici Software GmbH",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/viamedici-spc/configurator-ts.git"
   },
-  "type": "module",
-  "sideEffects": false,
   "files": [
     "dist"
   ],
+  "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./dist/index.js",
     "./package.json": "./package.json"
@@ -25,32 +39,6 @@
     "verify": "bun run --parallel typecheck lint format:check test verify:package",
     "verify:package": "bun run build && publint --strict && attw --pack . --profile esm-only --format table-flipped"
   },
-  "keywords": [
-    "viamedici",
-    "product",
-    "configuration",
-    "spc",
-    "hce",
-    "csp",
-    "constraint",
-    "satisfaction",
-    "problem",
-    "solver"
-  ],
-  "author": "Viamedici Software GmbH",
-  "license": "MIT",
-  "packageManager": "bun@1.4.5",
-  "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.5",
-    "@types/bun": "^1.4.5",
-    "@types/spark-md5": "^3.0.4",
-    "oxlint": "^1.94.0",
-    "publint": "^0.3.25",
-    "swagger-typescript-api": "^13.0.3",
-    "tsdown": "^0.23.7",
-    "typescript": "7.0.2",
-    "wait-for-expect": "^3.0.2"
-  },
   "dependencies": {
     "@morphic-ts/batteries": "^3.0.0",
     "@viamedici-spc/fp-ts-extensions": "^1.2.0",
@@ -64,6 +52,18 @@
     "tslib": "^2.7.0",
     "xstate": "^5.17.4"
   },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@types/bun": "^1.4.5",
+    "@types/spark-md5": "^3.0.4",
+    "oxlint": "^1.94.0",
+    "publint": "^0.3.25",
+    "swagger-typescript-api": "^13.0.3",
+    "tsdown": "^0.23.7",
+    "typescript": "7.0.2",
+    "wait-for-expect": "^3.0.2"
+  },
+  "packageManager": "bun@1.4.5",
   "inlinedDependencies": {
     "monocle-ts": "2.3.13"
   }

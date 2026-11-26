@@ -6,20 +6,24 @@ import type {
     ComponentAttribute,
     GlobalAttributeId,
     GlobalAttributeIdKey,
-    NumericAttribute} from "../../src";
-import {
-    AttributeType,
-    ChoiceValueDecisionState,
-    ComponentDecisionState,
-    Inclusion,
-    Selection
+    NumericAttribute,
 } from "../../src";
+import {AttributeType, ChoiceValueDecisionState, ComponentDecisionState, Inclusion, Selection} from "../../src";
 import {calculateAttributeHash} from "../../src/crossCutting/AttributeHashing";
 import type {HashedAttribute} from "../../src/domain/model/HashedAttribute";
 
-export function getBooleanAttribute(localId: string, partial?: Partial<BooleanAttribute & HashedAttribute>): [GlobalAttributeIdKey, BooleanAttribute & HashedAttribute]
-export function getBooleanAttribute(globalId: GlobalAttributeId, partial?: Partial<BooleanAttribute & HashedAttribute>): [GlobalAttributeIdKey, BooleanAttribute & HashedAttribute]
-export function getBooleanAttribute(globalOrLocalId: string | GlobalAttributeId, partial?: Partial<BooleanAttribute & HashedAttribute>): [GlobalAttributeIdKey, BooleanAttribute & HashedAttribute] {
+export function getBooleanAttribute(
+    localId: string,
+    partial?: Partial<BooleanAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, BooleanAttribute & HashedAttribute];
+export function getBooleanAttribute(
+    globalId: GlobalAttributeId,
+    partial?: Partial<BooleanAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, BooleanAttribute & HashedAttribute];
+export function getBooleanAttribute(
+    globalOrLocalId: string | GlobalAttributeId,
+    partial?: Partial<BooleanAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, BooleanAttribute & HashedAttribute] {
     const id = typeof globalOrLocalId === "string" ? {localId: globalOrLocalId} : globalOrLocalId;
     const key = GlobalAttributeIdKeyBuilder(id);
 
@@ -46,9 +50,18 @@ export function getBooleanAttribute(globalOrLocalId: string | GlobalAttributeId,
     return [key, hashedAttribute];
 }
 
-export function getNumericAttribute(localId: string, partial?: Partial<NumericAttribute & HashedAttribute>): [GlobalAttributeIdKey, NumericAttribute & HashedAttribute]
-export function getNumericAttribute(globalId: GlobalAttributeId, partial?: Partial<NumericAttribute & HashedAttribute>): [GlobalAttributeIdKey, NumericAttribute & HashedAttribute]
-export function getNumericAttribute(globalOrLocalId: string | GlobalAttributeId, partial?: Partial<NumericAttribute & HashedAttribute>): [GlobalAttributeIdKey, NumericAttribute & HashedAttribute] {
+export function getNumericAttribute(
+    localId: string,
+    partial?: Partial<NumericAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, NumericAttribute & HashedAttribute];
+export function getNumericAttribute(
+    globalId: GlobalAttributeId,
+    partial?: Partial<NumericAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, NumericAttribute & HashedAttribute];
+export function getNumericAttribute(
+    globalOrLocalId: string | GlobalAttributeId,
+    partial?: Partial<NumericAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, NumericAttribute & HashedAttribute] {
     const id = typeof globalOrLocalId === "string" ? {localId: globalOrLocalId} : globalOrLocalId;
     const key = GlobalAttributeIdKeyBuilder(id);
 
@@ -64,7 +77,7 @@ export function getNumericAttribute(globalOrLocalId: string | GlobalAttributeId,
         decimalPlaces: 0,
         range: {
             min: 0,
-            max: 10
+            max: 10,
         },
         isPossibleDecisionStatesImmutable: false,
         ...partial,
@@ -79,9 +92,18 @@ export function getNumericAttribute(globalOrLocalId: string | GlobalAttributeId,
     return [key, hashedAttribute];
 }
 
-export function getComponentAttribute(localId: string, partial?: Partial<ComponentAttribute & HashedAttribute>): [GlobalAttributeIdKey, ComponentAttribute & HashedAttribute]
-export function getComponentAttribute(globalId: GlobalAttributeId, partial?: Partial<ComponentAttribute & HashedAttribute>): [GlobalAttributeIdKey, ComponentAttribute & HashedAttribute]
-export function getComponentAttribute(globalOrLocalId: string | GlobalAttributeId, partial?: Partial<ComponentAttribute & HashedAttribute>): [GlobalAttributeIdKey, ComponentAttribute & HashedAttribute] {
+export function getComponentAttribute(
+    localId: string,
+    partial?: Partial<ComponentAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, ComponentAttribute & HashedAttribute];
+export function getComponentAttribute(
+    globalId: GlobalAttributeId,
+    partial?: Partial<ComponentAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, ComponentAttribute & HashedAttribute];
+export function getComponentAttribute(
+    globalOrLocalId: string | GlobalAttributeId,
+    partial?: Partial<ComponentAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, ComponentAttribute & HashedAttribute] {
     const id = typeof globalOrLocalId === "string" ? {localId: globalOrLocalId} : globalOrLocalId;
     const key = GlobalAttributeIdKeyBuilder(id);
 
@@ -109,9 +131,18 @@ export function getComponentAttribute(globalOrLocalId: string | GlobalAttributeI
     return [key, hashedAttribute];
 }
 
-export function getChoiceAttribute(localId: string, partial?: Partial<ChoiceAttribute & HashedAttribute>): [GlobalAttributeIdKey, ChoiceAttribute & HashedAttribute]
-export function getChoiceAttribute(globalId: GlobalAttributeId, partial?: Partial<ChoiceAttribute & HashedAttribute>): [GlobalAttributeIdKey, ChoiceAttribute & HashedAttribute]
-export function getChoiceAttribute(globalOrLocalId: string | GlobalAttributeId, partial?: Partial<ChoiceAttribute & HashedAttribute>): [GlobalAttributeIdKey, ChoiceAttribute & HashedAttribute] {
+export function getChoiceAttribute(
+    localId: string,
+    partial?: Partial<ChoiceAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, ChoiceAttribute & HashedAttribute];
+export function getChoiceAttribute(
+    globalId: GlobalAttributeId,
+    partial?: Partial<ChoiceAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, ChoiceAttribute & HashedAttribute];
+export function getChoiceAttribute(
+    globalOrLocalId: string | GlobalAttributeId,
+    partial?: Partial<ChoiceAttribute & HashedAttribute>,
+): [GlobalAttributeIdKey, ChoiceAttribute & HashedAttribute] {
     const id = typeof globalOrLocalId === "string" ? {localId: globalOrLocalId} : globalOrLocalId;
     const key = GlobalAttributeIdKeyBuilder(id);
 
@@ -123,23 +154,29 @@ export function getChoiceAttribute(globalOrLocalId: string | GlobalAttributeId, 
         canContributeToConfigurationSatisfaction: false,
         cardinality: {
             upperBound: 1,
-            lowerBound: 1
+            lowerBound: 1,
         },
         values: new Map([
-            ["V1", {
-                id: "V1",
-                decision: null,
-                nonOptimisticDecision: null,
-                possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded],
-                isPossibleDecisionStatesImmutable: false,
-            } satisfies ChoiceValue],
-            ["V2", {
-                id: "V2",
-                decision: null,
-                nonOptimisticDecision: null,
-                possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded],
-                isPossibleDecisionStatesImmutable: false,
-            } satisfies ChoiceValue]
+            [
+                "V1",
+                {
+                    id: "V1",
+                    decision: null,
+                    nonOptimisticDecision: null,
+                    possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded],
+                    isPossibleDecisionStatesImmutable: false,
+                } satisfies ChoiceValue,
+            ],
+            [
+                "V2",
+                {
+                    id: "V2",
+                    decision: null,
+                    nonOptimisticDecision: null,
+                    possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded],
+                    isPossibleDecisionStatesImmutable: false,
+                } satisfies ChoiceValue,
+            ],
         ]),
         ...partial,
     };

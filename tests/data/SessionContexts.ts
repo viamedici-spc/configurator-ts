@@ -3,7 +3,7 @@ import type {SessionContext} from "../../src";
 
 export const SessionContextWithModelWithOneMandatoryChoice: SessionContext = {
     sessionInitialisationOptions: {
-        accessToken: "Token1"
+        accessToken: "Token1",
     },
-    configurationModelSource: ModelWithOneMandatoryChoice
+    configurationModelSource: ModelWithOneMandatoryChoice,
 };

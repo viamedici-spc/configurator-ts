@@ -6,8 +6,8 @@ export const emptyChanges: ConfigurationChanges = {
     attributes: {
         added: [],
         changed: [],
-        removed: []
-    }
+        removed: [],
+    },
 };
 
 export function isEmpty(configurationChanges: ConfigurationChanges): boolean {

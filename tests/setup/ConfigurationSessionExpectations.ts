@@ -4,9 +4,10 @@ import type {
     BooleanAttribute,
     ChoiceAttribute,
     ChoiceValue,
-    ChoiceValueId, ComponentAttribute,
+    ChoiceValueId,
+    ComponentAttribute,
     GlobalAttributeId,
-    NumericAttribute
+    NumericAttribute,
 } from "../../src";
 import * as Interpreter from "../../src/contract/interpreter/ConfigurationInterpreter";
 import type ConfigurationSession from "../../src/ConfigurationSession";
@@ -15,20 +16,29 @@ import {configurationEq, hashedConfigurationEq} from "../../src/contract/Eqs";
 
 type ApFirstResult<T extends Function> = T extends (p1: any, ...args: infer P) => infer R ? (...args: P) => R : never;
 
-function apFirst<P1, P extends ReadonlyArray<unknown>, R>(fn: (p1: P1, ...args: P) => R, p1: P1): ApFirstResult<typeof fn> {
+function apFirst<P1, P extends ReadonlyArray<unknown>, R>(
+    fn: (p1: P1, ...args: P) => R,
+    p1: P1,
+): ApFirstResult<typeof fn> {
     return ((...args: P): R => fn(p1, ...args)) as unknown as ApFirstResult<typeof fn>;
 }
 
 function expectChoiceAttribute(session: IConfigurationSession) {
-    return async (id: GlobalAttributeId, additionalExpectations?: (sut: ChoiceAttribute, expectations: {
-        expectChoiceValue: ApFirstResult<ReturnType<typeof expectChoiceValue>>
-    }) => void | Promise<void>) => {
+    return async (
+        id: GlobalAttributeId,
+        additionalExpectations?: (
+            sut: ChoiceAttribute,
+            expectations: {
+                expectChoiceValue: ApFirstResult<ReturnType<typeof expectChoiceValue>>;
+            },
+        ) => void | Promise<void>,
+    ) => {
         const attribute = Interpreter.getChoiceAttribute(session.getConfiguration(), id);
         expect(attribute).toBeTruthy();
 
         if (additionalExpectations) {
             await additionalExpectations(attribute!, {
-                expectChoiceValue: apFirst(expectChoiceValue(session), id)
+                expectChoiceValue: apFirst(expectChoiceValue(session), id),
             });
         }
 
@@ -63,7 +73,10 @@ function expectBooleanAttribute(session: IConfigurationSession) {
 }
 
 function expectComponentAttribute(session: IConfigurationSession) {
-    return async (id: GlobalAttributeId, additionalExpectations?: (sut: ComponentAttribute) => void | Promise<void>) => {
+    return async (
+        id: GlobalAttributeId,
+        additionalExpectations?: (sut: ComponentAttribute) => void | Promise<void>,
+    ) => {
         const attribute = Interpreter.getComponentAttribute(session.getConfiguration(), id);
         expect(attribute).toBeTruthy();
 
@@ -76,7 +89,11 @@ function expectComponentAttribute(session: IConfigurationSession) {
 }
 
 function expectChoiceValue(session: IConfigurationSession) {
-    return async (id: GlobalAttributeId, choiceValueId: ChoiceValueId, additionalExpectations?: (sut: ChoiceValue) => void | Promise<void>) => {
+    return async (
+        id: GlobalAttributeId,
+        choiceValueId: ChoiceValueId,
+        additionalExpectations?: (sut: ChoiceValue) => void | Promise<void>,
+    ) => {
         const choiceValue = Interpreter.getChoiceValue(session.getConfiguration(), id, choiceValueId);
         expect(choiceValue).toBeTruthy();
 
@@ -99,11 +116,12 @@ function expectRawDataToBeSameAsConfiguration(session: IConfigurationSession): (
         const configurationSession = session as ConfigurationSession;
         const configurationFromRawData = fromRawData(configurationSession.sessionState.configurationRawData);
 
-        expect(hashedConfigurationEq.equals(configurationFromRawData, configurationSession.sessionState.configuration)).toBeTruthy();
+        expect(
+            hashedConfigurationEq.equals(configurationFromRawData, configurationSession.sessionState.configuration),
+        ).toBeTruthy();
         expect(configurationEq.equals(configurationFromRawData, session.getConfiguration())).toBeTruthy();
     };
 }
-
 
 export default function getConfigurationSessionExpectations(session: IConfigurationSession) {
     return {

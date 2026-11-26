@@ -9,5 +9,5 @@ await generateApi({
     httpClientType: "fetch",
     generateClient: true,
     cleanOutput: false,
-    enumNamesAsValues: true
+    enumNamesAsValues: true,
 }).catch(e => console.error(e));

@@ -14,7 +14,7 @@ const sessionFactory: ISessionFactory = {
                 r => Promise.resolve(new ConfigurationSession(r)),
             ),
         );
-    }
+    },
 };
 
 export default sessionFactory;

@@ -16,48 +16,51 @@ export type SourceAttributeId = {
 export type GlobalAttributeIdKey = string;
 
 export type GlobalAttributeId = {
-    readonly localId: LocalAttributeId,
-    readonly sharedConfigurationModelId?: ConfigurationModelId,
-    readonly componentPath?: ReadonlyArray<LocalAttributeId>
+    readonly localId: LocalAttributeId;
+    readonly sharedConfigurationModelId?: ConfigurationModelId;
+    readonly componentPath?: ReadonlyArray<LocalAttributeId>;
 };
 
 export type GlobalConstraintId = {
-    localId: LocalRuleId,
-    configurationModelId: ConfigurationModelId
+    localId: LocalRuleId;
+    configurationModelId: ConfigurationModelId;
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
 export type BaseDecision = {
-    readonly attributeId: GlobalAttributeId
+    readonly attributeId: GlobalAttributeId;
 };
 
 // A decision's shape only depends on the attribute type; Explicit and Fixed decisions differ solely in whether the
 // state may be null/undefined. They are therefore instantiations of the same per-attribute-type base with the state
 // type as parameter.
 export type ChoiceDecisionOf<TState> = BaseDecision & {
-    readonly type: AttributeType.Choice,
-    readonly choiceValueId: ChoiceValueId,
-    readonly state: TState
+    readonly type: AttributeType.Choice;
+    readonly choiceValueId: ChoiceValueId;
+    readonly state: TState;
 };
 
 export type NumericDecisionOf<TState> = BaseDecision & {
-    readonly type: AttributeType.Numeric,
-    readonly state: TState
+    readonly type: AttributeType.Numeric;
+    readonly state: TState;
 };
 
 export type BooleanDecisionOf<TState> = BaseDecision & {
-    readonly type: AttributeType.Boolean,
-    readonly state: TState
+    readonly type: AttributeType.Boolean;
+    readonly state: TState;
 };
 
 export type ComponentDecisionOf<TState> = BaseDecision & {
-    readonly type: AttributeType.Component,
-    readonly state: TState
+    readonly type: AttributeType.Component;
+    readonly state: TState;
 };
 
 // Explicit decisions are made at runtime; a null/undefined state resets (clears) the decision.
 export type ExplicitDecision =
-    ExplicitChoiceDecision | ExplicitNumericDecision | ExplicitBooleanDecision | ExplicitComponentDecision;
+    | ExplicitChoiceDecision
+    | ExplicitNumericDecision
+    | ExplicitBooleanDecision
+    | ExplicitComponentDecision;
 
 export type ExplicitNumericDecision = NumericDecisionOf<number | null | undefined>;
 
@@ -69,8 +72,7 @@ export type ExplicitComponentDecision = ComponentDecisionOf<ComponentDecisionSta
 
 // Fixed decisions are set once when the session is created and stay immutable for its lifetime. They share the shape
 // of ExplicitDecision, but the state is strict — there is no null/undefined "reset".
-export type FixedDecision =
-    FixedChoiceDecision | FixedNumericDecision | FixedBooleanDecision | FixedComponentDecision;
+export type FixedDecision = FixedChoiceDecision | FixedNumericDecision | FixedBooleanDecision | FixedComponentDecision;
 
 export type FixedNumericDecision = NumericDecisionOf<number>;
 
@@ -82,42 +84,40 @@ export type FixedComponentDecision = ComponentDecisionOf<ComponentDecisionState>
 
 // ---------------------------------------------------------------------------------------------------------------------
 type BaseCausedByDecision = {
-    readonly type: AttributeType
-    readonly attributeId: GlobalAttributeId
+    readonly type: AttributeType;
+    readonly attributeId: GlobalAttributeId;
 };
 
-export type CausedByDecision = BaseCausedByDecision
-    & (CausedByChoiceValueDecision | CausedByNumericDecision | CausedByBooleanDecision | CausedByComponentDecision);
+export type CausedByDecision = BaseCausedByDecision &
+    (CausedByChoiceValueDecision | CausedByNumericDecision | CausedByBooleanDecision | CausedByComponentDecision);
 
 export type CausedByNumericDecision = BaseCausedByDecision & {
-    readonly type: AttributeType.Numeric,
-    readonly state: number
+    readonly type: AttributeType.Numeric;
+    readonly state: number;
 };
 
 export type CausedByBooleanDecision = BaseCausedByDecision & {
-    readonly type: AttributeType.Boolean,
-    readonly state: boolean
+    readonly type: AttributeType.Boolean;
+    readonly state: boolean;
 };
 
 export type CausedByChoiceValueDecision = BaseCausedByDecision & {
-    readonly type: AttributeType.Choice,
-    readonly choiceValueId: ChoiceValueId,
-    readonly state: ChoiceValueDecisionState
+    readonly type: AttributeType.Choice;
+    readonly choiceValueId: ChoiceValueId;
+    readonly state: ChoiceValueDecisionState;
 };
 
 export type CausedByComponentDecision = BaseCausedByDecision & {
-    readonly type: AttributeType.Component,
-    readonly state: ComponentDecisionState
+    readonly type: AttributeType.Component;
+    readonly state: ComponentDecisionState;
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
-export type ExplainQuestion =
-    WhyIsNotSatisfied
-    | WhyIsStateNotPossible;
+export type ExplainQuestion = WhyIsNotSatisfied | WhyIsStateNotPossible;
 
 export enum ExplainQuestionType {
     whyIsNotSatisfied = "why-is-not-satisfied",
-    whyIsStateNotPossible = "why-is-state-not-possible"
+    whyIsStateNotPossible = "why-is-state-not-possible",
 }
 
 export enum ExplainQuestionSubject {
@@ -126,99 +126,94 @@ export enum ExplainQuestionSubject {
     boolean = "boolean",
     numeric = "numeric",
     configuration = "configuration",
-    attribute = "attribute"
+    attribute = "attribute",
 }
 
-export type WhyIsNotSatisfied =
-    WhyIsConfigurationNotSatisfied
-    | WhyIsAttributeNotSatisfied;
+export type WhyIsNotSatisfied = WhyIsConfigurationNotSatisfied | WhyIsAttributeNotSatisfied;
 
 export type WhyIsConfigurationNotSatisfied = {
-    question: ExplainQuestionType.whyIsNotSatisfied
-    subject: ExplainQuestionSubject.configuration
-}
+    question: ExplainQuestionType.whyIsNotSatisfied;
+    subject: ExplainQuestionSubject.configuration;
+};
 
 export type WhyIsAttributeNotSatisfied = {
-    question: ExplainQuestionType.whyIsNotSatisfied
-    subject: ExplainQuestionSubject.attribute,
-    attributeId: GlobalAttributeId
-}
+    question: ExplainQuestionType.whyIsNotSatisfied;
+    subject: ExplainQuestionSubject.attribute;
+    attributeId: GlobalAttributeId;
+};
 
 export type WhyIsStateNotPossible =
-    WhyIsChoiceValueStateNotPossible
+    | WhyIsChoiceValueStateNotPossible
     | WhyIsNumericStateNotPossible
     | WhyIsBooleanStateNotPossible
     | WhyIsComponentStateNotPossible;
 
 export type WhyIsChoiceValueStateNotPossible = {
-    question: ExplainQuestionType.whyIsStateNotPossible,
-    subject: ExplainQuestionSubject.choiceValue,
-    attributeId: GlobalAttributeId,
-    choiceValueId: ChoiceValueId,
-    state: ChoiceValueDecisionState
-}
+    question: ExplainQuestionType.whyIsStateNotPossible;
+    subject: ExplainQuestionSubject.choiceValue;
+    attributeId: GlobalAttributeId;
+    choiceValueId: ChoiceValueId;
+    state: ChoiceValueDecisionState;
+};
 
 export type WhyIsNumericStateNotPossible = {
-    question: ExplainQuestionType.whyIsStateNotPossible
-    subject: ExplainQuestionSubject.numeric,
-    attributeId: GlobalAttributeId,
-    state: number
-}
+    question: ExplainQuestionType.whyIsStateNotPossible;
+    subject: ExplainQuestionSubject.numeric;
+    attributeId: GlobalAttributeId;
+    state: number;
+};
 
 export type WhyIsBooleanStateNotPossible = {
-    question: ExplainQuestionType.whyIsStateNotPossible
-    subject: ExplainQuestionSubject.boolean,
-    attributeId: GlobalAttributeId,
-    state: boolean
-}
+    question: ExplainQuestionType.whyIsStateNotPossible;
+    subject: ExplainQuestionSubject.boolean;
+    attributeId: GlobalAttributeId;
+    state: boolean;
+};
 
 export type WhyIsComponentStateNotPossible = {
-    question: ExplainQuestionType.whyIsStateNotPossible
-    subject: ExplainQuestionSubject.component,
-    attributeId: GlobalAttributeId,
-    state: ComponentDecisionState
-}
+    question: ExplainQuestionType.whyIsStateNotPossible;
+    subject: ExplainQuestionSubject.component;
+    attributeId: GlobalAttributeId;
+    state: ComponentDecisionState;
+};
 
-export type ExplainAnswer =
-    DecisionsExplainAnswer
-    | ConstraintsExplainAnswer
-    | FullExplainAnswer;
+export type ExplainAnswer = DecisionsExplainAnswer | ConstraintsExplainAnswer | FullExplainAnswer;
 
 export type DecisionsExplainAnswer = {
     decisionExplanations: ReadonlyArray<DecisionExplanation>;
-}
+};
 
 export type ConstraintsExplainAnswer = {
     constraintExplanations: ReadonlyArray<ConstraintExplanation>;
-}
+};
 
 export type FullExplainAnswer = DecisionsExplainAnswer & ConstraintsExplainAnswer;
 
 export type DecisionExplanation = {
     causedByDecisions: ReadonlyArray<CausedByDecision>;
     solution: ExplainSolution;
-}
+};
 
 export type ConstraintExplanation = {
     causedByCardinalities: ReadonlyArray<GlobalAttributeId>;
     causedByRules: ReadonlyArray<GlobalConstraintId>;
-}
+};
 
 export type ExplainSolution = {
     readonly decisions: ReadonlyArray<ExplicitDecision>;
-    readonly mode: MakeManyDecisionsMode
-}
+    readonly mode: MakeManyDecisionsMode;
+};
 
 // ---------------------------------------------------------------------------------------------------------------------
 export type Configuration = {
     readonly isSatisfied: boolean;
     readonly attributes: ReadonlyMap<GlobalAttributeIdKey, Attribute>;
-}
+};
 
 export type DecisionsToRespect = {
     readonly attributeId: GlobalAttributeId;
     readonly decisions: ReadonlyArray<GlobalAttributeId>;
-}
+};
 
 export type AttributeRelations = ReadonlyArray<DecisionsToRespect>;
 
@@ -268,7 +263,9 @@ export type SessionContext = {
      * Use {@link ClientSideSessionInitialisationOptions} for client-side session creation with all parameters.
      * Use {@link ServerSideSessionInitialisationOptions} for server-side session creation, especially when dealing with security-sensitive parameters (e.g. access token).
      */
-    readonly sessionInitialisationOptions: ClientSideSessionInitialisationOptions | ServerSideSessionInitialisationOptions;
+    readonly sessionInitialisationOptions:
+        | ClientSideSessionInitialisationOptions
+        | ServerSideSessionInitialisationOptions;
 
     /**
      * Specifies the source of the configuration model.
@@ -367,29 +364,30 @@ export type AllowedInExplain = {
 export enum AllowedRulesInExplainType {
     all = "all",
     none = "none",
-    specific = "specific"
+    specific = "specific",
 }
 
-export type AllowedRulesInExplain = AllowedRulesInExplainNone
+export type AllowedRulesInExplain =
+    | AllowedRulesInExplainNone
     | AllowedRulesInExplainAll
     | AllowedRulesInExplainSpecific;
 
 export type AllowedRulesInExplainNone = {
-    type: AllowedRulesInExplainType.none
+    type: AllowedRulesInExplainType.none;
 };
 
 export type AllowedRulesInExplainAll = {
-    type: AllowedRulesInExplainType.all
+    type: AllowedRulesInExplainType.all;
 };
 
 export type AllowedRulesInExplainSpecific = {
-    type: AllowedRulesInExplainType.specific,
-    rules: ReadonlyArray<GlobalConstraintId>
+    type: AllowedRulesInExplainType.specific;
+    rules: ReadonlyArray<GlobalConstraintId>;
 };
 
 export enum ConfigurationModelSourceType {
     Channel = "Channel",
-    Package = "Package"
+    Package = "Package",
 }
 
 export type ConfigurationModelFromChannel = {
@@ -404,7 +402,7 @@ export type ConfigurationModelFromChannel = {
      * Name of the configuration model deployment.
      */
     deploymentName: string;
-}
+};
 
 export type ConfigurationModelFromPackage = {
     type: ConfigurationModelSourceType.Package;
@@ -413,7 +411,7 @@ export type ConfigurationModelFromPackage = {
      * A self-contained package that describes the configuration model.
      */
     configurationModelPackage: Engine.ConfigurationModelPackage;
-}
+};
 
 export type ConfigurationModelSource = ConfigurationModelFromChannel | ConfigurationModelFromPackage;
 
@@ -423,7 +421,7 @@ export enum AttributeType {
     Boolean = "Boolean",
     Numeric = "Numeric",
     Choice = "Choice",
-    Component = "Component"
+    Component = "Component",
 }
 
 export type BaseAttribute = {
@@ -438,12 +436,12 @@ export type BaseAttribute = {
     readonly sourceId?: SourceAttributeId;
     readonly isSatisfied: boolean;
     readonly canContributeToConfigurationSatisfaction: boolean;
-}
+};
 
 export type Decision<TState extends boolean | number | ComponentDecisionState | ChoiceValueDecisionState> = {
     readonly state: TState;
     readonly kind: DecisionKind;
-}
+};
 
 export type BooleanAttribute = BaseAttribute & {
     readonly type: AttributeType.Boolean;
@@ -453,7 +451,7 @@ export type BooleanAttribute = BaseAttribute & {
     readonly possibleDecisionStates: ReadonlyArray<boolean>;
     readonly isPossibleDecisionStatesImmutable: boolean;
     readonly selection: Selection;
-}
+};
 
 export type NumericAttribute = BaseAttribute & {
     readonly type: AttributeType.Numeric;
@@ -464,7 +462,7 @@ export type NumericAttribute = BaseAttribute & {
     readonly decimalPlaces: number;
     readonly selection: Selection;
     readonly isPossibleDecisionStatesImmutable: boolean;
-}
+};
 
 export type ComponentAttribute = BaseAttribute & {
     readonly type: AttributeType.Component;
@@ -475,14 +473,14 @@ export type ComponentAttribute = BaseAttribute & {
     readonly selection: Selection | null;
     readonly possibleDecisionStates: ReadonlyArray<ComponentDecisionState>;
     readonly isPossibleDecisionStatesImmutable: boolean;
-}
+};
 
 export type ChoiceAttribute = BaseAttribute & {
     readonly type: AttributeType.Choice;
 
     readonly values: ReadonlyMap<ChoiceValueId, ChoiceValue>;
     readonly cardinality: Cardinality;
-}
+};
 
 export type ChoiceValue = {
     readonly id: ChoiceValueId;
@@ -490,51 +488,50 @@ export type ChoiceValue = {
     readonly nonOptimisticDecision: Decision<ChoiceValueDecisionState> | null;
     readonly possibleDecisionStates: ReadonlyArray<ChoiceValueDecisionState>;
     readonly isPossibleDecisionStatesImmutable: boolean;
-}
+};
 
 export enum ChoiceValueDecisionState {
     Included = "Included",
-    Excluded = "Excluded"
+    Excluded = "Excluded",
 }
 
 export enum ComponentDecisionState {
     Included = "Included",
-    Excluded = "Excluded"
+    Excluded = "Excluded",
 }
 
 export enum DecisionKind {
     Implicit = "Implicit",
-    Explicit = "Explicit"
+    Explicit = "Explicit",
 }
 
 export enum Selection {
     Mandatory = "Mandatory",
-    Optional = "Optional"
+    Optional = "Optional",
 }
 
 export enum Inclusion {
     Always = "Always",
-    Optional = "Optional"
+    Optional = "Optional",
 }
 
 export type Cardinality = {
-    readonly lowerBound: number
-    readonly upperBound: number
-}
+    readonly lowerBound: number;
+    readonly upperBound: number;
+};
 
 export type Range = {
-    readonly min: number
-    readonly max: number
-}
+    readonly min: number;
+    readonly max: number;
+};
 
 export type BaseCollectedDecision<T extends number | boolean | ChoiceValueDecisionState | ComponentDecisionState> =
-    Decision<T>
-    & {
-    readonly attributeType: AttributeType;
+    Decision<T> & {
+        readonly attributeType: AttributeType;
 
-    readonly attributeId: GlobalAttributeId;
-    readonly attributeKey: GlobalAttributeIdKey;
-};
+        readonly attributeId: GlobalAttributeId;
+        readonly attributeKey: GlobalAttributeIdKey;
+    };
 
 export type CollectedBooleanDecision = BaseCollectedDecision<boolean> & {
     readonly attributeType: AttributeType.Boolean;
@@ -551,49 +548,52 @@ export type CollectedComponentDecision = BaseCollectedDecision<ComponentDecision
 export type CollectedChoiceDecision = BaseCollectedDecision<ChoiceValueDecisionState> & {
     readonly attributeType: AttributeType.Choice;
     readonly choiceValueId: ChoiceValueId;
-}
+};
 
 export type CollectedDecision =
-    CollectedBooleanDecision
+    | CollectedBooleanDecision
     | CollectedNumericDecision
     | CollectedComponentDecision
     | CollectedChoiceDecision;
 
-export type CollectedImplicitDecision = CollectedDecision & { kind: DecisionKind.Implicit };
-export type CollectedExplicitDecision = CollectedDecision & { kind: DecisionKind.Explicit };
+export type CollectedImplicitDecision = CollectedDecision & {kind: DecisionKind.Implicit};
+export type CollectedExplicitDecision = CollectedDecision & {kind: DecisionKind.Explicit};
 
 export type MakeManyDecisionsMode = DropExistingDecisionsMode | KeepExistingDecisionsMode;
 
 export type DropExistingDecisionsMode = {
-    type: "DropExistingDecisions",
-    conflictHandling: ConflictResolution
-}
+    type: "DropExistingDecisions";
+    conflictHandling: ConflictResolution;
+};
 
 export type KeepExistingDecisionsMode = {
-    type: "KeepExistingDecisions"
-}
+    type: "KeepExistingDecisions";
+};
 
 export type ConflictResolution = ManualConflictResolution | AutomaticConflictResolution;
 
 export type ManualConflictResolution = {
     type: "Manual";
     includeConstraintsInConflictExplanation: boolean;
-}
+};
 
 export type AutomaticConflictResolution = {
     type: "Automatic";
-}
+};
 
 export type ConfigurationChanges = {
-    readonly isSatisfied: boolean | null,
+    readonly isSatisfied: boolean | null;
     readonly attributes: {
-        readonly added: ReadonlyArray<Attribute>,
-        readonly changed: ReadonlyArray<Attribute>,
-        readonly removed: ReadonlyArray<GlobalAttributeId>
-    }
-}
+        readonly added: ReadonlyArray<Attribute>;
+        readonly changed: ReadonlyArray<Attribute>;
+        readonly removed: ReadonlyArray<GlobalAttributeId>;
+    };
+};
 
-export type OnConfigurationChangedHandler = (configuration: Configuration, configurationChanges: ConfigurationChanges) => void;
+export type OnConfigurationChangedHandler = (
+    configuration: Configuration,
+    configurationChanges: ConfigurationChanges,
+) => void;
 
 export type OnCanResetConfigurationChangedHandler = (canResetConfiguration: boolean) => void;
 
@@ -606,11 +606,11 @@ export type ExplainQuestionParam = ExplainQuestion | ((b: ExplainQuestionBuilder
 export type SetManyResult = MakeManyDecisionsResult;
 
 export type MakeManyDecisionsResult = {
-    readonly rejectedDecisions: ReadonlyArray<ExplicitDecision>
+    readonly rejectedDecisions: ReadonlyArray<ExplicitDecision>;
 };
 
 export type Subscription = {
-    readonly unsubscribe: () => void
+    readonly unsubscribe: () => void;
 };
 
 export type ScheduleTaskResult = {

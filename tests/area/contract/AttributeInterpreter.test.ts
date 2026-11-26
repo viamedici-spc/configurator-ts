@@ -1,49 +1,44 @@
-
 import {describe, expect, it} from "bun:test";
 import * as Interpreter from "../../../src/contract/interpreter/AttributeInterpreter";
 import {
     getBooleanAttribute,
     getChoiceAttribute,
     getComponentAttribute,
-    getNumericAttribute
+    getNumericAttribute,
 } from "../../data/AttributeGeneration";
-import type {
-    Attribute,
-    ChoiceValue,
-    ChoiceValueId,
-    GlobalAttributeIdKey} from "../../../src";
-import {
-    ChoiceValueDecisionState,
-    DecisionKind,
-    Inclusion,
-    Selection
-} from "../../../src";
+import type {Attribute, ChoiceValue, ChoiceValueId, GlobalAttributeIdKey} from "../../../src";
+import {ChoiceValueDecisionState, DecisionKind, Inclusion, Selection} from "../../../src";
 
 describe("AttributeInterpreter", () => {
-    const generateTestData = <A extends Attribute, P, T extends ReadonlyArray<unknown>>(generateAttributeFn: (localId: string, partial: P) => [GlobalAttributeIdKey, A], generatePartial: (...args: T) => P) =>
-        (...args: T) => generateAttributeFn("A1", generatePartial(...args))[1];
+    const generateTestData =
+        <A extends Attribute, P, T extends ReadonlyArray<unknown>>(
+            generateAttributeFn: (localId: string, partial: P) => [GlobalAttributeIdKey, A],
+            generatePartial: (...args: T) => P,
+        ) =>
+        (...args: T) =>
+            generateAttributeFn("A1", generatePartial(...args))[1];
 
     const genChLow = generateTestData(getChoiceAttribute, (lowerBound: number) => ({
         cardinality: {
             upperBound: Number.MAX_SAFE_INTEGER,
-            lowerBound: lowerBound
-        }
+            lowerBound: lowerBound,
+        },
     }));
     const genChUp = generateTestData(getChoiceAttribute, (upperBound: number) => ({
         cardinality: {
             upperBound: upperBound,
-            lowerBound: 0
-        }
+            lowerBound: 0,
+        },
     }));
     const genNum = generateTestData(getNumericAttribute, (selection: Selection) => ({
-        selection: selection
+        selection: selection,
     }));
     const genBool = generateTestData(getBooleanAttribute, (selection: Selection) => ({
-        selection: selection
+        selection: selection,
     }));
     const genCom = generateTestData(getComponentAttribute, (selection: Selection, inclusion: Inclusion) => ({
         selection: selection,
-        inclusion: inclusion
+        inclusion: inclusion,
     }));
 
     it.each([
@@ -72,93 +67,105 @@ describe("AttributeInterpreter", () => {
     describe("allowed/blocked choice values", () => {
         const [_, attribute] = getChoiceAttribute("A1", {
             values: new Map<ChoiceValueId, ChoiceValue>([
-                ["V1", {
-                    id: "V1",
-                    decision: null,
-                    nonOptimisticDecision: null,
-                    possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded],
-                    isPossibleDecisionStatesImmutable: false,
-                }],
-                ["V2", {
-                    id: "V2",
-                    decision: null,
-                    nonOptimisticDecision: null,
-                    possibleDecisionStates: [ChoiceValueDecisionState.Included],
-                    isPossibleDecisionStatesImmutable: false,
-                }],
-                ["V3", {
-                    id: "V3",
-                    decision: null,
-                    nonOptimisticDecision: null,
-                    possibleDecisionStates: [ChoiceValueDecisionState.Excluded],
-                    isPossibleDecisionStatesImmutable: false,
-                }],
-                ["V4", {
-                    id: "V4",
-                    decision: null,
-                    nonOptimisticDecision: null,
-                    possibleDecisionStates: [],
-                    isPossibleDecisionStatesImmutable: false,
-                }],
-            ])
+                [
+                    "V1",
+                    {
+                        id: "V1",
+                        decision: null,
+                        nonOptimisticDecision: null,
+                        possibleDecisionStates: [ChoiceValueDecisionState.Included, ChoiceValueDecisionState.Excluded],
+                        isPossibleDecisionStatesImmutable: false,
+                    },
+                ],
+                [
+                    "V2",
+                    {
+                        id: "V2",
+                        decision: null,
+                        nonOptimisticDecision: null,
+                        possibleDecisionStates: [ChoiceValueDecisionState.Included],
+                        isPossibleDecisionStatesImmutable: false,
+                    },
+                ],
+                [
+                    "V3",
+                    {
+                        id: "V3",
+                        decision: null,
+                        nonOptimisticDecision: null,
+                        possibleDecisionStates: [ChoiceValueDecisionState.Excluded],
+                        isPossibleDecisionStatesImmutable: false,
+                    },
+                ],
+                [
+                    "V4",
+                    {
+                        id: "V4",
+                        decision: null,
+                        nonOptimisticDecision: null,
+                        possibleDecisionStates: [],
+                        isPossibleDecisionStatesImmutable: false,
+                    },
+                ],
+            ]),
         });
 
         it("getAllowedChoiceValues", () => {
-            expect(Interpreter.getAllowedChoiceValues(attribute).map(v => v.id)).toIncludeSameMembers([
-                "V1",
-                "V2",
-            ]);
+            expect(Interpreter.getAllowedChoiceValues(attribute).map(v => v.id)).toIncludeSameMembers(["V1", "V2"]);
         });
         it("getBlockedChoiceValues", () => {
-            expect(Interpreter.getBlockedChoiceValues(attribute).map(v => v.id)).toIncludeSameMembers([
-                "V3",
-                "V4",
-            ]);
+            expect(Interpreter.getBlockedChoiceValues(attribute).map(v => v.id)).toIncludeSameMembers(["V3", "V4"]);
         });
     });
 
     it("getIncludedChoiceValues", () => {
         const [_, attribute] = getChoiceAttribute("A1", {
             values: new Map<ChoiceValueId, ChoiceValue>([
-                ["V1", {
-                    id: "V1",
-                    decision: {
-                        kind: DecisionKind.Implicit,
-                        state: ChoiceValueDecisionState.Included
+                [
+                    "V1",
+                    {
+                        id: "V1",
+                        decision: {
+                            kind: DecisionKind.Implicit,
+                            state: ChoiceValueDecisionState.Included,
+                        },
+                        nonOptimisticDecision: {
+                            kind: DecisionKind.Implicit,
+                            state: ChoiceValueDecisionState.Included,
+                        },
+                        possibleDecisionStates: [],
+                        isPossibleDecisionStatesImmutable: false,
                     },
-                    nonOptimisticDecision: {
-                        kind: DecisionKind.Implicit,
-                        state: ChoiceValueDecisionState.Included
+                ],
+                [
+                    "V2",
+                    {
+                        id: "V2",
+                        decision: {
+                            kind: DecisionKind.Explicit,
+                            state: ChoiceValueDecisionState.Included,
+                        },
+                        nonOptimisticDecision: {
+                            kind: DecisionKind.Explicit,
+                            state: ChoiceValueDecisionState.Included,
+                        },
+                        possibleDecisionStates: [],
+                        isPossibleDecisionStatesImmutable: false,
                     },
-                    possibleDecisionStates: [],
-                    isPossibleDecisionStatesImmutable: false,
-                }],
-                ["V2", {
-                    id: "V2",
-                    decision: {
-                        kind: DecisionKind.Explicit,
-                        state: ChoiceValueDecisionState.Included
+                ],
+                [
+                    "V3",
+                    {
+                        id: "V3",
+                        decision: null,
+                        nonOptimisticDecision: null,
+                        possibleDecisionStates: [],
+                        isPossibleDecisionStatesImmutable: false,
                     },
-                    nonOptimisticDecision: {
-                        kind: DecisionKind.Explicit,
-                        state: ChoiceValueDecisionState.Included
-                    },
-                    possibleDecisionStates: [],
-                    isPossibleDecisionStatesImmutable: false,
-                }],
-                ["V3", {
-                    id: "V3",
-                    decision: null,
-                    nonOptimisticDecision: null,
-                    possibleDecisionStates: [],
-                    isPossibleDecisionStatesImmutable: false,
-                }],
-            ])
+                ],
+            ]),
         });
 
-        expect(Interpreter.getIncludedChoiceValues(attribute).map(v => v.id)).toIncludeSameMembers([
-            "V1",
-            "V2",
-        ]);
+        expect(Interpreter.getIncludedChoiceValues(attribute).map(v => v.id)).toIncludeSameMembers(["V1", "V2"]);
     });
 });

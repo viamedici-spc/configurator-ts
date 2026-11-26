@@ -1,4 +1,4 @@
-import type { Option} from "fp-ts/Option";
+import type {Option} from "fp-ts/Option";
 import {none} from "fp-ts/Option";
 import type {
     Attribute,
@@ -9,17 +9,22 @@ import type {
     OnCanResetConfigurationChangedHandler,
     OnDecisionsChangedHandler,
     OnConfigurationChangedHandler,
-    OnStoredConfigurationChangedHandler
+    OnStoredConfigurationChangedHandler,
 } from "../../contract/Types";
 import type ConfigurationRawData from "../model/ConfigurationRawData";
-import type { OrdT} from "@viamedici-spc/fp-ts-extensions";
+import type {OrdT} from "@viamedici-spc/fp-ts-extensions";
 import {O, Ord, P, pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
 import type HashedConfiguration from "../model/HashedConfiguration";
 import {globalAttributeIdKeyEq} from "../../contract/Eqs";
 import {isEmpty} from "./ConfigurationChanges";
 import type {StoredConfiguration} from "../../contract/storedConfiguration/StoredConfiguration";
 
-export function calculateCanResetConfigurationChangedHandler(canReset: (rawData: ConfigurationRawData) => boolean): (previous: ConfigurationRawData | null, current: ConfigurationRawData | null) => Option<Parameters<OnCanResetConfigurationChangedHandler>> {
+export function calculateCanResetConfigurationChangedHandler(
+    canReset: (rawData: ConfigurationRawData) => boolean,
+): (
+    previous: ConfigurationRawData | null,
+    current: ConfigurationRawData | null,
+) => Option<Parameters<OnCanResetConfigurationChangedHandler>> {
     return (previous, current) => {
         const previousCanReset = previous ? canReset(previous) : null;
         const currentCanReset = current ? canReset(current) : null;
@@ -32,7 +37,10 @@ export function calculateCanResetConfigurationChangedHandler(canReset: (rawData:
     };
 }
 
-export function calculateConfigurationChangedHandler(previous: HashedConfiguration | null, current: HashedConfiguration | null): Option<Parameters<OnConfigurationChangedHandler>> {
+export function calculateConfigurationChangedHandler(
+    previous: HashedConfiguration | null,
+    current: HashedConfiguration | null,
+): Option<Parameters<OnConfigurationChangedHandler>> {
     const keys = RM.keys(Ord.trivial as OrdT<GlobalAttributeIdKey>);
 
     if (current == null) {
@@ -41,18 +49,16 @@ export function calculateConfigurationChangedHandler(previous: HashedConfigurati
 
     const previousAttributes: HashedConfiguration["attributes"] = previous?.attributes ?? RM.empty;
 
-    const allAttributeKeys = pipe([
-            ...keys(current.attributes),
-            ...keys(previousAttributes),
-        ],
-        RA.uniq(globalAttributeIdKeyEq)
+    const allAttributeKeys = pipe(
+        [...keys(current.attributes), ...keys(previousAttributes)],
+        RA.uniq(globalAttributeIdKeyEq),
     );
 
     const addedAttributes: Array<Attribute> = [];
     const changedAttributes: Array<Attribute> = [];
     const deletedAttributes: Array<GlobalAttributeId> = [];
 
-    allAttributeKeys.forEach((key) => {
+    allAttributeKeys.forEach(key => {
         const currentAttribute = current.attributes.get(key);
         const previousAttribute = previousAttributes.get(key);
 
@@ -74,22 +80,34 @@ export function calculateConfigurationChangedHandler(previous: HashedConfigurati
                 added: addedAttributes,
                 changed: changedAttributes,
                 removed: deletedAttributes,
-            }
+            },
         } satisfies ConfigurationChanges,
         O.fromPredicate(P.not(isEmpty)),
-        O.map(c => [current, c])
+        O.map(c => [current, c]),
     );
 }
 
-export function calculateStoredConfigurationChangedHandler(getStoredConfiguration: (rawData: ConfigurationRawData) => StoredConfiguration): (previous: ConfigurationRawData | null, current: ConfigurationRawData | null) => Option<Parameters<OnStoredConfigurationChangedHandler>> {
+export function calculateStoredConfigurationChangedHandler(
+    getStoredConfiguration: (rawData: ConfigurationRawData) => StoredConfiguration,
+): (
+    previous: ConfigurationRawData | null,
+    current: ConfigurationRawData | null,
+) => Option<Parameters<OnStoredConfigurationChangedHandler>> {
     return mappingBasedChangeHandler(getStoredConfiguration);
 }
 
-export function calculateCollectedDecisionsChangedHandler<T extends CollectedDecision>(getCollectedDecisions: (rawData: ConfigurationRawData) => ReadonlyArray<T>): (previous: ConfigurationRawData | null, current: ConfigurationRawData | null) => Option<Parameters<OnDecisionsChangedHandler<T>>> {
+export function calculateCollectedDecisionsChangedHandler<T extends CollectedDecision>(
+    getCollectedDecisions: (rawData: ConfigurationRawData) => ReadonlyArray<T>,
+): (
+    previous: ConfigurationRawData | null,
+    current: ConfigurationRawData | null,
+) => Option<Parameters<OnDecisionsChangedHandler<T>>> {
     return mappingBasedChangeHandler(getCollectedDecisions);
 }
 
-function mappingBasedChangeHandler<TI, TO>(mapper: (rawData: TI) => TO): (previous: TI | null, current: TI | null) => Option<[TO]> {
+function mappingBasedChangeHandler<TI, TO>(
+    mapper: (rawData: TI) => TO,
+): (previous: TI | null, current: TI | null) => Option<[TO]> {
     return (previous, current) => {
         if (current == null || previous === current) {
             return none;

@@ -41,11 +41,9 @@ import type {
     StoredConfigurationInvalid,
     ConfiguratorError,
     MakeManyDecisionsConflict,
-    SessionParametersInvalid
+    SessionParametersInvalid,
 } from "./contract/ConfiguratorError";
-import {
-    ConfiguratorErrorType
-} from "./contract/ConfiguratorError";
+import {ConfiguratorErrorType} from "./contract/ConfiguratorError";
 import type {
     LocalAttributeId,
     LocalRuleId,
@@ -142,7 +140,7 @@ import type {
     KeepExistingDecisionsMode,
     MakeManyDecisionsResult,
     WizardAttributeRelations,
-    WizardStep
+    WizardStep,
 } from "./contract/Types";
 import {
     ExplainQuestionType,
@@ -154,7 +152,7 @@ import {
     ComponentDecisionState,
     DecisionKind,
     Selection,
-    Inclusion
+    Inclusion,
 } from "./contract/Types";
 import type {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
 import * as StoredConfigurationV1 from "./contract/storedConfiguration/StoredConfigurationV1";
@@ -164,7 +162,7 @@ import * as ChoiceValueInterpreter from "./contract/interpreter/ChoiceValueInter
 import * as ExplainQuestionBuilderModule from "./contract/ExplainQuestionBuilder";
 import * as AttributeRefinements from "./contract/refinements/AttributeRefinements";
 import * as CollectedDecisionRefinements from "./contract/refinements/CollectedDecisionRefinements";
-import type { ExplainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
+import type {ExplainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
 import {explainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
 import SessionFactory from "./SessionFactory";
 import type IConfigurationSession from "./IConfigurationSession";
@@ -175,16 +173,12 @@ import Logger from "./contract/Logger";
 
 export {
     Logger,
-
     type IConfigurationSession,
     type ISessionFactory,
     SessionFactory,
-
     GlobalAttributeIdKeyBuilder,
-
     AttributeRefinements,
     CollectedDecisionRefinements,
-
     type StoredConfiguration,
     StoredConfigurationV1,
 

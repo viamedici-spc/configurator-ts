@@ -22,11 +22,19 @@ expect.extend({
     /** Passes when every member of the array satisfies the predicate. */
     toSatisfyAll(received: unknown, predicate: (member: never) => boolean) {
         const pass = Array.isArray(received) && received.every(member => predicate(member as never));
-        return {pass, message: () => `expected every member of ${Bun.inspect(received)} ${pass ? "not " : ""}to satisfy the predicate`};
+        return {
+            pass,
+            message: () =>
+                `expected every member of ${Bun.inspect(received)} ${pass ? "not " : ""}to satisfy the predicate`,
+        };
     },
     /** Passes when at least one member of the array satisfies the predicate. */
     toSatisfyAny(received: unknown, predicate: (member: never) => boolean) {
         const pass = Array.isArray(received) && received.some(member => predicate(member as never));
-        return {pass, message: () => `expected some member of ${Bun.inspect(received)} ${pass ? "not " : ""}to satisfy the predicate`};
+        return {
+            pass,
+            message: () =>
+                `expected some member of ${Bun.inspect(received)} ${pass ? "not " : ""}to satisfy the predicate`,
+        };
     },
 });

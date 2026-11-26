@@ -8,4 +8,4 @@ export default interface ISessionFactory {
      * @return A promise that resolves to an instance of IConfigurationSession.
      */
     createSession(sessionContext: SessionContext): Promise<IConfigurationSession>;
-};
+}

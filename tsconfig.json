@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "moduleDetection": "force",
@@ -17,8 +13,5 @@
     "forceConsistentCasingInFileNames": true,
     "types": []
   },
-  "include": [
-    "src",
-    "tsdown.config.ts"
-  ]
+  "include": ["src", "tsdown.config.ts"]
 }

@@ -11,7 +11,7 @@ export type PureError = {
     error: ConfiguratorError;
 };
 export type ErrorWithSessionState = {
-    type: "ErrorWithSessionState"
+    type: "ErrorWithSessionState";
 } & EngineErrorResult;
 
 export type WorkQueueInfo = {
@@ -25,15 +25,18 @@ export type StateMutatingWorkItem<T> = {
     // Whether this WorkItem allow to be rejected once a previous or parallel running WorkItem rejects with SessionNotFound.
     allowSimultaneouslyTermination: boolean;
     deferredPromise: DeferredPromise<T>;
-    optimisticAttributeUpdater: Endomorphism<Configuration> | null,
-    execute: (sessionState: ConfigurationSessionState, workQueueInfo: WorkQueueInfo) => TaskEither<ErrorWithSessionState, EngineSuccessResultT<T>>,
+    optimisticAttributeUpdater: Endomorphism<Configuration> | null;
+    execute: (
+        sessionState: ConfigurationSessionState,
+        workQueueInfo: WorkQueueInfo,
+    ) => TaskEither<ErrorWithSessionState, EngineSuccessResultT<T>>;
 };
 
 export type StatePreservingWorkItem<T> = {
     type: "StatePreserving";
     itemId: string;
     deferredPromise: DeferredPromise<T>;
-    execute: (sessionState: ConfigurationSessionState, workQueueInfo: WorkQueueInfo) => TaskEither<PureError, T>,
+    execute: (sessionState: ConfigurationSessionState, workQueueInfo: WorkQueueInfo) => TaskEither<PureError, T>;
 };
 
 export type WorkItem<T> = StateMutatingWorkItem<T> | StatePreservingWorkItem<T>;

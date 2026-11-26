@@ -1,14 +1,19 @@
 import type {
     ExplainAnswer,
     ExplainQuestion,
-    ExplicitDecision, MakeManyDecisionsResult, MakeManyDecisionsMode, SessionContext
+    ExplicitDecision,
+    MakeManyDecisionsResult,
+    MakeManyDecisionsMode,
+    SessionContext,
 } from "../../contract/Types";
-import { ExplainQuestionType
-} from "../../contract/Types";
-import type {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
+import {ExplainQuestionType} from "../../contract/Types";
+import type {
+    ConfigurationSessionState,
+    FullQualifiedConfigurationSessionState,
+} from "../model/ConfigurationSessionState";
 import type {ConnectionError, ConfiguratorError, ServerError} from "../../contract/ConfiguratorError";
-import { ConfiguratorErrorType} from "../../contract/ConfiguratorError";
-import type { TaskEither} from "@viamedici-spc/fp-ts-extensions";
+import {ConfiguratorErrorType} from "../../contract/ConfiguratorError";
+import type {TaskEither} from "@viamedici-spc/fp-ts-extensions";
 import {E, I, identity, O, pipe, RA, T, TE} from "@viamedici-spc/fp-ts-extensions";
 import {getApiClient, getServerSideSessionCreationApiClient} from "../EngineApiClient";
 import * as DtoE from "../mapper/DomainToEngineMapping";
@@ -20,9 +25,9 @@ import {sequenceS} from "fp-ts/Apply";
 import {
     processConstraintsExplainResult,
     processDecisionsExplainResult,
-    processExplainResult
+    processExplainResult,
 } from "./EngineResponseHandling";
-import type { Option} from "fp-ts/Option";
+import type {Option} from "fp-ts/Option";
 import {none} from "fp-ts/Option";
 import {getAllExplicitDecisions, merge} from "./ConfigurationRawData";
 import type ConfigurationRawData from "../model/ConfigurationRawData";
@@ -36,48 +41,66 @@ export type EngineSuccessResultT<T> = {
 export type EngineErrorResult = {
     error: ConfiguratorError;
     sessionState: ConfigurationSessionState | null;
-}
-
-const DefaultHeaders: HeadersInit = {
-    "Accept": "application/json",
 };
 
-export function createSession(sessionContext: SessionContext): TaskEither<ConfiguratorError, FullQualifiedConfigurationSessionState> {
+const DefaultHeaders: HeadersInit = {
+    Accept: "application/json",
+};
+
+export function createSession(
+    sessionContext: SessionContext,
+): TaskEither<ConfiguratorError, FullQualifiedConfigurationSessionState> {
     const hcaApiClient = getApiClient(sessionContext.apiBaseUrl);
 
-    const getSessionPostRequest = (sessionPost: Engine.Api<unknown>["session"]["sessionPost"], additionalHeaders?: HeadersInit) =>
-        request(() => sessionPost(DtoE.mapSessionContext(sessionContext), {
-            headers: {
-                ...DefaultHeaders,
-                ...additionalHeaders
-            }
-        }));
+    const getSessionPostRequest = (
+        sessionPost: Engine.Api<unknown>["session"]["sessionPost"],
+        additionalHeaders?: HeadersInit,
+    ) =>
+        request(() =>
+            sessionPost(DtoE.mapSessionContext(sessionContext), {
+                headers: {
+                    ...DefaultHeaders,
+                    ...additionalHeaders,
+                },
+            }),
+        );
 
     return pipe(
         match(sessionContext.sessionInitialisationOptions)
-            .with({accessToken: P.string}, c => getSessionPostRequest(hcaApiClient.session.sessionPost, {
-                // Consumer-supplied headers first so the library's own Authorization always wins.
-                ...c.additionalRequestHeaders,
-                "Authorization": `Bearer ${c.accessToken}`
-            }))
-            .with({sessionCreateUrl: P.string}, c => getSessionPostRequest(getServerSideSessionCreationApiClient(c.sessionCreateUrl)))
+            .with({accessToken: P.string}, c =>
+                getSessionPostRequest(hcaApiClient.session.sessionPost, {
+                    // Consumer-supplied headers first so the library's own Authorization always wins.
+                    ...c.additionalRequestHeaders,
+                    Authorization: `Bearer ${c.accessToken}`,
+                }),
+            )
+            .with({sessionCreateUrl: P.string}, c =>
+                getSessionPostRequest(getServerSideSessionCreationApiClient(c.sessionCreateUrl)),
+            )
             .exhaustive(),
         TE.map(r => ({
             sessionContext: sessionContext,
-            sessionId: r.sessionId!
+            sessionId: r.sessionId!,
         })),
         TE.chain(state => {
-            const decisions = request(() => hcaApiClient.decision.decisionGetAllDecisions({
-                headers: getHeadersForSession(state)
-            }));
-            const consequences = request(() => hcaApiClient.consequence.consequenceGet({
-                headers: getHeadersForSession(state)
-            }));
-            const meta = (state.sessionContext.provideSourceId ?? false)
-                ? request(() => hcaApiClient.meta.metaGet({
-                    headers: getHeadersForSession(state)
-                }))
-                : TE.right(null);
+            const decisions = request(() =>
+                hcaApiClient.decision.decisionGetAllDecisions({
+                    headers: getHeadersForSession(state),
+                }),
+            );
+            const consequences = request(() =>
+                hcaApiClient.consequence.consequenceGet({
+                    headers: getHeadersForSession(state),
+                }),
+            );
+            const meta =
+                (state.sessionContext.provideSourceId ?? false)
+                    ? request(() =>
+                          hcaApiClient.meta.metaGet({
+                              headers: getHeadersForSession(state),
+                          }),
+                      )
+                    : TE.right(null);
 
             return pipe(
                 sequenceS(TE.ApplicativePar)({
@@ -86,17 +109,25 @@ export function createSession(sessionContext: SessionContext): TaskEither<Config
                     meta: meta,
                 }),
                 TE.map(r => ResponseHandling.createConfiguration(r.decisions, r.consequences, r.meta)),
-                TE.map(r => ({
-                    ...state,
-                    configuration: r.configuration,
-                    configurationRawData: r.rawData
-                } satisfies FullQualifiedConfigurationSessionState))
+                TE.map(
+                    r =>
+                        ({
+                            ...state,
+                            configuration: r.configuration,
+                            configurationRawData: r.rawData,
+                        }) satisfies FullQualifiedConfigurationSessionState,
+                ),
             );
-        })
+        }),
     );
 }
 
-export function makeManyDecisions(decisions: ReadonlyArray<ExplicitDecision>, mode: MakeManyDecisionsMode): (sessionState: FullQualifiedConfigurationSessionState) => TaskEither<ConfiguratorError, EngineSuccessResultT<MakeManyDecisionsResult>> {
+export function makeManyDecisions(
+    decisions: ReadonlyArray<ExplicitDecision>,
+    mode: MakeManyDecisionsMode,
+): (
+    sessionState: FullQualifiedConfigurationSessionState,
+) => TaskEither<ConfiguratorError, EngineSuccessResultT<MakeManyDecisionsResult>> {
     const body = DtoE.mapManyDecisions(decisions, mode);
 
     return sessionState => {
@@ -105,33 +136,46 @@ export function makeManyDecisions(decisions: ReadonlyArray<ExplicitDecision>, mo
             return TE.right({
                 sessionState: sessionState,
                 result: {
-                    rejectedDecisions: []
-                }
+                    rejectedDecisions: [],
+                },
             } satisfies EngineSuccessResultT<MakeManyDecisionsResult>);
         }
 
         const apiClient = getApiClient(sessionState.sessionContext.apiBaseUrl);
 
         return pipe(
-            request(() => apiClient.decision.decisionPutMany(body, {
-                headers: getHeadersForSession(sessionState)
-            }), ResponseHandling.processPutManyDecisionsConflict(decisions, mode)),
-            TE.map(r => pipe(
-                ResponseHandling.integratePutManyDecisionsResponse(sessionState.configuration, r),
-                I.map(t => ({
-                    sessionState: {
-                        ...sessionState,
-                        configurationRawData: merge(sessionState.configurationRawData, t.rawData),
-                        configuration: t.configuration
-                    } satisfies ConfigurationSessionState,
-                    result: t.result
-                } satisfies EngineSuccessResultT<MakeManyDecisionsResult>))
-            ))
+            request(
+                () =>
+                    apiClient.decision.decisionPutMany(body, {
+                        headers: getHeadersForSession(sessionState),
+                    }),
+                ResponseHandling.processPutManyDecisionsConflict(decisions, mode),
+            ),
+            TE.map(r =>
+                pipe(
+                    ResponseHandling.integratePutManyDecisionsResponse(sessionState.configuration, r),
+                    I.map(
+                        t =>
+                            ({
+                                sessionState: {
+                                    ...sessionState,
+                                    configurationRawData: merge(sessionState.configurationRawData, t.rawData),
+                                    configuration: t.configuration,
+                                } satisfies ConfigurationSessionState,
+                                result: t.result,
+                            }) satisfies EngineSuccessResultT<MakeManyDecisionsResult>,
+                    ),
+                ),
+            ),
         );
     };
 }
 
-export function makeDecision(decision: ExplicitDecision): (sessionState: FullQualifiedConfigurationSessionState) => TaskEither<ConfiguratorError, FullQualifiedConfigurationSessionState> {
+export function makeDecision(
+    decision: ExplicitDecision,
+): (
+    sessionState: FullQualifiedConfigurationSessionState,
+) => TaskEither<ConfiguratorError, FullQualifiedConfigurationSessionState> {
     const body = DtoE.mapExplicitDecision(decision);
 
     return sessionState => {
@@ -143,77 +187,125 @@ export function makeDecision(decision: ExplicitDecision): (sessionState: FullQua
         const apiClient = getApiClient(sessionState.sessionContext.apiBaseUrl);
 
         return pipe(
-            request(() => apiClient.decision.decisionPutDecision(body, {
-                headers: getHeadersForSession(sessionState)
-            })),
+            request(() =>
+                apiClient.decision.decisionPutDecision(body, {
+                    headers: getHeadersForSession(sessionState),
+                }),
+            ),
             TE.map(r => {
-                const {
-                    configuration,
-                    rawData
-                } = ResponseHandling.integratePutDecisionResponse(sessionState.configuration, r);
+                const {configuration, rawData} = ResponseHandling.integratePutDecisionResponse(
+                    sessionState.configuration,
+                    r,
+                );
                 return {
                     ...sessionState,
                     configuration: configuration,
                     configurationRawData: merge(sessionState.configurationRawData, rawData),
                 } satisfies ConfigurationSessionState;
-            })
+            }),
         );
     };
 }
 
-export function explain(explainQuestion: ExplainQuestion, answer: "decisions" | "constraints" | "full"): (sessionState: FullQualifiedConfigurationSessionState) => TaskEither<ConfiguratorError, ExplainAnswer> {
-    const prepareRequest = <Q extends ExplainQuestion, R>(question: Q, requestMapper: (q: Q) => R,
-                                                          dec: (e: Engine.Api<unknown>["explain"]) => (request: R, params: Engine.RequestParams) => Promise<Engine.HttpResponse<Engine.DecisionExplanation[], Engine.Unspecified>>,
-                                                          con: (e: Engine.Api<unknown>["explain"]) => (request: R, params: Engine.RequestParams) => Promise<Engine.HttpResponse<Engine.ConstraintExplanation[], Engine.Unspecified>>,
-                                                          full: (e: Engine.Api<unknown>["explain"]) => (request: R, params: Engine.RequestParams) => Promise<Engine.HttpResponse<Engine.ExplainResult, Engine.Unspecified>>
+export function explain(
+    explainQuestion: ExplainQuestion,
+    answer: "decisions" | "constraints" | "full",
+): (sessionState: FullQualifiedConfigurationSessionState) => TaskEither<ConfiguratorError, ExplainAnswer> {
+    const prepareRequest = <Q extends ExplainQuestion, R>(
+        question: Q,
+        requestMapper: (q: Q) => R,
+        dec: (
+            e: Engine.Api<unknown>["explain"],
+        ) => (
+            request: R,
+            params: Engine.RequestParams,
+        ) => Promise<Engine.HttpResponse<Engine.DecisionExplanation[], Engine.Unspecified>>,
+        con: (
+            e: Engine.Api<unknown>["explain"],
+        ) => (
+            request: R,
+            params: Engine.RequestParams,
+        ) => Promise<Engine.HttpResponse<Engine.ConstraintExplanation[], Engine.Unspecified>>,
+        full: (
+            e: Engine.Api<unknown>["explain"],
+        ) => (
+            request: R,
+            params: Engine.RequestParams,
+        ) => Promise<Engine.HttpResponse<Engine.ExplainResult, Engine.Unspecified>>,
     ) => {
         const body = requestMapper(question);
 
         return (apiClient: Engine.Api<unknown>, params: Engine.RequestParams) =>
             match(answer)
-                .with("decisions", () => pipe(
-                    request(() => dec(apiClient.explain)(body, params)),
-                    TE.map(processDecisionsExplainResult(question))
-                ))
-                .with("constraints", () => pipe(
-                    request(() => con(apiClient.explain)(body, params)),
-                    TE.map(processConstraintsExplainResult)
-                ))
-                .with("full", () => pipe(
-                    request(() => full(apiClient.explain)(body, params)),
-                    TE.map(processExplainResult(question))
-                ))
+                .with("decisions", () =>
+                    pipe(
+                        request(() => dec(apiClient.explain)(body, params)),
+                        TE.map(processDecisionsExplainResult(question)),
+                    ),
+                )
+                .with("constraints", () =>
+                    pipe(
+                        request(() => con(apiClient.explain)(body, params)),
+                        TE.map(processConstraintsExplainResult),
+                    ),
+                )
+                .with("full", () =>
+                    pipe(
+                        request(() => full(apiClient.explain)(body, params)),
+                        TE.map(processExplainResult(question)),
+                    ),
+                )
                 .exhaustive();
     };
 
     const requestPreparation = match(explainQuestion)
         .with({question: ExplainQuestionType.whyIsNotSatisfied}, q =>
-            prepareRequest(q, DtoE.mapWhyNotSatisfied, e => e.explainWhyNotSatisfiedDecisions, e => e.explainWhyNotSatisfiedRules, e => e.explainWhyNotSatisfied))
+            prepareRequest(
+                q,
+                DtoE.mapWhyNotSatisfied,
+                e => e.explainWhyNotSatisfiedDecisions,
+                e => e.explainWhyNotSatisfiedRules,
+                e => e.explainWhyNotSatisfied,
+            ),
+        )
         .with({question: ExplainQuestionType.whyIsStateNotPossible}, q =>
-            prepareRequest(q, DtoE.mapWhyStateNotPossible, e => e.explainWhyStateNotPossibleDecisions, e => e.explainWhyStateNotPossibleRules, e => e.explainWhyStateNotPossible))
+            prepareRequest(
+                q,
+                DtoE.mapWhyStateNotPossible,
+                e => e.explainWhyStateNotPossibleDecisions,
+                e => e.explainWhyStateNotPossibleRules,
+                e => e.explainWhyStateNotPossible,
+            ),
+        )
         .exhaustive();
 
     return sessionState => {
         const apiClient = getApiClient(sessionState.sessionContext.apiBaseUrl);
 
         return requestPreparation(apiClient, {
-            headers: getHeadersForSession(sessionState)
+            headers: getHeadersForSession(sessionState),
         });
     };
 }
 
-export function closeSession(sessionState: Required<Pick<ConfigurationSessionState, "sessionId" | "sessionContext">>): TaskEither<ConfiguratorError, void> {
+export function closeSession(
+    sessionState: Required<Pick<ConfigurationSessionState, "sessionId" | "sessionContext">>,
+): TaskEither<ConfiguratorError, void> {
     const apiClient = getApiClient(sessionState.sessionContext.apiBaseUrl);
 
     return request(() => apiClient.session.sessionDelete(sessionState.sessionId));
 }
 
-export function setSessionContext(newSessionContext: SessionContext): (sessionState: ConfigurationSessionState) => TaskEither<EngineErrorResult, FullQualifiedConfigurationSessionState> {
-    return sessionState =>
-        reinitialize(sessionState, newSessionContext);
+export function setSessionContext(
+    newSessionContext: SessionContext,
+): (sessionState: ConfigurationSessionState) => TaskEither<EngineErrorResult, FullQualifiedConfigurationSessionState> {
+    return sessionState => reinitialize(sessionState, newSessionContext);
 }
 
-export function reinitialize(sessionState: ConfigurationSessionState, newSessionContext?: SessionContext): TaskEither<EngineErrorResult, FullQualifiedConfigurationSessionState> {
+export function reinitialize(
+    sessionState: ConfigurationSessionState,
+    newSessionContext?: SessionContext,
+): TaskEither<EngineErrorResult, FullQualifiedConfigurationSessionState> {
     // Close the old session because a new SessionContext cannot be applied to an existing session.
     // Discard the result.
     if (sessionState.sessionId) {
@@ -224,19 +316,30 @@ export function reinitialize(sessionState: ConfigurationSessionState, newSession
         // Session was closed. In any case the SessionId is removed from the state.
         {
             ...sessionState,
-            sessionId: undefined
+            sessionId: undefined,
         } satisfies ConfigurationSessionState,
-        I.map(sessionState => pipe(
-            createSessionWithData(newSessionContext ?? sessionState.sessionContext, sessionState.configurationRawData),
-            TE.mapLeft(l => ({
-                error: l,
-                sessionState: sessionState
-            } satisfies EngineErrorResult))
-        ))
+        I.map(sessionState =>
+            pipe(
+                createSessionWithData(
+                    newSessionContext ?? sessionState.sessionContext,
+                    sessionState.configurationRawData,
+                ),
+                TE.mapLeft(
+                    l =>
+                        ({
+                            error: l,
+                            sessionState: sessionState,
+                        }) satisfies EngineErrorResult,
+                ),
+            ),
+        ),
     );
 }
 
-export function createSessionWithData(sessionContext: SessionContext, configurationRawData: ConfigurationRawData): TaskEither<ConfiguratorError, FullQualifiedConfigurationSessionState> {
+export function createSessionWithData(
+    sessionContext: SessionContext,
+    configurationRawData: ConfigurationRawData,
+): TaskEither<ConfiguratorError, FullQualifiedConfigurationSessionState> {
     return pipe(
         createSession(sessionContext),
         TE.chain(state => {
@@ -247,25 +350,28 @@ export function createSessionWithData(sessionContext: SessionContext, configurat
                     state,
                     makeManyDecisions(explicitDecisions, {
                         type: "DropExistingDecisions",
-                        conflictHandling: {type: "Automatic"}
+                        conflictHandling: {type: "Automatic"},
                     }),
-                    TE.map(r => r.sessionState)
+                    TE.map(r => r.sessionState),
                 );
             }
 
             return TE.right(state);
-        })
+        }),
     );
 }
 
-function request<T, E>(request: () => Promise<Engine.HttpResponse<T, E>>, customConfiguratorErrorMapper?: (e: E) => Option<ConfiguratorError>): TaskEither<ConfiguratorError, T> {
+function request<T, E>(
+    request: () => Promise<Engine.HttpResponse<T, E>>,
+    customConfiguratorErrorMapper?: (e: E) => Option<ConfiguratorError>,
+): TaskEither<ConfiguratorError, T> {
     return pipe(
-        TE.tryCatch(request, e => (e as Engine.HttpResponse<T, E>)),
+        TE.tryCatch(request, e => e as Engine.HttpResponse<T, E>),
         TE.match(identity, identity),
         T.map<Engine.HttpResponse<T, E>, E.Either<ConfiguratorError, T>>(r => {
             if (r == null || (r.data == null && r.error == null)) {
                 return E.left({
-                    type: ConfiguratorErrorType.ConnectionError
+                    type: ConfiguratorErrorType.ConnectionError,
                 } satisfies ConnectionError);
             }
 
@@ -282,19 +388,15 @@ function request<T, E>(request: () => Promise<Engine.HttpResponse<T, E>>, custom
 
                 const error = r.error as Partial<Record<"type" | "title" | "detail", unknown>>;
                 if (error.type != null && error.title != null && error.detail != null) {
-                    return pipe(
-                        r.error as any as Engine.ProblemDetails,
-                        EtoD.mapConfiguratorError,
-                        E.left
-                    );
+                    return pipe(r.error as any as Engine.ProblemDetails, EtoD.mapConfiguratorError, E.left);
                 }
             }
 
             Logger.error("Received unknown error format:", r.error);
             return E.left({
-                type: ConfiguratorErrorType.ServerError
+                type: ConfiguratorErrorType.ServerError,
             } satisfies ServerError);
-        })
+        }),
     );
 }
 

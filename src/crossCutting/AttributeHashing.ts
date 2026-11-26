@@ -6,7 +6,7 @@ import type {HashedAttribute} from "../domain/model/HashedAttribute";
 
 export const calculateAttributeHash = flow(
     attributeShow.show,
-    I.map(s => SparkMD5.hash(s))
+    I.map(s => SparkMD5.hash(s)),
 );
 
 export function hashAttribute(attribute: Attribute): HashedAttribute {

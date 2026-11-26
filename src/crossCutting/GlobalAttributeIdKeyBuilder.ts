@@ -5,15 +5,11 @@ export default function GlobalAttributeIdKeyBuilder(attributeId: GlobalAttribute
     const model = attributeId.sharedConfigurationModelId
         ? ["shared", attributeId.sharedConfigurationModelId]
         : ["root"];
-    const path = [
-        ...model,
-        ...(attributeId.componentPath ?? []),
-        attributeId.localId
-    ];
+    const path = [...model, ...(attributeId.componentPath ?? []), attributeId.localId];
 
     return pipe(
         path,
         RA.map(s => s.replace("::", "|::|")),
-        a => a.join("::")
+        a => a.join("::"),
     );
 }

@@ -18,26 +18,28 @@ const getValidLogLevels = memize((logLevel: LogLevel) => {
     }
 });
 
-const log = (level: Exclude<LogLevel, "silent">) => (...args: Parameters<typeof console.log>) => {
-    if (!getValidLogLevels(logLevel).includes(level)) {
-        return;
-    }
+const log =
+    (level: Exclude<LogLevel, "silent">) =>
+    (...args: Parameters<typeof console.log>) => {
+        if (!getValidLogLevels(logLevel).includes(level)) {
+            return;
+        }
 
-    switch (level) {
-        case "debug":
-            console.debug(...args);
-            break;
-        case "info":
-            console.info(...args);
-            break;
-        case "warning":
-            console.warn(...args);
-            break;
-        case "error":
-            console.error(...args);
-            break;
-    }
-};
+        switch (level) {
+            case "debug":
+                console.debug(...args);
+                break;
+            case "info":
+                console.info(...args);
+                break;
+            case "warning":
+                console.warn(...args);
+                break;
+            case "error":
+                console.error(...args);
+                break;
+        }
+    };
 
 const Logger = {
     setLogLevel: (level: LogLevel) => {

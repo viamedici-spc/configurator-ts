@@ -1,18 +1,18 @@
 name: Build and Publish
 
-on: [ push, workflow_dispatch ]
+on: [push, workflow_dispatch]
 
 jobs:
-    build-publish:
-        permissions:
-            contents: read
-            id-token: write
-        uses: viamedici-spc/github-ci/.github/workflows/build-npm.yml@v3
-        with:
-            node-version: '24'
-            skip-publish: false
-        secrets:
-            npmrun-secrets: >
-                {
-                    "HCA_ENGINE_ACCESS_TOKEN": "${{ secrets.HCA_ENGINE_ACCESS_TOKEN }}"
-                }
+  build-publish:
+    permissions:
+      contents: read
+      id-token: write
+    uses: viamedici-spc/github-ci/.github/workflows/build-npm.yml@v3
+    with:
+      node-version: "24"
+      skip-publish: false
+    secrets:
+      npmrun-secrets: >
+        {
+            "HCA_ENGINE_ACCESS_TOKEN": "${{ secrets.HCA_ENGINE_ACCESS_TOKEN }}"
+        }

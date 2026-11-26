@@ -25,7 +25,9 @@ function expectWorkToRun(snapshot: SutSnapshotType): (workToRun: ReadonlyArray<s
     };
 }
 
-function expectWorkToBeExecuted(snapshot: SutSnapshotType): (workItemId: string, executionAmount: number|undefined) => void {
+function expectWorkToBeExecuted(
+    snapshot: SutSnapshotType,
+): (workItemId: string, executionAmount: number | undefined) => void {
     return (workItemId, executionAmount) => {
         expect(snapshot.context.workExecutionAttemptAmount.get(workItemId)).toBe(executionAmount);
     };
@@ -37,10 +39,13 @@ function expectState(snapshot: SutSnapshotType): (...args: Parameters<SutSnapsho
     };
 }
 
-function prepare(sut: SutType): <T extends ReadonlyArray<unknown>, R>(fn: (snapshot: SutSnapshotType) => (...args: T) => R) => (...args: T) => R {
-    return fn => (...args) => fn(sut.getSnapshot())(...args);
+function prepare(
+    sut: SutType,
+): <T extends ReadonlyArray<unknown>, R>(fn: (snapshot: SutSnapshotType) => (...args: T) => R) => (...args: T) => R {
+    return fn =>
+        (...args) =>
+            fn(sut.getSnapshot())(...args);
 }
-
 
 export default function getWorkProcessingMachineExpectations(sut: SutType) {
     const prep = prepare(sut);

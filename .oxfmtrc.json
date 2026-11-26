@@ -3,18 +3,10 @@
   "tabWidth": 4,
   "bracketSpacing": false,
   "arrowParens": "avoid",
-  "ignorePatterns": [
-    "**/*.md",
-    "dist/**",
-    "src/apiClient/engine/**"
-  ],
+  "ignorePatterns": ["**/*.md", "dist/**", "src/apiClient/engine/**"],
   "overrides": [
     {
-      "files": [
-        "*.json",
-        "*.yml",
-        "*.yaml"
-      ],
+      "files": ["*.json", "*.yml", "*.yaml"],
       "options": {
         "tabWidth": 2
       }
