@@ -1,4 +1,6 @@
+import GlobalAttributeIdKeyBuilder from "./crossCutting/GlobalAttributeIdKeyBuilder";
 import {
+    GlobalAttributeId,
     CollectedDecision,
     Configuration,
     ConfigurationChanges,
@@ -21,8 +23,8 @@ import {
     OnStoredConfigurationChangedHandler,
     OnDecisionsChangedHandler, MakeManyDecisionsResult, MakeManyDecisionsMode
 } from "./contract/Types";
-import IConfigurationSession from "./IConfigurationSession";
-import {ConfigurationSessionState} from "./domain/model/ConfigurationSessionState";
+import type {IActiveAttributesSession, ScopedDecisionRefreshState} from "./IConfigurationSession";
+import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "./domain/model/ConfigurationSessionState";
 import {Subscription, waitFor} from "xstate";
 import * as Session from "./domain/logic/SessionLogic";
 import {E, flow, I, O, pipe, RA} from "@viamedici-spc/fp-ts-extensions";
@@ -49,9 +51,110 @@ import {
 import HashedConfiguration from "./domain/model/HashedConfiguration";
 import GenericChangesHandler from "./domain/logic/GenericChangesHandler";
 import {emptyChanges} from "./domain/logic/ConfigurationChanges";
+import {readScopedConfiguration} from "./domain/logic/EngineLogic";
+import Logger from "./contract/Logger";
 import memize from "memize";
 
-export default class ConfigurationSession implements IConfigurationSession {
+export default class ConfigurationSession implements IActiveAttributesSession {
+    private pendingOperationCount = 0;
+    private pendingListeners = new Set<() => void>();
+    getPendingOperationCount() {return this.pendingOperationCount;}
+    addPendingOperationsChangedListener(listener: () => void): TSubscription {
+        this.pendingListeners.add(listener);
+        return {unsubscribe: () => {this.pendingListeners.delete(listener);}};
+    }
+    private notifyPendingOperationsChanged() {
+        for (const listener of this.pendingListeners) listener();
+    }
+    private enqueue(workItem: import("./domain/model/WorkItem").WorkItem<any>) {
+        this.pendingOperationCount++;
+        this.notifyPendingOperationsChanged();
+        const settled = () => {
+            this.pendingOperationCount--;
+            this.notifyPendingOperationsChanged();
+        };
+        workItem.deferredPromise.promise.then(settled, settled);
+        this.actor.send({type: "EnqueueWork", workItem});
+    }
+    private activeAttributesRevision = 0;
+    private scopedDecisionRefreshRevision = 0;
+    private refreshSessionId: string | undefined;
+    private scopedDecisionRefreshState: ScopedDecisionRefreshState = {status: "idle"};
+    private uncertainActiveAttributesSessionId: string | undefined;
+    getActiveAttributes(): ReadonlyArray<GlobalAttributeId> | null {
+        this.throwIfSessionClosed();
+        return this.sessionState.activeAttributes ?? null;
+    }
+    async setActiveAttributes(attributes: ReadonlyArray<GlobalAttributeId> | null): Promise<void> {
+        this.throwIfSessionClosed();
+        const revision = ++this.activeAttributesRevision;
+        const desired = attributes === null ? null : structuredClone(attributes);
+        const workItem = Session.setActiveAttributes(desired)(false);
+        const execute = workItem.execute;
+        // A queued obsolete scope must not delay or overwrite the newest visible step.
+        workItem.execute = (state, info) => async () => {
+            if (revision !== this.activeAttributesRevision) return E.right({sessionState:state as any,result:undefined});
+            const key = (ids: ReadonlyArray<GlobalAttributeId> | null | undefined) => ids == null ? "all" : JSON.stringify([...new Set(ids.map(GlobalAttributeIdKeyBuilder))].sort());
+            // Compare when the task executes, after earlier scope changes/decisions.
+            // A failed request may have reached the engine: never deduplicate its retry.
+            if (state.sessionId && this.uncertainActiveAttributesSessionId !== state.sessionId && key(state.activeAttributes) === key(desired)) {
+                return E.right({sessionState:state as any,result:undefined});
+            }
+            this.uncertainActiveAttributesSessionId = state.sessionId;
+            const result = await execute(state, info)();
+            if (E.isRight(result)) this.uncertainActiveAttributesSessionId = undefined;
+            return result;
+        };
+        this.enqueue(workItem);
+        await workItem.deferredPromise.promise;
+    }
+
+    getScopedDecisionRefreshState(): ScopedDecisionRefreshState {
+        return this.scopedDecisionRefreshState;
+    }
+
+    retryScopedDecisionRefresh(): void {
+        const {sessionId, activeAttributes} = this.sessionState;
+        if (sessionId && activeAttributes != null && this.scopedDecisionRefreshState.status === "error") {
+            this.refreshScopedDecisionBatch({...this.sessionState, sessionId});
+        }
+    }
+
+    private setScopedDecisionRefreshState(state: ScopedDecisionRefreshState) {
+        if (state.status === this.scopedDecisionRefreshState.status && state.status !== "error") return;
+        this.scopedDecisionRefreshState = state;
+        this.notifyPendingOperationsChanged();
+    }
+
+    private refreshScopedDecisionBatch = (state: FullQualifiedConfigurationSessionState): void => {
+        const revision = ++this.scopedDecisionRefreshRevision;
+        this.refreshSessionId = state.sessionId;
+        this.setScopedDecisionRefreshState({status: "refreshing"});
+        const isLatest = () => revision === this.scopedDecisionRefreshRevision && this.actor.getSnapshot().status === "active";
+        const fail = (error: unknown) => {
+            if (isLatest()) this.setScopedDecisionRefreshState({status: "error", error});
+        };
+        const refresh = async () => {
+            const result = await readScopedConfiguration(state)();
+            if (!isLatest()) return;
+            if (E.isLeft(result)) {
+                Logger.warn("Could not refresh decisions and consequences after a bulk write.", result.left.type);
+                fail(result.left);
+                return;
+            }
+            // Queue only the snapshot application. The reads never hold the decision queue.
+            const workItem = Session.applyScopedDecisionRefresh(state, result.right, isLatest, this.refreshScopedDecisionBatch)(false);
+            this.actor.send({type: "EnqueueWork", workItem});
+            await workItem.deferredPromise.promise;
+            if (isLatest()) this.setScopedDecisionRefreshState({status: "idle"});
+        };
+        void refresh().catch(error => {
+            if (!isLatest()) return;
+            Logger.warn("Could not apply refreshed decisions and consequences.");
+            fail(error);
+        });
+    };
+
     private readonly canResetConfigurationMemo = memize(hasAnyExplicitDecision, {maxSize: 5});
     private readonly calculateConfigurationChangedHandlerMemo = memize(calculateConfigurationChangedHandler, {maxSize: 5});
     private readonly getCollectedDecisionsMemo = memize(getCollectedDecisions);
@@ -138,10 +241,10 @@ export default class ConfigurationSession implements IConfigurationSession {
         }
 
         const workItem = pipe(
-            Session.makeManyDecisions(loadedConfiguration.right, mode),
+            Session.makeManyDecisions(loadedConfiguration.right, mode, this.refreshScopedDecisionBatch),
             I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.restoreConfiguration ?? false)
         );
-        this.actor.send({type: "EnqueueWork", workItem: workItem});
+        this.enqueue(workItem);
 
         return await workItem.deferredPromise.promise;
     }
@@ -160,10 +263,10 @@ export default class ConfigurationSession implements IConfigurationSession {
         this.throwIfSessionClosed();
 
         const workItem = pipe(
-            Session.makeManyDecisions([], {type: "DropExistingDecisions", conflictHandling: {type: "Automatic"}}),
+            Session.makeManyDecisions([], {type: "DropExistingDecisions", conflictHandling: {type: "Automatic"}}, this.refreshScopedDecisionBatch),
             I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.resetConfiguration ?? false)
         );
-        this.actor.send({type: "EnqueueWork", workItem: workItem});
+        this.enqueue(workItem);
 
         await workItem.deferredPromise.promise;
     }
@@ -251,7 +354,7 @@ export default class ConfigurationSession implements IConfigurationSession {
             Session.makeDecision,
             I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.makeDecision ?? true)
         );
-        this.actor.send({type: "EnqueueWork", workItem: workItem});
+        this.enqueue(workItem);
 
         await workItem.deferredPromise.promise;
     }
@@ -260,10 +363,10 @@ export default class ConfigurationSession implements IConfigurationSession {
         this.throwIfSessionClosed();
 
         const workItem = pipe(
-            Session.makeManyDecisions(solution.decisions, solution.mode),
+            Session.makeManyDecisions(solution.decisions, solution.mode, this.refreshScopedDecisionBatch),
             I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.applySolution ?? true)
         );
-        this.actor.send({type: "EnqueueWork", workItem: workItem});
+        this.enqueue(workItem);
 
         return await workItem.deferredPromise.promise;
     }
@@ -276,10 +379,10 @@ export default class ConfigurationSession implements IConfigurationSession {
         this.throwIfSessionClosed();
 
         const workItem = pipe(
-            Session.makeManyDecisions(decisions, mode),
+            Session.makeManyDecisions(decisions, mode, this.refreshScopedDecisionBatch),
             I.ap(this.sessionState.sessionContext.optimisticDecisionOptions?.makeManyDecisions ?? true)
         );
-        this.actor.send({type: "EnqueueWork", workItem: workItem});
+        this.enqueue(workItem);
 
         return await workItem.deferredPromise.promise;
     }
@@ -292,7 +395,7 @@ export default class ConfigurationSession implements IConfigurationSession {
             Session.setSessionContext,
             I.ap(false)
         );
-        this.actor.send({type: "EnqueueWork", workItem: workItem});
+        this.enqueue(workItem);
 
         await workItem.deferredPromise.promise;
     }
@@ -304,7 +407,7 @@ export default class ConfigurationSession implements IConfigurationSession {
             Session.reinitialize(),
             I.ap(false)
         );
-        this.actor.send({type: "EnqueueWork", workItem: workItem});
+        this.enqueue(workItem);
 
         await workItem.deferredPromise.promise;
     }
@@ -318,7 +421,7 @@ export default class ConfigurationSession implements IConfigurationSession {
         const q = typeof question === "function" ? question(explainQuestionBuilder) : question;
         const workItem = Session.explain(q, answerType);
 
-        this.actor.send({type: "EnqueueWork", workItem: workItem});
+        this.enqueue(workItem);
 
         return await workItem.deferredPromise.promise;
     }
@@ -339,7 +442,7 @@ export default class ConfigurationSession implements IConfigurationSession {
 
         const workItem = Session.scheduleTask(signal);
 
-        this.actor.send({type: "EnqueueWork", workItem: workItem});
+        this.enqueue(workItem);
 
         return await workItem.deferredPromise.promise;
     }
@@ -355,11 +458,21 @@ export default class ConfigurationSession implements IConfigurationSession {
     }
 
     private handleActorUpdate(state: Omit<MachineState, "type">) {
+        const previousSessionId = this.sessionState?.sessionId;
         this.sessionState = state.sessionState;
 
         // First inform all handler about the change.
         this.hashedConfigurationInputHandler.forEach(fn => fn(this.sessionState.configuration));
         this.rawDataInputHandlers.forEach(sh => sh.notifyListeners(this.sessionState.configurationRawData));
+
+        // A replacement session or confirmed unrestricted response supersedes the scoped read.
+        const sessionReplaced = this.sessionState.sessionId !== this.refreshSessionId
+            && this.sessionState.sessionId !== previousSessionId;
+        if (this.refreshSessionId && (sessionReplaced || this.sessionState.activeAttributes == null)) {
+            this.refreshSessionId = undefined;
+            this.scopedDecisionRefreshRevision++;
+            this.setScopedDecisionRefreshState({status: "idle"});
+        }
 
         // Then resolve all waiting promises.
         resolveDeferredPromises(state.deferredPromiseCompletions);

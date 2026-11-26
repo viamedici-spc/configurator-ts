@@ -1,5 +1,6 @@
 import {
     Configuration,
+    GlobalAttributeId,
     ConstraintsExplainAnswer,
     DecisionsExplainAnswer,
     ExplicitDecision,
@@ -333,4 +334,31 @@ export default interface IConfigurationSession {
      * @throws {AbortSignal.reason} If the {@link signal} is aborted.
      */
     scheduleTask(signal?: AbortSignal | null): Promise<ScheduleTaskResult>;
+}
+
+export type ScopedDecisionRefreshState =
+    | {readonly status: "idle" | "refreshing"}
+    | {readonly status: "error"; readonly error: unknown};
+
+/** A session created by SessionFactory with opt-in propagation scope support. */
+export interface IActiveAttributesSession extends IConfigurationSession {
+    /** Read the last confirmed scope. Null represents unrestricted propagation. */
+    getActiveAttributes(): ReadonlyArray<GlobalAttributeId> | null;
+    /** Apply a scope in the decision queue. Use [] for an empty scope and null to clear it. */
+    setActiveAttributes(attributes: ReadonlyArray<GlobalAttributeId> | null): Promise<void>;
+    getPendingOperationCount(): number;
+    /** Also notifies when the background decision refresh changes state, independently of the count. */
+    addPendingOperationsChangedListener(listener: () => void): Subscription;
+    getScopedDecisionRefreshState?(): ScopedDecisionRefreshState;
+    /** Retry the snapshot reads after a failed refresh. Does not replay the write. */
+    retryScopedDecisionRefresh?(): void;
+}
+
+/** Detect scope support while retaining the base session and factory contracts. */
+export function isActiveAttributesSession(session: IConfigurationSession): session is IActiveAttributesSession {
+    const candidate = session as Partial<IActiveAttributesSession>;
+    return typeof candidate.getActiveAttributes === "function"
+        && typeof candidate.setActiveAttributes === "function"
+        && typeof candidate.getPendingOperationCount === "function"
+        && typeof candidate.addPendingOperationsChangedListener === "function";
 }

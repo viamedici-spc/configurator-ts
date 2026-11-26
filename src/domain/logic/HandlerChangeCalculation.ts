@@ -65,9 +65,11 @@ export function calculateConfigurationChangedHandler(previous: HashedConfigurati
         }
     });
 
+    const satisfactionChanged = current.isSatisfied !== previous?.isSatisfied;
     return pipe(
         {
-            isSatisfied: current.isSatisfied != previous?.isSatisfied ? current.isSatisfied : null,
+            isSatisfied: satisfactionChanged ? current.isSatisfied : null,
+            ...(satisfactionChanged && current.isSatisfied === null ? {satisfactionChanged: true} : {}),
             attributes: {
                 added: addedAttributes,
                 changed: changedAttributes,

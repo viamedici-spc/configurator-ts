@@ -354,3 +354,7 @@ export {
     type ExplainQuestionBuilder,
     explainQuestionBuilder,
 };
+
+export {isActiveAttributesSession, type IActiveAttributesSession} from "./IConfigurationSession";
+
+export type {ScopedDecisionRefreshState} from "./IConfigurationSession";

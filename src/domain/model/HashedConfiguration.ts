@@ -2,7 +2,7 @@ import {GlobalAttributeIdKey} from "../../contract/Types";
 import {HashedAttribute} from "./HashedAttribute";
 
 type HashedConfiguration = {
-    readonly isSatisfied: boolean;
+    readonly isSatisfied: boolean | null;
     readonly attributes: ReadonlyMap<GlobalAttributeIdKey, HashedAttribute>;
 }
 
