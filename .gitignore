@@ -4,3 +4,4 @@ node_modules
 /report/
 /test-results/*
 .env*.local
+/package-check/consumer/index.ts

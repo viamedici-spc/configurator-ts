@@ -7,8 +7,9 @@ with [docs/overview.md](docs/overview.md).
 ## Commands
 
 - `bun install` — install (Bun is the package manager; never npm, so no `package-lock.json`).
-- `bun run verify` — the gate before a change counts as done, its steps in parallel: `bun check` (sources and tests),
-  oxlint, `bun fmt --check`, `bun test --isolate`, the tsdown build, publint and arethetypeswrong.
+- `bun run verify` — the gate before a change counts as done, its steps in parallel: `bun check` (sources, tests,
+  `scripts/` and `package-check/`), oxlint, `bun fmt --check`, `bun test --isolate`, the tsdown build (which must leave
+  `package.json` unchanged), the consumer type check (`package-check/consumer.ts`), publint and arethetypeswrong.
 - The contract tests (`tests/area/contract/ConfigurationSession.test.ts`) run against the live engine and need
   `HCA_ENGINE_ACCESS_TOKEN`: locally in the git-ignored `.env.test.local`, which `bun test` loads; `.env.example` says
   how to get the token. Never commit a token.

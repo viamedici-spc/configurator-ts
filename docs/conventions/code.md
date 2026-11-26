@@ -14,10 +14,13 @@ bun run verify
 ```
 
 From the repository root, before a change counts as done. It is the one gate, and CI runs the same command: type check
-(`bun check`), lint (oxlint), format check, tests, build, and the package checks (publint and arethetypeswrong) against
-the built output. The build is part of it only because the package checks need the artifact; on its own it proves
-nothing. `bun fmt` is not a verdict either: it rewrites rather than reports, so it always succeeds; the format check is
-the one that answers.
+(`bun check`), lint (oxlint), format check, tests, build, and the package checks against the built output. The package
+checks: the build must leave `package.json` unchanged (`package-check/build.ts`); a consumer type check imports every
+entry of the `exports` map by the package name and uses each of its runtime exports as a value
+(`package-check/consumer.ts`), which catches a declaration that does not declare what the JavaScript exports; publint
+and arethetypeswrong check how the package resolves. The build is part of it only because the package checks need the
+artifact; on its own it proves nothing. `bun fmt` is not a verdict either: it rewrites rather than reports, so it always
+succeeds; the format check is the one that answers.
 
 The test step is `bun test` with the native `bun:test` API. The contract tests in `tests/area/contract/`
 need the live engine and its access token in `HCA_ENGINE_ACCESS_TOKEN` (locally in the git-ignored `.env.test.local`,

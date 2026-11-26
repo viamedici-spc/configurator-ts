@@ -37,9 +37,9 @@
     "format:check": "bun fmt --check",
     "lint": "oxlint --deny-warnings",
     "test": "bun test --isolate",
-    "typecheck": "bun check && bun check -p tests && bun check -p scripts",
+    "typecheck": "bun check && bun check -p tests && bun check -p scripts && bun check -p package-check",
     "verify": "bun run --parallel typecheck lint format:check test verify:package",
-    "verify:package": "bun run build && publint --strict && attw --pack . --profile esm-only --format table-flipped"
+    "verify:package": "bun package-check/build.ts && bun package-check/consumer.ts && publint --strict && attw --pack . --profile esm-only --format table-flipped"
   },
   "dependencies": {
     "@morphic-ts/batteries": "^3.0.0",

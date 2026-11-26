@@ -16,5 +16,5 @@
       }
     ]
   },
-  "ignorePatterns": ["dist/**", "src/apiClient/engine/**"]
+  "ignorePatterns": ["dist/**", "src/apiClient/engine/**", "package-check/consumer/index.ts"]
 }

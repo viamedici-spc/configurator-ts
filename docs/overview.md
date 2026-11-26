@@ -48,7 +48,7 @@ Browsers, as ESM, through a bundler or inside a CDN bundle; not Node.js ([ADR 00
 | Command | What it does |
 |---|---|
 | `bun install` | Installs the dependencies (Bun is the package manager; see `packageManager` in `package.json`). |
-| `bun run verify` | The gate, its steps in parallel: type check of sources and tests, lint, format check, tests, build with package checks. |
+| `bun run verify` | The gate, its steps in parallel: type check of sources, tests, `scripts/` and `package-check/`, lint, format check, tests, build with package checks (`package.json` unchanged, consumer type check, publint, arethetypeswrong). |
 | `bun run test` | Runs the tests; the contract tests need `HCA_ENGINE_ACCESS_TOKEN` (see `.env.example`). |
 | `bun run build` | Builds `dist/`. |
 | `bun run --filter scripts generate-engine-types` | Regenerates the wire types in `src/apiClient/engine/Engine.ts` from the engine's OpenAPI document. |
