@@ -22,9 +22,10 @@ and arethetypeswrong check how the package resolves. The build is part of it onl
 artifact; on its own it proves nothing. `bun fmt` is not a verdict either: it rewrites rather than reports, so it always
 succeeds; the format check is the one that answers.
 
-The test step is `bun test` with the native `bun:test` API. The contract tests in `tests/area/contract/`
-need the live engine and its access token in `HCA_ENGINE_ACCESS_TOKEN` (locally in the git-ignored `.env.test.local`,
-see `.env.example`); without the token they fail with that hint, except in pull requests from forks, which skip them.
+The test step is `bun test` with the native `bun:test` API. The contract tests in `tests/area/contract/` need the live
+engine and its access token in `HCA_ENGINE_ACCESS_TOKEN` (locally in the git-ignored `.env.test.local`, see
+`.env.example`); without the token they fail with that hint, except in pull requests that get no secrets (from forks or
+Dependabot), which skip them.
 **A step is green when its exit code is 0, and only then.** Silence is not green. Never wrap a check so that failing
 produces *less* output than passing: `… && echo ok` prints nothing at all on a failure, so the result is one missing
 line in a list of green ones. Run each step on its own and let its status be seen. **A suite that did not run is not a

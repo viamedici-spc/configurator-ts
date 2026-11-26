@@ -3,7 +3,7 @@ import defaults from "./config.json";
 /**
  * Where the contract tests reach the engine. The access token is not part of the repository: CI passes it as
  * `HCA_ENGINE_ACCESS_TOKEN`, and locally it goes into the git-ignored `.env.test.local`, which `bun test` loads (see
- * `.env.example`). Pull requests from forks get no secrets, so they skip the tests that need the engine.
+ * `.env.example`). Pull requests that get no secrets (from forks or Dependabot) skip the tests that need the engine.
  */
 const accessToken = process.env["HCA_ENGINE_ACCESS_TOKEN"] || undefined;
 const isPullRequestFromFork = process.env["GITHUB_EVENT_NAME"] === "pull_request" && accessToken === undefined;
@@ -14,7 +14,7 @@ if (accessToken === undefined && !isPullRequestFromFork) {
     );
 }
 
-/** Whether the tests that need the live engine run; false only in pull requests from forks. */
+/** Whether the tests that need the live engine run; false only in pull requests that get no secrets. */
 export const engineAvailable: boolean = accessToken !== undefined;
 
 const config = {
