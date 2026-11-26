@@ -1,26 +1,30 @@
 import {identity, O, pipe, RA, RM, some, Str} from "@viamedici-spc/fp-ts-extensions";
 import * as ML from "monocle-ts/Lens";
-import {
-    Attribute,
-    AttributeType, BooleanAttribute, ChoiceAttribute, ChoiceValue, ChoiceValueId, ComponentAttribute,
+import type {
+    Attribute, BooleanAttribute, ChoiceAttribute, ChoiceValue, ChoiceValueId, ComponentAttribute,
     Configuration,
     GlobalAttributeIdKey,
     NumericAttribute
 } from "../../contract/Types";
-import {HashedAttribute, isHashedAttribute} from "../model/HashedAttribute";
+import {
+    AttributeType
+} from "../../contract/Types";
+import type {HashedAttribute} from "../model/HashedAttribute";
+import { isHashedAttribute} from "../model/HashedAttribute";
 import {hashAttribute} from "../../crossCutting/AttributeHashing";
 import {reduceUpdateFunctions} from "../../crossCutting/UpdateFunctionHelper";
-import {none, Option} from "fp-ts/Option";
-import HashedConfiguration from "../model/HashedConfiguration";
-import {
+import type { Option} from "fp-ts/Option";
+import {none} from "fp-ts/Option";
+import type HashedConfiguration from "../model/HashedConfiguration";
+import type {
     ChoiceValueConsequence,
     ChoiceValueDecision, PartialAttribute
 } from "../model/PartialAttribute";
 import {globalAttributeIdKeyEq} from "../../contract/Eqs";
-import ConfigurationRawData from "../model/ConfigurationRawData";
+import type ConfigurationRawData from "../model/ConfigurationRawData";
 import {match} from "ts-pattern";
 import * as Se from "fp-ts/Semigroup";
-import {Endomorphism} from "fp-ts/Endomorphism";
+import type {Endomorphism} from "fp-ts/Endomorphism";
 import Logger from "../../contract/Logger";
 
 const attributesLens = pipe(
@@ -214,9 +218,7 @@ export function applyPartialAttribute(partial: PartialAttribute): Endomorphism<C
 }
 
 function removeAttributeHash(attribute: HashedAttribute | Attribute): Attribute {
-    const copiedAttribute = {
-        ...attribute,
-    } satisfies Attribute;
-    delete copiedAttribute["hash"];
+    const copiedAttribute: Attribute & {hash?: unknown} = {...attribute};
+    delete copiedAttribute.hash;
     return copiedAttribute;
 }

@@ -1,4 +1,4 @@
-import {
+import type {
     Configuration,
     ConstraintsExplainAnswer,
     DecisionsExplainAnswer,
@@ -21,8 +21,8 @@ import {
     MakeManyDecisionsResult,
     MakeManyDecisionsMode
 } from "./contract/Types";
-import {ConfiguratorError, SessionClosed, TaskCancelled, MakeManyDecisionsConflict} from "./contract/ConfiguratorError";
-import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
+import type {ConfiguratorError, SessionClosed, TaskCancelled, MakeManyDecisionsConflict} from "./contract/ConfiguratorError";
+import type {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
 
 export default interface IConfigurationSession {
     /**

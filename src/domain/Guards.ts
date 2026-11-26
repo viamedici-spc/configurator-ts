@@ -1,4 +1,4 @@
-import {
+import type {
     ExplicitDecision,
     DropExistingDecisionsMode,
     KeepExistingDecisionsMode
@@ -7,7 +7,7 @@ import GlobalAttributeIdKeyBuilder from "../crossCutting/GlobalAttributeIdKeyBui
 import {getExplicitDecisionsForAttribute} from "./logic/ConfigurationRawData";
 import {O, pipe, RA} from "@viamedici-spc/fp-ts-extensions";
 import {explicitDecisionByIdEq, explicitDecisionEq} from "../contract/Eqs";
-import configurationRawData from "./model/ConfigurationRawData";
+import type configurationRawData from "./model/ConfigurationRawData";
 
 export function shouldSkipMakeDecision(explicitDecision: ExplicitDecision, rawData: configurationRawData): boolean {
     const existingDecision = rawData.decisions.get(GlobalAttributeIdKeyBuilder(explicitDecision.attributeId));

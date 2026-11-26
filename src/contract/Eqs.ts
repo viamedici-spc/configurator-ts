@@ -1,13 +1,12 @@
-import {Bool, Eq, EqT, Num, O, pipe, RA, RM, RR, some, Str} from "@viamedici-spc/fp-ts-extensions";
-import {
+import type { EqT} from "@viamedici-spc/fp-ts-extensions";
+import {Bool, Eq, Num, O, pipe, RA, RM, RR, some, Str} from "@viamedici-spc/fp-ts-extensions";
+import type {
     AllowedInExplain,
     AllowedRulesInExplain,
     AllowedRulesInExplainAll,
     AllowedRulesInExplainNone,
     AllowedRulesInExplainSpecific,
-    AllowedRulesInExplainType,
     Attribute,
-    AttributeType,
     AutomaticConflictResolution,
     BooleanAttribute,
     ChoiceAttribute,
@@ -21,7 +20,6 @@ import {
     ConfigurationModelFromChannel,
     ConfigurationModelFromPackage,
     ConfigurationModelSource,
-    ConfigurationModelSourceType,
     ConflictResolution,
     ConstraintExplanation,
     Decision,
@@ -53,6 +51,11 @@ import {
     WizardStep
 } from "./Types";
 import {
+    AllowedRulesInExplainType,
+    AttributeType,
+    ConfigurationModelSourceType
+} from "./Types";
+import type {
     AttributeConsequence,
     AttributeDecision,
     AttributeMeta,
@@ -66,11 +69,11 @@ import {
     NumericAttributeConsequence,
     NumericAttributeDecision
 } from "../domain/model/PartialAttribute";
-import HashedConfiguration from "../domain/model/HashedConfiguration";
-import {HashedAttribute} from "../domain/model/HashedAttribute";
-import {MakeManyDecisionsConflict} from "./ConfiguratorError";
+import type HashedConfiguration from "../domain/model/HashedConfiguration";
+import type {HashedAttribute} from "../domain/model/HashedAttribute";
+import type {MakeManyDecisionsConflict} from "./ConfiguratorError";
 import {deepEqual} from "fast-equals";
-import ConfigurationRawData from "../domain/model/ConfigurationRawData";
+import type ConfigurationRawData from "../domain/model/ConfigurationRawData";
 import {match} from "ts-pattern";
 import {none} from "fp-ts/Option";
 

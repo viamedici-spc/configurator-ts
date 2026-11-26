@@ -1,5 +1,5 @@
-import {AType} from "@morphic-ts/summoners";
-import {
+import type {AType} from "@morphic-ts/summoners";
+import type {
     BooleanDecision_,
     ChoiceDecision_,
     ComponentDecision_, Decision_,

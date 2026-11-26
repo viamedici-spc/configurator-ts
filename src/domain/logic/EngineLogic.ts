@@ -1,26 +1,31 @@
-import {
+import type {
     ExplainAnswer,
-    ExplainQuestion, ExplainQuestionType,
+    ExplainQuestion,
     ExplicitDecision, MakeManyDecisionsResult, MakeManyDecisionsMode, SessionContext
 } from "../../contract/Types";
-import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
-import {ConnectionError, ConfiguratorError, ServerError, ConfiguratorErrorType} from "../../contract/ConfiguratorError";
-import {E, I, identity, O, pipe, RA, T, TaskEither, TE} from "@viamedici-spc/fp-ts-extensions";
+import { ExplainQuestionType
+} from "../../contract/Types";
+import type {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
+import type {ConnectionError, ConfiguratorError, ServerError} from "../../contract/ConfiguratorError";
+import { ConfiguratorErrorType} from "../../contract/ConfiguratorError";
+import type { TaskEither} from "@viamedici-spc/fp-ts-extensions";
+import {E, I, identity, O, pipe, RA, T, TE} from "@viamedici-spc/fp-ts-extensions";
 import {getApiClient, getServerSideSessionCreationApiClient} from "../EngineApiClient";
 import * as DtoE from "../mapper/DomainToEngineMapping";
 import * as EtoD from "../mapper/EngineToDomainMapping";
 import * as ResponseHandling from "./EngineResponseHandling";
 import {match, P} from "ts-pattern";
-import * as Engine from "../../apiClient/engine/Engine";
+import type * as Engine from "../../apiClient/engine/Engine";
 import {sequenceS} from "fp-ts/Apply";
 import {
     processConstraintsExplainResult,
     processDecisionsExplainResult,
     processExplainResult
 } from "./EngineResponseHandling";
-import {none, Option} from "fp-ts/Option";
+import type { Option} from "fp-ts/Option";
+import {none} from "fp-ts/Option";
 import {getAllExplicitDecisions, merge} from "./ConfigurationRawData";
-import ConfigurationRawData from "../model/ConfigurationRawData";
+import type ConfigurationRawData from "../model/ConfigurationRawData";
 import {shouldSkipMakeDecision, shouldSkipMakeManyDecisions} from "../Guards";
 import Logger from "../../contract/Logger";
 
@@ -275,7 +280,8 @@ function request<T, E>(request: () => Promise<Engine.HttpResponse<T, E>>, custom
                     return E.left(customMapped.value);
                 }
 
-                if (r.error["type"] != null && r.error["title"] != null && r.error["detail"] != null) {
+                const error = r.error as Partial<Record<"type" | "title" | "detail", unknown>>;
+                if (error.type != null && error.title != null && error.detail != null) {
                     return pipe(
                         r.error as any as Engine.ProblemDetails,
                         EtoD.mapConfiguratorError,

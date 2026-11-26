@@ -1,10 +1,10 @@
-import {DeferredPromise} from "p-defer";
-import {TaskEither} from "@viamedici-spc/fp-ts-extensions";
-import {Configuration} from "../../contract/Types";
-import {ConfigurationSessionState} from "./ConfigurationSessionState";
-import {ConfiguratorError} from "../../contract/ConfiguratorError";
-import {EngineErrorResult, EngineSuccessResultT} from "../logic/EngineLogic";
-import {Endomorphism} from "fp-ts/Endomorphism";
+import type {DeferredPromise} from "p-defer";
+import type {TaskEither} from "@viamedici-spc/fp-ts-extensions";
+import type {Configuration} from "../../contract/Types";
+import type {ConfigurationSessionState} from "./ConfigurationSessionState";
+import type {ConfiguratorError} from "../../contract/ConfiguratorError";
+import type {EngineErrorResult, EngineSuccessResultT} from "../logic/EngineLogic";
+import type {Endomorphism} from "fp-ts/Endomorphism";
 
 export type PureError = {
     type: "PureError";

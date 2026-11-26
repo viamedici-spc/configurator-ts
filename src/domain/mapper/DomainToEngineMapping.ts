@@ -1,13 +1,7 @@
 import * as Engine from "../../apiClient/engine/Engine";
 import {match, P} from "ts-pattern";
-import {
-    AllowedRulesInExplainType,
-    AttributeType,
-    ChoiceValueDecisionState,
+import type {
     ChoiceValueId,
-    ComponentDecisionState,
-    ConfigurationModelSourceType,
-    ExplainQuestionSubject,
     ExplicitBooleanDecision,
     ExplicitChoiceDecision,
     ExplicitComponentDecision,
@@ -18,8 +12,16 @@ import {
     SessionContext,
     WhyIsNotSatisfied, WhyIsStateNotPossible
 } from "../../contract/Types";
+import {
+    AllowedRulesInExplainType,
+    AttributeType,
+    ChoiceValueDecisionState,
+    ComponentDecisionState,
+    ConfigurationModelSourceType,
+    ExplainQuestionSubject
+} from "../../contract/Types";
 import {pipe, RA} from "@viamedici-spc/fp-ts-extensions";
-import {Refinement} from "fp-ts/Refinement";
+import type {Refinement} from "fp-ts/Refinement";
 
 export function mapGlobalAttributeId(atttributeId: GlobalAttributeId): Engine.GlobalAttributeId {
     return {

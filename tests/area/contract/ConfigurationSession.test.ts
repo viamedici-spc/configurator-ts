@@ -3,22 +3,16 @@
 
 import {afterEach, beforeAll, describe, expect, it, vi} from "vitest";
 import SessionFactory from "../../../src/SessionFactory";
-import {
-    AllowedRulesInExplainType,
-    AttributeType,
+import type {
     BooleanAttribute,
     CausedByBooleanDecision,
-    ChoiceValueDecisionState,
     CollectedBooleanDecision,
     CollectedDecision,
     CollectedExplicitDecision,
-    CollectedImplicitDecision, ComponentDecisionState,
+    CollectedImplicitDecision,
     ConfigurationChanges,
-    ConfigurationModelSourceType,
     ConfiguratorError,
-    ConfiguratorErrorType,
     Decision,
-    DecisionKind,
     DropExistingDecisionsMode,
     ExplicitBooleanDecision,
     ExplicitNumericDecision,
@@ -30,20 +24,28 @@ import {
     NumericAttribute,
     OnCanResetConfigurationChangedHandler,
     OnConfigurationChangedHandler,
-    Selection,
     ServerSideSessionInitialisationOptions,
     SessionClosed,
     SessionContext,
     StoredConfiguration,
     StoredConfigurationInvalid
 } from "../../../src";
+import {
+    AllowedRulesInExplainType,
+    AttributeType,
+    ChoiceValueDecisionState, ComponentDecisionState,
+    ConfigurationModelSourceType,
+    ConfiguratorErrorType,
+    DecisionKind,
+    Selection
+} from "../../../src";
 import config from "../../config";
 import getConfigurationSessionExpectations from "../../setup/ConfigurationSessionExpectations";
 import {createSession} from "../../../src/domain/logic/EngineLogic";
 import {expectToBeLeft, expectToBeRight} from "../../setup/EitherExtensions";
-import * as Engine from "../../../src/apiClient/engine/Engine";
-import {SessionNotFound} from "../../../src/apiClient/engine/Engine";
-import ConfigurationSession from "../../../src/ConfigurationSession";
+import type * as Engine from "../../../src/apiClient/engine/Engine";
+import type {SessionNotFound} from "../../../src/apiClient/engine/Engine";
+import type ConfigurationSession from "../../../src/ConfigurationSession";
 import pDefer from "p-defer";
 import GlobalAttributeIdKeyBuilder from "../../../src/crossCutting/GlobalAttributeIdKeyBuilder";
 import {hashAttribute} from "../../../src/crossCutting/AttributeHashing";
@@ -57,8 +59,8 @@ import {
     makeManyDecisionsConflictEq
 } from "../../../src/contract/Eqs";
 import * as ConfigurationRawDataL from "../../../src/domain/logic/ConfigurationRawData";
-import {OnDecisionsChangedHandler, OnStoredConfigurationChangedHandler} from "../../../src";
-import {BooleanDecision} from "../../../src/contract/storedConfiguration/StoredConfigurationV1";
+import type {OnDecisionsChangedHandler, OnStoredConfigurationChangedHandler} from "../../../src";
+import type {BooleanDecision} from "../../../src/contract/storedConfiguration/StoredConfigurationV1";
 
 const getSessionContext = (deploymentName: string): SessionContext => ({
     apiBaseUrl: config.endpoints.engine,
@@ -236,7 +238,7 @@ describe("ConfigurationSession", () => {
         let gotRejected = false;
         const fetch = global.fetch;
         global.fetch = (input: Parameters<typeof global.fetch>[0], init: Parameters<typeof global.fetch>[1]) => {
-            if (typeof input === "string" && input.endsWith("decision") && init && init.method === "PUT" && init.headers!["X-SESSION-ID"] === sessionIdToReject) {
+            if (typeof input === "string" && input.endsWith("decision") && init && init.method === "PUT" && (init.headers as Record<string, string>)["X-SESSION-ID"] === sessionIdToReject) {
                 gotRejected = true;
                 return Promise.resolve({
                     ok: false,

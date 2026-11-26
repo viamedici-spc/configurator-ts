@@ -1,19 +1,22 @@
-import {ActorRefFromLogic, assign, createActor, DoneActorEvent, enqueueActions, fromPromise, log, setup} from "xstate";
-import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "./model/ConfigurationSessionState";
-import {
+import type {ActorRefFromLogic, DoneActorEvent} from "xstate";
+import { assign, createActor, enqueueActions, fromPromise, log, setup} from "xstate";
+import type {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "./model/ConfigurationSessionState";
+import type {
     ErrorWithSessionState,
     PureError,
     StateMutatingWorkItem,
     StatePreservingWorkItem,
     WorkItem, WorkQueueInfo
 } from "./model/WorkItem";
-import {E, O, Ord, OrdT, pipe, RA, RM, RNEA, Str, T, Task, TE} from "@viamedici-spc/fp-ts-extensions";
-import {Either} from "fp-ts/Either";
-import {ConfiguratorError, ConfiguratorErrorType, SessionNotFound, TaskCancelled} from "../contract/ConfiguratorError";
+import type { OrdT, Task} from "@viamedici-spc/fp-ts-extensions";
+import {E, O, Ord, pipe, RA, RM, RNEA, Str, T, TE} from "@viamedici-spc/fp-ts-extensions";
+import type {Either} from "fp-ts/Either";
+import type {ConfiguratorError, SessionNotFound, TaskCancelled} from "../contract/ConfiguratorError";
+import { ConfiguratorErrorType} from "../contract/ConfiguratorError";
 import * as Engine from "./logic/EngineLogic";
-import {EngineSuccessResultT} from "./logic/EngineLogic";
-import {DeferredPromise} from "p-defer";
-import {Configuration} from "../contract/Types";
+import type {EngineSuccessResultT} from "./logic/EngineLogic";
+import type {DeferredPromise} from "p-defer";
+import type {Configuration} from "../contract/Types";
 import {toHashedConfiguration} from "./logic/Configuration";
 
 export type EnqueueWorkEvent = {

@@ -1,5 +1,6 @@
-import {none, Option} from "fp-ts/Option";
-import {
+import type { Option} from "fp-ts/Option";
+import {none} from "fp-ts/Option";
+import type {
     Attribute,
     CollectedDecision,
     ConfigurationChanges,
@@ -10,12 +11,13 @@ import {
     OnConfigurationChangedHandler,
     OnStoredConfigurationChangedHandler
 } from "../../contract/Types";
-import ConfigurationRawData from "../model/ConfigurationRawData";
-import {O, Ord, OrdT, P, pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
-import HashedConfiguration from "../model/HashedConfiguration";
+import type ConfigurationRawData from "../model/ConfigurationRawData";
+import type { OrdT} from "@viamedici-spc/fp-ts-extensions";
+import {O, Ord, P, pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
+import type HashedConfiguration from "../model/HashedConfiguration";
 import {globalAttributeIdKeyEq} from "../../contract/Eqs";
 import {isEmpty} from "./ConfigurationChanges";
-import {StoredConfiguration} from "../../contract/storedConfiguration/StoredConfiguration";
+import type {StoredConfiguration} from "../../contract/storedConfiguration/StoredConfiguration";
 
 export function calculateCanResetConfigurationChangedHandler(canReset: (rawData: ConfigurationRawData) => boolean): (previous: ConfigurationRawData | null, current: ConfigurationRawData | null) => Option<Parameters<OnCanResetConfigurationChangedHandler>> {
     return (previous, current) => {

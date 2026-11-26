@@ -1,18 +1,14 @@
 import * as Engine from "../../apiClient/engine/Engine";
 import {match} from "ts-pattern";
-import {
-    AttributeType,
+import type {
     BooleanAttribute,
     CausedByBooleanDecision,
     CausedByChoiceValueDecision,
     CausedByComponentDecision,
     CausedByNumericDecision,
     ChoiceValue,
-    ChoiceValueDecisionState,
     ComponentAttribute,
-    ComponentDecisionState,
     ConstraintExplanation,
-    DecisionKind,
     ExplicitBooleanDecision,
     ExplicitChoiceDecision,
     ExplicitComponentDecision,
@@ -21,11 +17,16 @@ import {
     FixedDecision,
     GlobalAttributeId,
     GlobalConstraintId,
+    NumericAttribute} from "../../contract/Types";
+import {
+    AttributeType,
+    ChoiceValueDecisionState,
+    ComponentDecisionState,
+    DecisionKind,
     Inclusion,
-    NumericAttribute,
     Selection
 } from "../../contract/Types";
-import {
+import type {
     AttributeNotFound,
     AuthenticationFailure,
     BooleanAttributeNotFound,
@@ -37,7 +38,6 @@ import {
     ConfigurationModelNotFeasible,
     ConfigurationModelNotFound,
     ConfiguratorError,
-    ConfiguratorErrorType,
     ConflictWithConsequence,
     DecisionsToRespectInvalid, ExplainConflict, ExplainFailure, FixedDecisionsInvalid,
     MissingSessionIdClaim,
@@ -57,8 +57,11 @@ import {
     SpecifiedDeploymentForbidden,
     TenantAccessForbidden
 } from "../../contract/ConfiguratorError";
+import {
+    ConfiguratorErrorType
+} from "../../contract/ConfiguratorError";
 import {pipe, RA} from "@viamedici-spc/fp-ts-extensions";
-import {ConfigurationInitializationFailure} from "../../apiClient/engine/Engine";
+import type {ConfigurationInitializationFailure} from "../../apiClient/engine/Engine";
 
 const serverError: ServerError = {
     type: ConfiguratorErrorType.ServerError

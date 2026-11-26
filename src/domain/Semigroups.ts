@@ -1,5 +1,5 @@
 import {Eq, pipe, RA, RM, Str} from "@viamedici-spc/fp-ts-extensions";
-import {
+import type {
     AttributeConsequence,
     AttributeDecision, AttributeMeta,
     BooleanAttributeConsequence,
@@ -13,7 +13,7 @@ import {
     NumericAttributeConsequence,
     NumericAttributeDecision
 } from "./model/PartialAttribute";
-import {Semigroup} from "fp-ts/Semigroup";
+import type {Semigroup} from "fp-ts/Semigroup";
 import * as Se from "fp-ts/Semigroup";
 import {match} from "ts-pattern";
 import {AttributeType} from "../contract/Types";

@@ -1,5 +1,5 @@
 import {ModelWithOneMandatoryChoice} from "./ConfigurationModelSources";
-import {SessionContext} from "../../src";
+import type {SessionContext} from "../../src";
 
 export const SessionContextWithModelWithOneMandatoryChoice: SessionContext = {
     sessionInitialisationOptions: {

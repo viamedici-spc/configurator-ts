@@ -1,5 +1,6 @@
 import {describe, expect, it} from "vitest";
-import {GlobalAttributeId, GlobalAttributeIdKeyBuilder} from "../../../src";
+import type {GlobalAttributeId} from "../../../src";
+import { GlobalAttributeIdKeyBuilder} from "../../../src";
 
 describe("GlobalAttributeIdKeyBuilder", () => {
     it("Escaping prevents id overlap", () => {

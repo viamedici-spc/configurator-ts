@@ -8,13 +8,14 @@ import {
     getComponentAttribute,
     getNumericAttribute
 } from "../../data/AttributeGeneration";
-import {
+import type {
     Attribute,
     ChoiceValue,
-    ChoiceValueDecisionState,
     ChoiceValueId,
+    GlobalAttributeIdKey} from "../../../src";
+import {
+    ChoiceValueDecisionState,
     DecisionKind,
-    GlobalAttributeIdKey,
     Inclusion,
     Selection
 } from "../../../src";

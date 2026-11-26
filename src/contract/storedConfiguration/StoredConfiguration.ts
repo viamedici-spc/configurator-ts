@@ -1,4 +1,4 @@
-import {AType} from "@morphic-ts/summoners";
+import type {AType} from "@morphic-ts/summoners";
 import {summonFor} from "@morphic-ts/batteries/lib/summoner-ESBAST";
 import {StoredConfigurationV1_} from "./StoredConfigurationSummonsV1";
 

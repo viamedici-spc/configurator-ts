@@ -1,5 +1,6 @@
 import {describe, expect, it} from "vitest";
-import {ConfiguratorErrorType, StoredConfiguration, StoredConfigurationInvalid} from "../../../src";
+import type { StoredConfiguration, StoredConfigurationInvalid} from "../../../src";
+import {ConfiguratorErrorType} from "../../../src";
 import {expectToBeLeft, expectToBeRight} from "../../setup/EitherExtensions";
 import {loadConfiguration} from "../../../src/domain/logic/ConfigurationStoring";
 

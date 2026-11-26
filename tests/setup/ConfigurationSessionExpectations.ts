@@ -1,6 +1,6 @@
 import {expect} from "vitest";
-import IConfigurationSession from "../../src/IConfigurationSession";
-import {
+import type IConfigurationSession from "../../src/IConfigurationSession";
+import type {
     BooleanAttribute,
     ChoiceAttribute,
     ChoiceValue,
@@ -9,7 +9,7 @@ import {
     NumericAttribute
 } from "../../src";
 import * as Interpreter from "../../src/contract/interpreter/ConfigurationInterpreter";
-import ConfigurationSession from "../../src/ConfigurationSession";
+import type ConfigurationSession from "../../src/ConfigurationSession";
 import {fromRawData} from "../../src/domain/logic/Configuration";
 import {configurationEq, hashedConfigurationEq} from "../../src/contract/Eqs";
 

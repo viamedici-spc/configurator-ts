@@ -1,4 +1,4 @@
-import * as Engine from "../../apiClient/engine/Engine";
+import type * as Engine from "../../apiClient/engine/Engine";
 import * as EtoD from "../mapper/EngineToDomainMapping";
 import {
     mapConstraintExplanation,
@@ -7,13 +7,10 @@ import {
     mapSelection,
     mapToExplicitDecision
 } from "../mapper/EngineToDomainMapping";
-import {
-    AttributeType,
+import type {
     CausedByDecision, ConstraintsExplainAnswer,
     DecisionExplanation, DecisionsExplainAnswer,
     ExplainQuestion,
-    ExplainQuestionSubject,
-    ExplainQuestionType,
     ExplicitBooleanDecision,
     ExplicitChoiceDecision,
     ExplicitComponentDecision,
@@ -22,12 +19,19 @@ import {
     GlobalAttributeId,
     GlobalAttributeIdKey, MakeManyDecisionsResult, KeepExistingDecisionsMode, MakeManyDecisionsMode
 } from "../../contract/Types";
+import {
+    AttributeType,
+    ExplainQuestionSubject,
+    ExplainQuestionType
+} from "../../contract/Types";
 import {pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
 import GlobalAttributeIdKeyBuilder from "../../crossCutting/GlobalAttributeIdKeyBuilder";
-import {none, Option} from "fp-ts/Option";
+import type { Option} from "fp-ts/Option";
+import {none} from "fp-ts/Option";
 import {match} from "ts-pattern";
-import {ConfiguratorError, ConfiguratorErrorType, MakeManyDecisionsConflict} from "../../contract/ConfiguratorError";
-import {
+import type {ConfiguratorError, MakeManyDecisionsConflict} from "../../contract/ConfiguratorError";
+import { ConfiguratorErrorType} from "../../contract/ConfiguratorError";
+import type {
     AttributeConsequence,
     AttributeDecision,
     AttributeMeta,
@@ -41,13 +45,13 @@ import {
     NumericAttributeConsequence,
     NumericAttributeDecision
 } from "../model/PartialAttribute";
-import HashedConfiguration from "../model/HashedConfiguration";
+import type HashedConfiguration from "../model/HashedConfiguration";
 import {
     fromRawData, integrateRawData,
     toHashedConfiguration
 } from "./Configuration";
 import {explicitDecisionByIdEq, globalAttributeIdKeyEq} from "../../contract/Eqs";
-import ConfigurationRawData from "../model/ConfigurationRawData";
+import type ConfigurationRawData from "../model/ConfigurationRawData";
 import {attributeConsequenceSe, attributeDecisionSe, attributeMetaSe} from "../Semigroups";
 
 function getGlobalAttributeIdKey(attributeId: Engine.GlobalAttributeId): GlobalAttributeIdKey {

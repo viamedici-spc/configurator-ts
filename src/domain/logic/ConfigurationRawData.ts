@@ -1,6 +1,7 @@
-import ConfigurationRawData from "../model/ConfigurationRawData";
-import {flow, O, Ord, OrdT, pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
-import {
+import type ConfigurationRawData from "../model/ConfigurationRawData";
+import type { OrdT} from "@viamedici-spc/fp-ts-extensions";
+import {flow, O, Ord, pipe, RA, RM, some} from "@viamedici-spc/fp-ts-extensions";
+import type {
     AttributeDecision,
     BooleanAttributeDecision,
     ChoiceAttributeDecision,
@@ -8,21 +9,24 @@ import {
     NumericAttributeDecision
 } from "../model/PartialAttribute";
 import {match} from "ts-pattern";
-import {
-    AttributeType, BaseCollectedDecision,
+import type { BaseCollectedDecision,
     ChoiceValueDecisionState,
     CollectedBooleanDecision, CollectedChoiceDecision, CollectedComponentDecision,
     CollectedDecision,
     CollectedNumericDecision, ComponentDecisionState,
     Decision,
-    DecisionKind,
     ExplicitBooleanDecision,
     ExplicitChoiceDecision,
     ExplicitComponentDecision,
     ExplicitDecision,
     ExplicitNumericDecision
 } from "../../contract/Types";
-import {none, Option} from "fp-ts/Option";
+import {
+    AttributeType,
+    DecisionKind
+} from "../../contract/Types";
+import type { Option} from "fp-ts/Option";
+import {none} from "fp-ts/Option";
 import {attributeConsequenceMapSe, attributeDecisionMapSe, attributeMetaMapSe} from "../Semigroups";
 
 export function merge(rawData: ConfigurationRawData, partialData: Partial<ConfigurationRawData>): ConfigurationRawData {

@@ -1,13 +1,15 @@
 import {describe, expect, it} from "vitest";
-import {
+import type {
     ConfigurationChanges,
-    DecisionKind,
     GlobalAttributeIdKey
+} from "../../../src";
+import {
+    DecisionKind
 } from "../../../src";
 import {flow, O, RM, some} from "@viamedici-spc/fp-ts-extensions";
 import {getBooleanAttribute} from "../../data/AttributeGeneration";
-import {HashedAttribute} from "../../../src/domain/model/HashedAttribute";
-import HashedConfiguration from "../../../src/domain/model/HashedConfiguration";
+import type {HashedAttribute} from "../../../src/domain/model/HashedAttribute";
+import type HashedConfiguration from "../../../src/domain/model/HashedConfiguration";
 import GenericChangesHandler from "../../../src/domain/logic/GenericChangesHandler";
 import {calculateConfigurationChangedHandler} from "../../../src/domain/logic/HandlerChangeCalculation";
 import * as RT from "fp-ts/ReadonlyTuple";

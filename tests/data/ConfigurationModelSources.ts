@@ -1,4 +1,5 @@
-import {ConfigurationModelSource, ConfigurationModelSourceType} from "../../src";
+import type {ConfigurationModelSource} from "../../src";
+import { ConfigurationModelSourceType} from "../../src";
 
 export const ModelWithOneMandatoryChoice: ConfigurationModelSource = {
     type: ConfigurationModelSourceType.Package,

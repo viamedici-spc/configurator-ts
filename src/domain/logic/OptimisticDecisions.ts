@@ -1,9 +1,10 @@
-import {
-    Attribute,
-    AttributeType, BooleanAttribute, ChoiceAttribute, ChoiceValue,
+import type {
+    Attribute, BooleanAttribute, ChoiceAttribute, ChoiceValue,
     ChoiceValueDecisionState, ComponentAttribute,
-    ComponentDecisionState, Decision,
-    DecisionKind, ExplicitDecision, MakeManyDecisionsMode, NumericAttribute,
+    ComponentDecisionState, Decision, ExplicitDecision, MakeManyDecisionsMode, NumericAttribute} from "../../contract/Types";
+import {
+    AttributeType,
+    DecisionKind
 } from "../../contract/Types";
 import GlobalAttributeIdKeyBuilder from "../../crossCutting/GlobalAttributeIdKeyBuilder";
 import {match} from "ts-pattern";

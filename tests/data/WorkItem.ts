@@ -1,17 +1,19 @@
 import {expect, vi} from "vitest";
 import {guid} from "dyna-guid";
-import pDefer, {DeferredPromise} from "p-defer";
-import {
+import type {DeferredPromise} from "p-defer";
+import pDefer from "p-defer";
+import type {
     ErrorWithSessionState,
     PureError,
     StateMutatingWorkItem,
     StatePreservingWorkItem
 } from "../../src/domain/model/WorkItem";
-import {Mock} from "vitest";
-import {E, pipe, T} from "@viamedici-spc/fp-ts-extensions";
-import {Either} from "fp-ts/Either";
-import {ConfiguratorError} from "../../src";
-import {EngineErrorResult, EngineSuccessResultT} from "../../src/domain/logic/EngineLogic";
+import type {Mock} from "vitest";
+import type { T} from "@viamedici-spc/fp-ts-extensions";
+import {E, pipe} from "@viamedici-spc/fp-ts-extensions";
+import type {Either} from "fp-ts/Either";
+import type {ConfiguratorError} from "../../src";
+import type {EngineErrorResult, EngineSuccessResultT} from "../../src/domain/logic/EngineLogic";
 
 export function createStatePreservingWorkItemDummy<T>(): {
     resolveExecute: (e: Either<ConfiguratorError, T>) => void,

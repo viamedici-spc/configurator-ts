@@ -1,11 +1,13 @@
 // noinspection DuplicatedCode
 /// <reference types="../../jest-extended" />
 
-import {afterAll, beforeEach, describe, expect, it, MockedFunction, vi} from "vitest";
+import type { MockedFunction} from "vitest";
+import {afterAll, beforeEach, describe, expect, it, vi} from "vitest";
 import {E, pipe, RM, TE} from "@viamedici-spc/fp-ts-extensions";
+import type {
+    MachineState} from "../../../src/domain/WorkProcessingMachine";
 import {
     createWorkProcessingMachine,
-    MachineState,
     resolveDeferredPromises
 } from "../../../src/domain/WorkProcessingMachine";
 import {
@@ -14,22 +16,24 @@ import {
     sessionStateWithOneMandatoryNumeric
 } from "../../data/SessionStates";
 import {createStateMutatingWorkItemDummy, createStatePreservingWorkItemDummy} from "../../data/WorkItem";
-import {
+import type {
     Attribute,
-    AttributeType,
-    ConfiguratorErrorType,
-    globalAttributeIdKeyEq,
     ServerError,
     SessionNotFound,
     TaskCancelled
 } from "../../../src";
-import getWorkProcessingMachineExpectations from "../../setup/WorkProcessingMachineExpectations";
 import {
+    AttributeType,
+    ConfiguratorErrorType,
+    globalAttributeIdKeyEq
+} from "../../../src";
+import getWorkProcessingMachineExpectations from "../../setup/WorkProcessingMachineExpectations";
+import type {
     ConfigurationSessionState,
     FullQualifiedConfigurationSessionState
 } from "../../../src/domain/model/ConfigurationSessionState";
 import {expectToBeRight} from "../../setup/EitherExtensions";
-import {WorkItem} from "../../../src/domain/model/WorkItem";
+import type {WorkItem} from "../../../src/domain/model/WorkItem";
 import pDefer from "p-defer";
 import {closeSession, createSessionWithData} from "../../../src/domain/logic/EngineLogic";
 import waitForExpect from "wait-for-expect";
@@ -37,7 +41,7 @@ import GlobalAttributeIdKeyBuilder from "../../../src/crossCutting/GlobalAttribu
 import {getComponentAttribute, getNumericAttribute} from "../../data/AttributeGeneration";
 import {createStatePreservingWorkItem} from "../../../src/domain/logic/WorkItem";
 import * as Session from "../../../src/domain/logic/SessionLogic";
-import {ScheduleTaskResult} from "../../../src/contract/Types";
+import type {ScheduleTaskResult} from "../../../src/contract/Types";
 
 vi.mock("../../../src/domain/logic/EngineLogic");
 

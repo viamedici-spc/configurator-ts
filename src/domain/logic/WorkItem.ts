@@ -1,20 +1,22 @@
-import * as Engine from "./EngineLogic";
+import type * as Engine from "./EngineLogic";
 import pDefer from "p-defer";
-import {flow, pipe, RA, TaskEither, TE} from "@viamedici-spc/fp-ts-extensions";
-import {Configuration} from "../../contract/Types";
-import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
+import type { TaskEither} from "@viamedici-spc/fp-ts-extensions";
+import {flow, pipe, RA, TE} from "@viamedici-spc/fp-ts-extensions";
+import type {Configuration} from "../../contract/Types";
+import type {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
 import {reduceUpdateFunctions} from "../../crossCutting/UpdateFunctionHelper";
-import {
+import type {
     ErrorWithSessionState,
     PureError,
     StateMutatingWorkItem,
     StatePreservingWorkItem, WorkQueueInfo
 } from "../model/WorkItem";
 import {guid} from "dyna-guid";
-import {ConfiguratorError, ConfiguratorErrorType, SessionNotFound} from "../../contract/ConfiguratorError";
+import type {ConfiguratorError, SessionNotFound} from "../../contract/ConfiguratorError";
+import { ConfiguratorErrorType} from "../../contract/ConfiguratorError";
 import {match, P} from "ts-pattern";
-import {EngineErrorResult, EngineSuccessResultT} from "./EngineLogic";
-import {Endomorphism} from "fp-ts/Endomorphism";
+import type {EngineErrorResult, EngineSuccessResultT} from "./EngineLogic";
+import type {Endomorphism} from "fp-ts/Endomorphism";
 
 const sessionNotFoundError = TE.left({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
 

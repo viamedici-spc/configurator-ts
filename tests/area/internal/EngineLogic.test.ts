@@ -3,8 +3,8 @@
 import {afterAll, afterEach, describe, expect, it, vi} from "vitest";
 import * as Logic from "../../../src/domain/logic/EngineLogic";
 import {SessionContextWithModelWithOneMandatoryChoice} from "../../data/SessionContexts";
-import {ConnectionError, ServerError, SourceAttributeId} from "../../../src";
-import * as Engine from "../../../src/apiClient/engine/Engine";
+import type {ConnectionError, ServerError, SourceAttributeId} from "../../../src";
+import type * as Engine from "../../../src/apiClient/engine/Engine";
 import {PossibleDecisionState} from "../../../src/apiClient/engine/Engine";
 import {stringify} from "../../setup/JSON";
 import GlobalAttributeIdKeyBuilder from "../../../src/crossCutting/GlobalAttributeIdKeyBuilder";
@@ -157,11 +157,11 @@ describe("EngineLogic", () => {
         expect(fetchMock.mock.calls).toHaveLength(4);
         // First call must be SessionPost
         expect(fetchMock.mock.calls[0][0]).toEndWith("session");
-        expect(fetchMock.mock.calls[0][1]!.headers!["Authorization"]).toBe("Bearer Token1");
+        expect(headersOf(fetchMock.mock.calls[0][1])["Authorization"]).toBe("Bearer Token1");
 
         // Every further call must have a SessionId header
         fetchMock.mock.calls.slice(1)
-            .forEach(call => expect(call[1]!.headers!["X-SESSION-ID"]).toBe("SessionId"));
+            .forEach(call => expect(headersOf(call[1])["X-SESSION-ID"]).toBe("SessionId"));
 
         const attribute = result.configuration.attributes.get(GlobalAttributeIdKeyBuilder({localId: "a1"}))!;
         expect(attribute.sourceId).toEqual({
@@ -231,12 +231,16 @@ describe("EngineLogic", () => {
 
         // First call is the CreateSession POST: it carries the additional header...
         expect(fetchMock.mock.calls[0][0]).toEndWith("session");
-        expect(fetchMock.mock.calls[0][1]!.headers!["X-TENANT-ID"]).toBe("tenant1");
+        expect(headersOf(fetchMock.mock.calls[0][1])["X-TENANT-ID"]).toBe("tenant1");
         // ...but Authorization is always the library's, never the consumer's.
-        expect(fetchMock.mock.calls[0][1]!.headers!["Authorization"]).toBe("Bearer Token1");
+        expect(headersOf(fetchMock.mock.calls[0][1])["Authorization"]).toBe("Bearer Token1");
 
         // Subsequent session-scoped calls must NOT carry the additional header (CreateSession only).
         fetchMock.mock.calls.slice(1)
-            .forEach(call => expect(call[1]!.headers!["X-TENANT-ID"]).toBeUndefined());
+            .forEach(call => expect(headersOf(call[1])["X-TENANT-ID"]).toBeUndefined());
     });
 });
+
+function headersOf(init: RequestInit | undefined): Record<string, string | undefined> {
+    return (init?.headers ?? {}) as Record<string, string | undefined>;
+}

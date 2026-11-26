@@ -1,5 +1,5 @@
-import {GlobalAttributeIdKey} from "../../contract/Types";
-import {AttributeConsequence, AttributeDecision, AttributeMeta} from "./PartialAttribute";
+import type {GlobalAttributeIdKey} from "../../contract/Types";
+import type {AttributeConsequence, AttributeDecision, AttributeMeta} from "./PartialAttribute";
 
 type ConfigurationRawData = {
     isSatisfied: boolean;
@@ -9,4 +9,4 @@ type ConfigurationRawData = {
     consequences: ReadonlyMap<GlobalAttributeIdKey, AttributeConsequence>;
 };
 
-export default ConfigurationRawData;
+export type {ConfigurationRawData as default};

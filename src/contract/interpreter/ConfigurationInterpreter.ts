@@ -1,11 +1,12 @@
-import {pipe, RA, Str, RM, Ord, OrdT, identity} from "@viamedici-spc/fp-ts-extensions";
+import type { OrdT} from "@viamedici-spc/fp-ts-extensions";
+import {pipe, RA, Str, RM, Ord, identity} from "@viamedici-spc/fp-ts-extensions";
 import {
     booleanAttributeRefinement,
     choiceAttributeRefinement,
     componentAttributeRefinement,
     numericAttributeRefinement
 } from "../refinements/AttributeRefinements";
-import {
+import type {
     Attribute,
     BooleanAttribute,
     ChoiceAttribute,
@@ -16,7 +17,8 @@ import {
     ConfigurationModelId,
     GlobalAttributeId, GlobalAttributeIdKey, NumericAttribute
 } from "../Types";
-import {Refinement, id} from "fp-ts/Refinement";
+import type {Refinement} from "fp-ts/Refinement";
+import { id} from "fp-ts/Refinement";
 import GlobalAttributeIdKeyBuilder from "../../crossCutting/GlobalAttributeIdKeyBuilder";
 
 export function getAttributesOfComponentAttribute(attributes: Configuration["attributes"], componentAttributeId: GlobalAttributeId, includeSubcomponents: boolean): ReadonlyArray<Attribute> {

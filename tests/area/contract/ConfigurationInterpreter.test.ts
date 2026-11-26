@@ -2,12 +2,14 @@
 
 import {describe, expect, it} from "vitest";
 import * as Interpreter from "../../../src/contract/interpreter/ConfigurationInterpreter";
-import {
+import type {
     Attribute,
-    AttributeType,
     Configuration,
     GlobalAttributeId,
     GlobalAttributeIdKey
+} from "../../../src";
+import {
+    AttributeType
 } from "../../../src";
 import {
     getBooleanAttribute,

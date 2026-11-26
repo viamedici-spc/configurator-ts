@@ -1,11 +1,13 @@
-import {
+import type {
     ChoiceValueDecisionState,
     ChoiceValueId,
     ComponentDecisionState,
-    ExplainQuestionSubject,
-    ExplainQuestionType,
     GlobalAttributeId, WhyIsAttributeNotSatisfied, WhyIsBooleanStateNotPossible, WhyIsChoiceValueStateNotPossible,
     WhyIsComponentStateNotPossible, WhyIsConfigurationNotSatisfied, WhyIsNumericStateNotPossible
+} from "./Types";
+import {
+    ExplainQuestionSubject,
+    ExplainQuestionType
 } from "./Types";
 
 export type AttributeIdStage<TNext> = (attributeId: GlobalAttributeId) => TNext

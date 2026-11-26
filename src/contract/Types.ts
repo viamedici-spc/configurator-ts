@@ -1,6 +1,6 @@
-import {ExplainQuestionBuilder} from "./ExplainQuestionBuilder";
-import * as Engine from "../apiClient/engine/Engine";
-import {StoredConfiguration} from "./storedConfiguration/StoredConfiguration";
+import type {ExplainQuestionBuilder} from "./ExplainQuestionBuilder";
+import type * as Engine from "../apiClient/engine/Engine";
+import type {StoredConfiguration} from "./storedConfiguration/StoredConfiguration";
 
 export type LocalAttributeId = string;
 export type LocalRuleId = string;

@@ -1,10 +1,8 @@
-import {StoredConfiguration, StoredConfiguration_} from "../../contract/storedConfiguration/StoredConfiguration";
+import type {StoredConfiguration} from "../../contract/storedConfiguration/StoredConfiguration";
+import { StoredConfiguration_} from "../../contract/storedConfiguration/StoredConfiguration";
 import {E, pipe, RA} from "@viamedici-spc/fp-ts-extensions";
 import {match} from "ts-pattern";
-import {
-    AttributeType,
-    ChoiceValueDecisionState, CollectedExplicitDecision,
-    ComponentDecisionState,
+import type { CollectedExplicitDecision,
     ExplicitBooleanDecision,
     ExplicitChoiceDecision,
     ExplicitComponentDecision,
@@ -12,11 +10,17 @@ import {
     ExplicitNumericDecision,
     GlobalAttributeId
 } from "../../contract/Types";
-import * as V1 from "../../contract/storedConfiguration/StoredConfigurationV1";
-import {Either} from "fp-ts/Either";
 import {
-    ConfiguratorError, ConfiguratorErrorType,
-    StoredConfigurationInvalid,
+    AttributeType,
+    ChoiceValueDecisionState,
+    ComponentDecisionState
+} from "../../contract/Types";
+import type * as V1 from "../../contract/storedConfiguration/StoredConfigurationV1";
+import type {Either} from "fp-ts/Either";
+import type {
+    ConfiguratorError,
+    StoredConfigurationInvalid} from "../../contract/ConfiguratorError";
+import { ConfiguratorErrorType
 } from "../../contract/ConfiguratorError";
 
 export function storeConfiguration(decisions: ReadonlyArray<CollectedExplicitDecision>): StoredConfiguration {

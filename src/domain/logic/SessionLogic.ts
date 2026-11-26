@@ -2,10 +2,10 @@ import * as Engine from "./EngineLogic";
 import * as OD from "./OptimisticDecisions";
 import {E, pipe} from "@viamedici-spc/fp-ts-extensions";
 import {asLeftUnit, asUnit, createStateMutatingWorkItem, createStatePreservingWorkItem, guardSession} from "./WorkItem";
-import {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
-import {EngineSuccessResultT} from "./EngineLogic";
-import {ScheduleTaskResult} from "../../contract/Types";
-import {WorkItem, WorkQueueInfo} from "../model/WorkItem";
+import type {ConfigurationSessionState, FullQualifiedConfigurationSessionState} from "../model/ConfigurationSessionState";
+import type {EngineSuccessResultT} from "./EngineLogic";
+import type {ScheduleTaskResult} from "../../contract/Types";
+import type {WorkItem, WorkQueueInfo} from "../model/WorkItem";
 
 export const makeDecision = pipe(
     Engine.makeDecision,

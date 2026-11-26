@@ -1,4 +1,4 @@
-import {
+import type {
     RequestTimeout,
     RequestFailure,
     SerializationError,
@@ -40,11 +40,13 @@ import {
     SessionClosed,
     StoredConfigurationInvalid,
     ConfiguratorError,
-    ConfiguratorErrorType,
     MakeManyDecisionsConflict,
     SessionParametersInvalid
 } from "./contract/ConfiguratorError";
 import {
+    ConfiguratorErrorType
+} from "./contract/ConfiguratorError";
+import type {
     LocalAttributeId,
     LocalRuleId,
     ChoiceValueId,
@@ -75,8 +77,6 @@ import {
     CausedByChoiceValueDecision,
     CausedByComponentDecision,
     ExplainQuestion,
-    ExplainQuestionType,
-    ExplainQuestionSubject,
     WhyIsNotSatisfied,
     WhyIsConfigurationNotSatisfied,
     WhyIsAttributeNotSatisfied,
@@ -100,17 +100,14 @@ import {
     SessionContext,
     OptimisticDecisionOptions,
     AllowedInExplain,
-    AllowedRulesInExplainType,
     AllowedRulesInExplain,
     AllowedRulesInExplainNone,
     AllowedRulesInExplainAll,
     AllowedRulesInExplainSpecific,
-    ConfigurationModelSourceType,
     ConfigurationModelSource,
     ConfigurationModelFromChannel,
     ConfigurationModelFromPackage,
     Attribute,
-    AttributeType,
     BaseAttribute,
     Decision,
     BooleanAttribute,
@@ -118,11 +115,6 @@ import {
     ComponentAttribute,
     ChoiceAttribute,
     ChoiceValue,
-    ChoiceValueDecisionState,
-    ComponentDecisionState,
-    DecisionKind,
-    Selection,
-    Inclusion,
     Cardinality,
     Range,
     BaseCollectedDecision,
@@ -152,7 +144,19 @@ import {
     WizardAttributeRelations,
     WizardStep
 } from "./contract/Types";
-import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
+import {
+    ExplainQuestionType,
+    ExplainQuestionSubject,
+    AllowedRulesInExplainType,
+    ConfigurationModelSourceType,
+    AttributeType,
+    ChoiceValueDecisionState,
+    ComponentDecisionState,
+    DecisionKind,
+    Selection,
+    Inclusion
+} from "./contract/Types";
+import type {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
 import * as StoredConfigurationV1 from "./contract/storedConfiguration/StoredConfigurationV1";
 import * as ConfigurationInterpreter from "./contract/interpreter/ConfigurationInterpreter";
 import * as AttributeInterpreter from "./contract/interpreter/AttributeInterpreter";
@@ -160,10 +164,11 @@ import * as ChoiceValueInterpreter from "./contract/interpreter/ChoiceValueInter
 import * as ExplainQuestionBuilderModule from "./contract/ExplainQuestionBuilder";
 import * as AttributeRefinements from "./contract/refinements/AttributeRefinements";
 import * as CollectedDecisionRefinements from "./contract/refinements/CollectedDecisionRefinements";
-import {explainQuestionBuilder, ExplainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
+import type { ExplainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
+import {explainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
 import SessionFactory from "./SessionFactory";
-import IConfigurationSession from "./IConfigurationSession";
-import ISessionFactory from "./ISessionFactory";
+import type IConfigurationSession from "./IConfigurationSession";
+import type ISessionFactory from "./ISessionFactory";
 import GlobalAttributeIdKeyBuilder from "./crossCutting/GlobalAttributeIdKeyBuilder";
 import {globalAttributeIdEq, globalAttributeIdKeyEq, globalConstraintIdEq, sessionContextEq} from "./contract/Eqs";
 import Logger from "./contract/Logger";

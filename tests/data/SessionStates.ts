@@ -1,13 +1,15 @@
-import {
+import type {
     ConfigurationSessionState,
     FullQualifiedConfigurationSessionState
 } from "../../src/domain/model/ConfigurationSessionState";
-import {
+import type {
     Attribute, AttributeType,
-    ConfigurationModelFromPackage, ConfigurationModelSourceType, GlobalAttributeIdKey
+    ConfigurationModelFromPackage, GlobalAttributeIdKey
+} from "../../src";
+import { ConfigurationModelSourceType
 } from "../../src";
 import {getBooleanAttribute, getComponentAttribute, getNumericAttribute} from "./AttributeGeneration";
-import ConfigurationRawData from "../../src/domain/model/ConfigurationRawData";
+import type ConfigurationRawData from "../../src/domain/model/ConfigurationRawData";
 import {RM} from "@viamedici-spc/fp-ts-extensions";
 import {fromRawData} from "../../src/domain/logic/Configuration";
 

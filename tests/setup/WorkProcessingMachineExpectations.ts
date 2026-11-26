@@ -1,5 +1,5 @@
-import {createWorkProcessingMachine} from "../../src/domain/WorkProcessingMachine";
-import {WorkItem} from "../../src/domain/model/WorkItem";
+import type {createWorkProcessingMachine} from "../../src/domain/WorkProcessingMachine";
+import type {WorkItem} from "../../src/domain/model/WorkItem";
 import {expect} from "vitest";
 
 type SutType = ReturnType<typeof createWorkProcessingMachine>;

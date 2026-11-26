@@ -1,11 +1,13 @@
 import {match} from "ts-pattern";
-import {Ord, OrdT, pipe, RA, RM} from "@viamedici-spc/fp-ts-extensions";
-import {
+import type { OrdT} from "@viamedici-spc/fp-ts-extensions";
+import {Ord, pipe, RA, RM} from "@viamedici-spc/fp-ts-extensions";
+import type {
     Attribute,
-    AttributeType,
     ChoiceAttribute,
-    ChoiceValue,
-    ChoiceValueDecisionState, ChoiceValueId,
+    ChoiceValue, ChoiceValueId} from "../Types";
+import {
+    AttributeType,
+    ChoiceValueDecisionState,
     Inclusion,
     Selection,
 } from "../Types";

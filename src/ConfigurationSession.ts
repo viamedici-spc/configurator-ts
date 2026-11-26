@@ -1,9 +1,8 @@
-import {
+import type {
     CollectedDecision,
     Configuration,
     ConfigurationChanges,
     ConstraintsExplainAnswer,
-    DecisionKind,
     DecisionsExplainAnswer,
     ExplainAnswer,
     ExplainQuestionParam,
@@ -21,17 +20,23 @@ import {
     OnStoredConfigurationChangedHandler,
     OnDecisionsChangedHandler, MakeManyDecisionsResult, MakeManyDecisionsMode
 } from "./contract/Types";
-import IConfigurationSession from "./IConfigurationSession";
-import {ConfigurationSessionState} from "./domain/model/ConfigurationSessionState";
-import {Subscription, waitFor} from "xstate";
+import {
+    DecisionKind
+} from "./contract/Types";
+import type IConfigurationSession from "./IConfigurationSession";
+import type {ConfigurationSessionState} from "./domain/model/ConfigurationSessionState";
+import type {Subscription} from "xstate";
+import { waitFor} from "xstate";
 import * as Session from "./domain/logic/SessionLogic";
 import {E, flow, I, O, pipe, RA} from "@viamedici-spc/fp-ts-extensions";
 import * as RT from "fp-ts/ReadonlyTuple";
-import {createWorkProcessingMachine, MachineState, resolveDeferredPromises} from "./domain/WorkProcessingMachine";
+import type { MachineState} from "./domain/WorkProcessingMachine";
+import {createWorkProcessingMachine, resolveDeferredPromises} from "./domain/WorkProcessingMachine";
 import {explainQuestionBuilder} from "./contract/ExplainQuestionBuilder";
-import {ConfiguratorErrorType, SessionClosed} from "./contract/ConfiguratorError";
+import type { SessionClosed} from "./contract/ConfiguratorError";
+import {ConfiguratorErrorType} from "./contract/ConfiguratorError";
 import {loadConfiguration, storeConfiguration} from "./domain/logic/ConfigurationStoring";
-import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
+import type {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
 import {getCollectedDecisions, hasAnyExplicitDecision} from "./domain/logic/ConfigurationRawData";
 import {
     collectedExplicitDecisionRefinement,
@@ -39,14 +44,14 @@ import {
 } from "./contract/refinements/CollectedDecisionRefinements";
 import {match, P} from "ts-pattern";
 import SubscriptionHandler from "./domain/logic/SubscriptionHandler";
-import ConfigurationRawData from "./domain/model/ConfigurationRawData";
+import type ConfigurationRawData from "./domain/model/ConfigurationRawData";
 import {
     calculateConfigurationChangedHandler,
     calculateCanResetConfigurationChangedHandler,
     calculateStoredConfigurationChangedHandler,
     calculateCollectedDecisionsChangedHandler
 } from "./domain/logic/HandlerChangeCalculation";
-import HashedConfiguration from "./domain/model/HashedConfiguration";
+import type HashedConfiguration from "./domain/model/HashedConfiguration";
 import GenericChangesHandler from "./domain/logic/GenericChangesHandler";
 import {emptyChanges} from "./domain/logic/ConfigurationChanges";
 import memize from "memize";

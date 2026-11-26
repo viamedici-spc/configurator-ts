@@ -1,5 +1,5 @@
-import IConfigurationSession from "./IConfigurationSession";
-import {SessionContext} from "./contract/Types";
+import type IConfigurationSession from "./IConfigurationSession";
+import type {SessionContext} from "./contract/Types";
 
 export default interface ISessionFactory {
     /**

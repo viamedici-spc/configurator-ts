@@ -1,4 +1,4 @@
-import {GlobalAttributeId, GlobalAttributeIdKey} from "../contract/Types";
+import type {GlobalAttributeId, GlobalAttributeIdKey} from "../contract/Types";
 import {pipe, RA} from "@viamedici-spc/fp-ts-extensions";
 
 export default function GlobalAttributeIdKeyBuilder(attributeId: GlobalAttributeId): GlobalAttributeIdKey {

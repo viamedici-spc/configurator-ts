@@ -1,8 +1,8 @@
 import {guid} from "dyna-guid";
-import {Subscription} from "../../contract/Types";
+import type {Subscription} from "../../contract/Types";
 import GenericChangesHandler from "./GenericChangesHandler";
 import {O} from "@viamedici-spc/fp-ts-extensions";
-import {Option} from "fp-ts/Option";
+import type {Option} from "fp-ts/Option";
 import memize from "memize";
 
 export default class SubscriptionHandler<V, T extends ReadonlyArray<unknown>> {

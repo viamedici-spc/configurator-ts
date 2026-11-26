@@ -1,12 +1,14 @@
-import {
+import type {
     Attribute,
-    AttributeType,
     BooleanAttribute,
     ChoiceAttribute,
     NumericAttribute,
     ComponentAttribute
 } from "../Types";
-import {Refinement} from "fp-ts/Refinement";
+import {
+    AttributeType
+} from "../Types";
+import type {Refinement} from "fp-ts/Refinement";
 
 export const booleanAttributeRefinement: Refinement<Attribute, BooleanAttribute> = (a: Attribute): a is BooleanAttribute => a.type === AttributeType.Boolean;
 export const choiceAttributeRefinement: Refinement<Attribute, ChoiceAttribute> = (a: Attribute): a is ChoiceAttribute => a.type === AttributeType.Choice;

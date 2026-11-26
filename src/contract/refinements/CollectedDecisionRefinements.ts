@@ -1,13 +1,15 @@
-import {Refinement} from "fp-ts/Refinement";
-import {
-    AttributeType,
+import type {Refinement} from "fp-ts/Refinement";
+import type {
     CollectedBooleanDecision,
     CollectedChoiceDecision,
     CollectedComponentDecision,
     CollectedDecision,
     CollectedNumericDecision,
-    DecisionKind,
     CollectedExplicitDecision, CollectedImplicitDecision
+} from "../Types";
+import {
+    AttributeType,
+    DecisionKind
 } from "../Types";
 
 export const collectedBooleanDecisionRefinement: Refinement<CollectedDecision, CollectedBooleanDecision> = (d): d is CollectedBooleanDecision => d.attributeType === AttributeType.Boolean;

@@ -1,4 +1,4 @@
-import {Option} from "fp-ts/Option";
+import type {Option} from "fp-ts/Option";
 import memize from "memize";
 
 export default class GenericChangesHandler<V, C> {

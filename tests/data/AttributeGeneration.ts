@@ -1,20 +1,21 @@
 import GlobalAttributeIdKeyBuilder from "../../src/crossCutting/GlobalAttributeIdKeyBuilder";
-import {
-    AttributeType,
+import type {
     BooleanAttribute,
     ChoiceAttribute,
     ChoiceValue,
-    ChoiceValueDecisionState,
     ComponentAttribute,
-    ComponentDecisionState,
     GlobalAttributeId,
     GlobalAttributeIdKey,
+    NumericAttribute} from "../../src";
+import {
+    AttributeType,
+    ChoiceValueDecisionState,
+    ComponentDecisionState,
     Inclusion,
-    NumericAttribute,
     Selection
 } from "../../src";
 import {calculateAttributeHash} from "../../src/crossCutting/AttributeHashing";
-import {HashedAttribute} from "../../src/domain/model/HashedAttribute";
+import type {HashedAttribute} from "../../src/domain/model/HashedAttribute";
 
 export function getBooleanAttribute(localId: string, partial?: Partial<BooleanAttribute & HashedAttribute>): [GlobalAttributeIdKey, BooleanAttribute & HashedAttribute]
 export function getBooleanAttribute(globalId: GlobalAttributeId, partial?: Partial<BooleanAttribute & HashedAttribute>): [GlobalAttributeIdKey, BooleanAttribute & HashedAttribute]

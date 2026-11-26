@@ -1,4 +1,4 @@
-import {ConfigurationChanges} from "../../contract/Types";
+import type {ConfigurationChanges} from "../../contract/Types";
 import {configurationChangesEq} from "../../contract/Eqs";
 
 export const emptyChanges: ConfigurationChanges = {

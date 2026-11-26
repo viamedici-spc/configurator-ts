@@ -1,4 +1,4 @@
-import {
+import type {
     ChannelId,
     ChoiceValueId,
     ConstraintExplanation,
@@ -6,7 +6,7 @@ import {
     FixedDecision,
     GlobalAttributeId
 } from "./Types";
-import * as Engine from "../apiClient/engine/Engine";
+import type * as Engine from "../apiClient/engine/Engine";
 
 export enum ConfiguratorErrorType {
     RequestTimeout = "RequestTimeout",

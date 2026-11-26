@@ -1,7 +1,6 @@
 import * as Show from "fp-ts/Show";
-import {
+import type {
     Attribute,
-    AttributeType,
     BooleanAttribute,
     ChoiceAttribute,
     ChoiceValue,
@@ -14,6 +13,9 @@ import {
     LocalAttributeId,
     NumericAttribute,
     SourceAttributeId
+} from "./Types";
+import {
+    AttributeType
 } from "./Types";
 import {Bool, Num, pipe, RA, RM, Str} from "@viamedici-spc/fp-ts-extensions";
 import {match} from "ts-pattern";
