@@ -34,7 +34,7 @@ API serves that), and modeling (configuration models are made in SPC's modeling 
 
 ## Architecture
 
-`ConfigurationSession` wraps an XState machine (`src/domain/WorkProcessingMachine.ts`) that serialises the work on a
+`ConfigurationSession` wraps an XState machine (`src/domain/WorkProcessingMachine.ts`) that serializes the work on a
 session: decisions, explanations, context changes, restoring a lost session. Engine calls are fp-ts `TaskEither`s in
 `src/domain/logic/EngineLogic.ts`, sent by openapi-fetch (`src/domain/EngineApiClient.ts`); optimistic decisions are
 applied in `src/domain/logic/OptimisticDecisions.ts` and reconciled with the engine's answer. Feature notes:
