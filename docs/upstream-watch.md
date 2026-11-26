@@ -22,7 +22,7 @@ yet.
   npm view fp-ts@latest exports; npm view @morphic-ts/batteries@latest exports
   ```
 
-- **What it would buy:** the plugin in `tsdown.config.ts` goes away.
+- **What it would buy:** the plugin in `tsdown.config.ts` goes away, and applications testing with Vitest no longer need `server.deps.inline` (README).
 - **Upstream:** both are in maintenance; whether to keep them is open (see discussion points).
 - **Last checked:** fp-ts 2.16.11 and @morphic-ts/batteries 3.0.0, 2026-11-26: no `exports` field.
 

@@ -28,6 +28,9 @@ output imports the ES modules of fp-ts and morphic-ts by full path, the declarat
 - Plain Node.js cannot import the package (fp-ts's ES files are not ES modules to Node.js). Tests run in Bun.
 - In server-side rendering frameworks the library runs on the client only.
 - The default log level is set in code (`error`), no longer derived from the bundler's build mode.
+- Test runners that run in Node.js (Vitest) must let their bundler transform fp-ts and the SPC packages
+  (`server.deps.inline`, see the README); the alternative, inlining fp-ts into this package, was not chosen: fp-ts is
+  expected to leave the libraries, which removes the setting.
 
 ## Alternatives considered
 

@@ -61,6 +61,24 @@ resolve the conflict.
 
 A versioned data format with backward compatibility is provided to store and restore the configuration state.
 
+## Testing with Vitest
+
+fp-ts 2.x ships ES modules whose imports have no file extensions, which Node.js cannot load. Test runners that run in
+Node.js, such as Vitest, therefore have to let their bundler transform fp-ts and the SPC packages:
+
+```ts
+// vitest.config.ts
+import {defineConfig} from "vitest/config";
+
+export default defineConfig({
+    test: {
+        server: {deps: {inline: [/fp-ts/, /@viamedici-spc\//]}},
+    },
+});
+```
+
+`bun test` and the bundlers (Vite, webpack 5, Rollup, esbuild) need no such setting.
+
 ## Demo App
 
 The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) is a comprehensive showcase of the features
