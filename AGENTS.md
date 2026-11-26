@@ -1,8 +1,7 @@
 # Repository guidelines
 
 configurator-ts is the TypeScript client for SPC's configuration engine: sessions, decisions (optimistic), explain,
-store and restore, automatic resume of a lost session. configurator-react and configurator-framer build on it. Start
-with [docs/overview.md](docs/overview.md).
+store and restore, automatic resume of a lost session. Start with [docs/overview.md](docs/overview.md).
 
 ## Commands
 
@@ -35,8 +34,7 @@ with [docs/overview.md](docs/overview.md).
 - CI (`.github/workflows/main.yml`) runs the shared workflow `viamedici-spc/github-ci` (`build-bun.yml`): it verifies
   every push and pull request (a branch with an open pull request runs twice) and publishes, on a push or a manual run
   only, with npm trusted publishing — `main` as release candidates, `feature/*` branches as prereleases under a dist-tag
-  named after the branch, version tags as releases. Dependent packages pin the exact published version;
-  configurator-react takes it as a peer dependency, with the exact version as a dev dependency.
+  named after the branch, version tags as releases.
 - Publishing runs in the GitHub environment `npm`, whose rules admit `main`, `feature/*`, `release/*`, `hotfix/*`,
   `support/*` and version tags; npm accepts a publish of this package only from that environment.
 - Only repository admins create, move or delete version tags; a tag ruleset enforces it.
@@ -54,7 +52,7 @@ before pushing. The full rule is in
 
 ## Supported environments
 
-- **Browsers only**, as **ESM only**: through a bundler, or inside the configurator-framer bundle from a CDN.
+- **Browsers only**, as **ESM only**: through a bundler, or inside a self-contained bundle loaded from a CDN.
 - **Not Node.js.** Server-side use goes through the engine's REST API, not this library. No `node:*` imports, no
   `process` or `Buffer` in `src/`.
 - **SSR frameworks:** the library runs on the client only; a module's top level touches no browser global.

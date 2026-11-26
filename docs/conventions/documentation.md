@@ -158,7 +158,8 @@ it would have to restate; the README shows a path through the API and leaves the
   is a minimum: further sections may follow *Commands* where the library has substance the spine has no slot for. **No
   "to change X, edit these files" section:** it rots with the first refactor while the prose still reads as true; its
   durable half is an invariant.
-- **`vision.md`:** goals, **non-goals**, the audiences, and where the library sits among the SPC libraries.
+- **`vision.md`:** goals, **non-goals**, the audiences, and where the library sits among the SPC libraries: what it
+  builds on and what it adds, not what builds on it.
 - **`features/<feature>.md`:** only for a feature whose flow or edge cases need more than TSDoc. *Goal* · *User-visible
   behavior* · *Edge cases / rules* · *Flow* · *Tests that define behavior* · *Links*. It describes the feature as it is:
   no rollout or migration notes, which belong in the changelog, and no list of follow-ups, which belong in the lists.
@@ -205,6 +206,17 @@ Every substantive change ends with reconciling the documents it affects, **in th
 
 There is no bookkeeping step: git records when. The periodic sweep that catches what slipped through is
 [documentation-review.md](documentation-review.md).
+
+## Name what the library builds on, never who uses it
+
+A document names the libraries and packages this one builds on, never the ones that use it. The library is open
+source and anyone may build on it: a list of its consumers is never complete, is not this library's concern, and goes
+stale with each new one. Two exceptions:
+
+- **A decision that rests on a dependent library's need:** its ADR names that library as the constraint the decision
+  rests on.
+- **The release order of the SPC libraries** in [code.md](code.md#dependencies-between-the-libraries): it is the
+  maintainers' process for the family, not a statement about consumers.
 
 ## Recording a borrowed decision
 

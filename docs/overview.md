@@ -11,8 +11,8 @@ keeps the session's state (attributes, decisions, consequences, satisfaction), a
 explains why a state is not possible, stores and restores configurations, and resumes a session the engine has lost.
 Applications build their configurator UI on its typed, immutable domain model instead of the wire contract.
 
-Out of scope: rendering (configurator-react and configurator-framer build on this library), server-side use (the REST
-API serves that), and modeling (configuration models are made in SPC's modeling tools).
+Out of scope: rendering, server-side use (the REST API serves that), and modeling (configuration models are made in
+SPC's modeling tools).
 
 ## Public contract
 

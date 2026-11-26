@@ -27,9 +27,8 @@ The library is designed to be framework-agnostic, allowing you to use any framew
 configurator application. The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) for example is
 implemented with **Vue.js**.
 
-For **React** users, we offer a dedicated
-library, [configurator-react](https://github.com/viamedici-spc/configurator-react), which is built on top of this
-library. It provides easy-to-use components and hooks to streamline your development process.
+For **React** applications, see [configurator-react](https://github.com/viamedici-spc/configurator-react), with
+components and hooks for React.
 
 ## Features
 

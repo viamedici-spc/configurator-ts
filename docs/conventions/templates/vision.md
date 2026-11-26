@@ -19,4 +19,4 @@ status: draft
 
 ## Place among the SPC libraries
 
-<Which library it builds on, which builds on it, and what this layer adds that the one below does not.>
+<Which library it builds on and what this layer adds that the one below does not; not what builds on it.>
