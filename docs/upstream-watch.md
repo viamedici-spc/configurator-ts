@@ -85,3 +85,21 @@ yet.
 - **What it would buy:** `tests/testSetup.ts` and `tests/matchers.d.ts` go away.
 - **Upstream:** not reported.
 - **Last checked:** Bun 1.4.5, 2026-11-26: not built in.
+
+## TypeScript and tsdown
+
+### Declarations with TypeScript 7.1 and tsdown 0.24
+
+- **We would rather** emit the declarations with TypeScript 7.1 and follow tsdown's releases.
+- **We do instead** keep `typescript` at 7.0.2 and tsdown below 0.24 (`^0.23.7`). The build warns that tsdown's `tsgo`
+  generator on TypeScript 7.0 is deprecated and goes away in tsdown's next minor.
+- **What blocks it:** TypeScript 7.1 is not released; only its beta and nightly builds are published.
+- **Check** (7.1 or later means it is released; then raise `typescript` first and tsdown after, not before):
+
+  ```bash
+  npm view typescript dist-tags.latest
+  ```
+
+- **What it would buy:** the deprecation warning goes away, and tsdown can move past 0.23.
+- **Upstream:** TypeScript's release notes.
+- **Last checked:** 2026-11-26: latest 7.0.2, 7.1 only as 7.1.0-beta.
