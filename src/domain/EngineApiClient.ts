@@ -29,7 +29,7 @@ export function getServerSideSessionCreationApiClient(sessionCreateUrl: string) 
 
     let apiClient = serverSideSessionCreationApiClients.get(sessionCreateUrl);
     if (!apiClient) {
-        apiClient = new Engine.Api({customFetch: customFetch});
+        apiClient = new Engine.Api({customFetch: customFetch as typeof fetch});
         serverSideSessionCreationApiClients.set(sessionCreateUrl, apiClient);
     }
 

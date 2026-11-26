@@ -1,6 +1,6 @@
 import type {createWorkProcessingMachine} from "../../src/domain/WorkProcessingMachine";
 import type {WorkItem} from "../../src/domain/model/WorkItem";
-import {expect} from "vitest";
+import {expect} from "bun:test";
 
 type SutType = ReturnType<typeof createWorkProcessingMachine>;
 type SutSnapshotType = ReturnType<SutType["getSnapshot"]>;

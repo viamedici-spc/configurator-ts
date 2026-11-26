@@ -1,4 +1,4 @@
-import {expect, vi} from "vitest";
+import {expect, mock} from "bun:test";
 import {guid} from "dyna-guid";
 import type {DeferredPromise} from "p-defer";
 import pDefer from "p-defer";
@@ -8,7 +8,7 @@ import type {
     StateMutatingWorkItem,
     StatePreservingWorkItem
 } from "../../src/domain/model/WorkItem";
-import type {Mock} from "vitest";
+import type {Mock} from "bun:test";
 import type { T} from "@viamedici-spc/fp-ts-extensions";
 import {E, pipe} from "@viamedici-spc/fp-ts-extensions";
 import type {Either} from "fp-ts/Either";
@@ -22,7 +22,7 @@ export function createStatePreservingWorkItemDummy<T>(): {
     executeMock: Mock<StatePreservingWorkItem<T>["execute"]>
 } {
     let executeResultPromise: DeferredPromise<T.ExtractTaskType<ReturnType<StatePreservingWorkItem<T>["execute"]>>> | null = null;
-    const executeMock = vi.fn<StatePreservingWorkItem<T>["execute"]>(() => {
+    const executeMock = mock<StatePreservingWorkItem<T>["execute"]>(() => {
         executeResultPromise = pDefer();
         return () => {
             expect(executeResultPromise).toBeTruthy();
@@ -46,7 +46,7 @@ export function createStatePreservingWorkItemDummy<T>(): {
                 error: l
             } satisfies PureError))));
         },
-        resultPromise: workItem.deferredPromise.promise,
+        resultPromise: handledLater(workItem.deferredPromise.promise),
         executeMock: executeMock,
         workItem: workItem
     };
@@ -59,7 +59,7 @@ export function createStateMutatingWorkItemDummy<T>(allowSimultaneouslyTerminati
     executeMock: Mock<StateMutatingWorkItem<T>["execute"]>
 } {
     let executeResultPromise: DeferredPromise<T.ExtractTaskType<ReturnType<StateMutatingWorkItem<T>["execute"]>>> | null = null;
-    const executeMock = vi.fn<StateMutatingWorkItem<T>["execute"]>(() => {
+    const executeMock = mock<StateMutatingWorkItem<T>["execute"]>(() => {
         executeResultPromise = pDefer();
         return () => {
             expect(executeResultPromise).toBeTruthy();
@@ -85,8 +85,18 @@ export function createStateMutatingWorkItemDummy<T>(allowSimultaneouslyTerminati
                 type: "ErrorWithSessionState",
             } satisfies ErrorWithSessionState))));
         },
-        resultPromise: workItem.deferredPromise.promise,
+        resultPromise: handledLater(workItem.deferredPromise.promise),
         executeMock: executeMock,
         workItem: workItem
     };
+}
+
+/**
+ * Marks a work item's promise as handled, because a test often asserts its rejection only after it happened. bun test,
+ * unlike Vitest, fails a test on a rejection that has no handler yet; the promise itself stays rejected for the
+ * assertion.
+ */
+export function handledLater<T>(promise: Promise<T>): Promise<T> {
+    promise.catch(() => undefined);
+    return promise;
 }

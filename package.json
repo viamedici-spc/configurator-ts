@@ -17,7 +17,7 @@
   },
   "scripts": {
     "build": "tsdown",
-    "test": "vitest run",
+    "test": "bun test",
     "swagger": "node scripts/swaggerGeneration.mjs",
     "typecheck": "bun check && bun check -p tests",
     "verify:package": "bun run build && publint --strict && attw --pack . --profile esm-only --format table-flipped"
@@ -39,13 +39,12 @@
   "packageManager": "bun@1.4.5",
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
+    "@types/bun": "^1.4.5",
     "@types/spark-md5": "^3.0.4",
-    "jest-extended": "^4.0.2",
     "publint": "^0.3.25",
     "swagger-typescript-api": "^13.0.3",
     "tsdown": "^0.23.7",
     "typescript": "7.0.2",
-    "vitest": "^2.1.1",
     "wait-for-expect": "^3.0.2"
   },
   "dependencies": {

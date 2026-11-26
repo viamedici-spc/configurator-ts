@@ -1,6 +1,6 @@
 // noinspection DuplicatedCode
 
-import {describe, expect, it} from "vitest";
+import {describe, expect, it} from "bun:test";
 import {shouldSkipMakeDecision} from "../../../src/domain/Guards";
 import type ConfigurationRawData from "../../../src/domain/model/ConfigurationRawData";
 import {RM} from "@viamedici-spc/fp-ts-extensions";

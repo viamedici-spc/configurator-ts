@@ -1,6 +1,5 @@
-/// <reference types="../../jest-extended" />
 
-import {describe, expect, it} from "vitest";
+import {describe, expect, it} from "bun:test";
 import * as Interpreter from "../../../src/contract/interpreter/ConfigurationInterpreter";
 import type {
     Attribute,

@@ -1,4 +1,4 @@
-import {expect} from "vitest";
+import {expect} from "bun:test";
 import type IConfigurationSession from "../../src/IConfigurationSession";
 import type {
     BooleanAttribute,

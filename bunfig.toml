@@ -3,3 +3,7 @@
 # exempt, so a fresh prerelease of a library below can be consumed right away.
 minimumReleaseAge = 259200
 minimumReleaseAgeExcludes = ["@viamedici-spc/fp-ts-extensions"]
+
+[test]
+# The extra matcher the tests use (toIncludeSameMembers), for every test file.
+preload = ["./tests/testSetup.ts"]

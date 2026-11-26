@@ -1,6 +1,6 @@
-/// <reference types="../../jest-extended" />
 
-import {afterAll, afterEach, describe, expect, it, vi} from "vitest";
+import {afterAll, afterEach, describe, expect, it, mock} from "bun:test";
+import {type FetchFunction, setFetch} from "../../setup/Fetch";
 import * as Logic from "../../../src/domain/logic/EngineLogic";
 import {SessionContextWithModelWithOneMandatoryChoice} from "../../data/SessionContexts";
 import type {ConnectionError, ServerError, SourceAttributeId} from "../../../src";
@@ -13,14 +13,14 @@ import {expectToBeLeft, expectToBeRight} from "../../setup/EitherExtensions";
 const globalFetch = global.fetch;
 
 describe("EngineLogic", () => {
-    const fetchMock = vi.fn<typeof global.fetch>();
-    global.fetch = fetchMock;
+    const fetchMock = mock<FetchFunction>();
+    setFetch(fetchMock);
 
     afterEach(async () => {
-        vi.resetAllMocks();
+        mock.clearAllMocks();
     });
     afterAll(() => {
-        global.fetch = globalFetch;
+        setFetch(globalFetch);
     });
 
     it("createSession - ConnectionError when there is a local problem", async () => {
@@ -28,7 +28,7 @@ describe("EngineLogic", () => {
         const createSessionResult = await Logic.createSession(SessionContextWithModelWithOneMandatoryChoice)();
 
         const problemDetail = expectToBeLeft(createSessionResult) as ConnectionError;
-        expect(problemDetail.type).toBe("ConnectionError");
+        expect<unknown>(problemDetail.type).toBe("ConnectionError");
     });
 
     it("createSession - ServerError if response is malformed", async () => {
@@ -43,7 +43,7 @@ describe("EngineLogic", () => {
         const createSessionResult = await Logic.createSession(SessionContextWithModelWithOneMandatoryChoice)();
 
         const problemDetail = expectToBeLeft(createSessionResult) as ServerError;
-        expect(problemDetail.type).toBe("ServerError");
+        expect<unknown>(problemDetail.type).toBe("ServerError");
     });
 
     it("createSession - Any valid shaped ProblemDetail is becomes a ServerError", async () => {
@@ -59,7 +59,7 @@ describe("EngineLogic", () => {
         const createSessionResult = await Logic.createSession(SessionContextWithModelWithOneMandatoryChoice)();
 
         const problemDetail = expectToBeLeft(createSessionResult);
-        expect(problemDetail.type).toBe("ServerError");
+        expect<unknown>(problemDetail.type).toBe("ServerError");
     });
 
     it("createSession - Success", async () => {

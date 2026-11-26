@@ -1,7 +1,8 @@
 // noinspection DuplicatedCode
-/// <reference types="../../jest-extended" />
 
-import {afterEach, beforeAll, describe, expect, it, vi} from "vitest";
+import {afterEach, beforeAll, describe, expect, it, mock, spyOn} from "bun:test";
+import {type FetchFunction, setFetch} from "../../setup/Fetch";
+import {rejectionOf} from "../../setup/Rejection";
 import SessionFactory from "../../../src/SessionFactory";
 import type {
     BooleanAttribute,
@@ -39,7 +40,7 @@ import {
     DecisionKind,
     Selection
 } from "../../../src";
-import config from "../../config";
+import config, {engineAvailable} from "../../config";
 import getConfigurationSessionExpectations from "../../setup/ConfigurationSessionExpectations";
 import {createSession} from "../../../src/domain/logic/EngineLogic";
 import {expectToBeLeft, expectToBeRight} from "../../setup/EitherExtensions";
@@ -86,21 +87,21 @@ const getSessionContext = (deploymentName: string): SessionContext => ({
     }
 });
 
-describe("ConfigurationSession", () => {
+describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
     const globalFetch = global.fetch;
 
     beforeAll(() => {
         // Log all failed requests.
-        global.fetch = (...args: Parameters<typeof globalFetch>): ReturnType<typeof globalFetch> => {
+        setFetch((...args: Parameters<typeof globalFetch>): ReturnType<typeof globalFetch> => {
             return globalFetch(...args)
                 .catch((reason) => {
                     console.log(reason);
                     return Promise.reject(reason);
                 });
-        };
+        });
     });
     afterEach(() => {
-        global.fetch = globalFetch;
+        setFetch(globalFetch);
     });
 
     describe("Session initialization", () => {
@@ -122,7 +123,7 @@ describe("ConfigurationSession", () => {
 
             // Intercept fetch and return the previous generated sessionId once the sessionCreateUrl is requested.
             const fetch = global.fetch;
-            const fetchMock = vi.fn<typeof global.fetch>((input, init) => {
+            const fetchMock = mock<FetchFunction>((input, init) => {
                 if (input === sessionCreateUrl) {
                     return Promise.resolve({
                         ok: true,
@@ -135,7 +136,7 @@ describe("ConfigurationSession", () => {
                 return fetch(input, init);
             });
 
-            global.fetch = fetchMock;
+            setFetch(fetchMock);
 
             // Create a session using the sessionCreateUrl.
             const session = await SessionFactory.createSession({
@@ -237,7 +238,7 @@ describe("ConfigurationSession", () => {
         const sessionIdToReject = session.sessionState.sessionId!;
         let gotRejected = false;
         const fetch = global.fetch;
-        global.fetch = (input: Parameters<typeof global.fetch>[0], init: Parameters<typeof global.fetch>[1]) => {
+        setFetch((input: Parameters<typeof global.fetch>[0], init: Parameters<typeof global.fetch>[1]) => {
             if (typeof input === "string" && input.endsWith("decision") && init && init.method === "PUT" && (init.headers as Record<string, string>)["X-SESSION-ID"] === sessionIdToReject) {
                 gotRejected = true;
                 return Promise.resolve({
@@ -253,7 +254,7 @@ describe("ConfigurationSession", () => {
             }
 
             return fetch(input, init);
-        };
+        });
 
         await session.makeDecision({
             type: AttributeType.Numeric,
@@ -439,7 +440,7 @@ describe("ConfigurationSession", () => {
 
     it("Invalid fixed decision rejects session creation with FixedDecisionsInvalid", async () => {
         // Fixing a choice value that does not exist in the model is rejected at session creation.
-        await expect(SessionFactory.createSession({
+        expect(await rejectionOf(SessionFactory.createSession({
             ...getSessionContext("Configurator-TS-Trimming"),
             fixedDecisions: [{
                 type: AttributeType.Choice,
@@ -447,7 +448,7 @@ describe("ConfigurationSession", () => {
                 choiceValueId: "NonExistentValue",
                 state: ChoiceValueDecisionState.Included
             }]
-        })).rejects.toSatisfy(e => {
+        }))).toSatisfy(e => {
             const error = e as FixedDecisionsInvalid;
             return error.type === ConfiguratorErrorType.FixedDecisionsInvalid
                 && Array.isArray(error.rejectedDecisions)
@@ -509,7 +510,7 @@ describe("ConfigurationSession", () => {
 
     it("Fixed Choice decision on a Boolean attribute is rejected as FixedDecisionsInvalid", async () => {
         // Type mismatch: Boolean1 is a Boolean attribute, so fixing it with a Choice decision must be rejected.
-        await expect(SessionFactory.createSession({
+        expect(await rejectionOf(SessionFactory.createSession({
             ...getSessionContext("Configurator-TS-Trimming"),
             fixedDecisions: [{
                 type: AttributeType.Choice,
@@ -517,7 +518,7 @@ describe("ConfigurationSession", () => {
                 choiceValueId: "true",
                 state: ChoiceValueDecisionState.Included
             }]
-        })).rejects.toSatisfy(e => {
+        }))).toSatisfy(e => {
             const error = e as FixedDecisionsInvalid;
             return error.type === ConfiguratorErrorType.FixedDecisionsInvalid
                 && Array.isArray(error.rejectedDecisions)
@@ -527,14 +528,14 @@ describe("ConfigurationSession", () => {
 
     it("Fixed Boolean decision on a Choice attribute is rejected as FixedDecisionsInvalid", async () => {
         // Type mismatch: Choice1 is a Choice attribute, so fixing it with a Boolean decision must be rejected.
-        await expect(SessionFactory.createSession({
+        expect(await rejectionOf(SessionFactory.createSession({
             ...getSessionContext("Configurator-TS-Trimming"),
             fixedDecisions: [{
                 type: AttributeType.Boolean,
                 attributeId: {localId: "Choice1"},
                 state: true
             }]
-        })).rejects.toSatisfy(e => {
+        }))).toSatisfy(e => {
             const error = e as FixedDecisionsInvalid;
             return error.type === ConfiguratorErrorType.FixedDecisionsInvalid
                 && Array.isArray(error.rejectedDecisions)
@@ -593,11 +594,11 @@ describe("ConfigurationSession", () => {
 
         const deferredPromise = pDefer();
         const fetch = global.fetch;
-        global.fetch = async (input, init) => {
+        setFetch(async (input, init) => {
             await deferredPromise.promise;
 
             return await fetch(input, init);
-        };
+        });
 
         const mkDec1 = session.makeDecision({
             type: AttributeType.Boolean,
@@ -653,12 +654,12 @@ describe("ConfigurationSession", () => {
         expect(configurationChanges.attributes.added).toHaveLength(0);
         // The two attributes have changes because their satisfaction is changed and the optimistic decision became applied.
         expect(configurationChanges.attributes.changed).toHaveLength(2);
-        expect(getBool1()).toEqual(hashAttribute({
+        expect<unknown>(getBool1()).toEqual(hashAttribute({
             ...previousBool1,
             isSatisfied: true,
             nonOptimisticDecision: previousBool1.decision
         }));
-        expect(getNum1()).toEqual(hashAttribute({
+        expect<unknown>(getNum1()).toEqual(hashAttribute({
             ...previousNum1,
             isSatisfied: true,
             nonOptimisticDecision: previousNum1.decision
@@ -730,11 +731,11 @@ describe("ConfigurationSession", () => {
             });
 
             // The decision should fail.
-            await expect(session.makeDecision({
+            expect(await rejectionOf(session.makeDecision({
                 type: AttributeType.Boolean,
                 attributeId: {localId: "GetBlocked1"},
                 state: true
-            })).rejects.toSatisfy(e => {
+            }))).toSatisfy(e => {
                 const error = e as ConfiguratorError;
                 return error.type === "ConflictWithConsequence" && globalAttributeIdEq.equals(error.globalAttributeId, {localId: "GetBlocked1"}) && error.choiceValueId == null;
             });
@@ -963,7 +964,7 @@ describe("ConfigurationSession", () => {
                     }]
                 };
 
-                await expect(makeManyDecisions).rejects.toSatisfy(e => makeManyDecisionsConflictEq.equals({
+                expect(await rejectionOf(makeManyDecisions)).toSatisfy(e => makeManyDecisionsConflictEq.equals({
                     ...e as MakeManyDecisionsConflict,
                     // Reset the title and detail because this test is about the explanations.
                     title: "",
@@ -1064,7 +1065,7 @@ describe("ConfigurationSession", () => {
                     type: "KeepExistingDecisions"
                 });
 
-                await expect(makeManyDecisions).rejects.toSatisfy(e => (e as ConfiguratorError).type === "MakeManyDecisionsConflict");
+                expect(await rejectionOf(makeManyDecisions)).toSatisfy(e => (e as ConfiguratorError).type === "MakeManyDecisionsConflict");
             });
         });
     });
@@ -1240,17 +1241,17 @@ describe("ConfigurationSession", () => {
     });
 
     it("getDecisions", async () => {
-        const getCollectedDecisionsMock = vi.spyOn(ConfigurationRawDataL, "getCollectedDecisions");
+        const getCollectedDecisionsMock = spyOn(ConfigurationRawDataL, "getCollectedDecisions");
 
         const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
         const expectations = getConfigurationSessionExpectations(session);
 
         const suspendFetchDeferredPromise = pDefer();
         const globalFetch = global.fetch;
-        global.fetch = async (input, init) => {
+        setFetch(async (input, init) => {
             await suspendFetchDeferredPromise.promise;
             return await globalFetch(input, init);
-        };
+        });
 
         // Make a decision that will result in an explicit and an implicit decision.
         const makeDecision = session.makeDecision({
@@ -1340,8 +1341,8 @@ describe("ConfigurationSession", () => {
 
     it("Closing the session sends a DELETE request", async () => {
         const globalFetch = global.fetch;
-        const fetchMock = vi.fn<typeof global.fetch>((input, init) => globalFetch(input, init));
-        global.fetch = fetchMock;
+        const fetchMock = mock<FetchFunction>((input, init) => globalFetch(input, init));
+        setFetch(fetchMock);
 
         const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
         await expect(session.close()).resolves.toBeNil();
@@ -1373,7 +1374,7 @@ describe("ConfigurationSession", () => {
             const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
             const signal = AbortSignal.abort("AbortReason");
 
-            const callback = vi.fn(() => 5);
+            const callback = mock(() => 5);
             const result = session.executeMaybeQueued(true, callback, signal);
 
             // The promise must be aborted and the callback must not be called.
@@ -1404,7 +1405,7 @@ describe("ConfigurationSession", () => {
         it("addStoredConfigurationChangedListener", async () => {
             const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
 
-            const handler = vi.fn<OnStoredConfigurationChangedHandler>();
+            const handler = mock<OnStoredConfigurationChangedHandler>();
             session.addStoredConfigurationChangedListener(handler);
 
             // Handler must be called directly after registration.
@@ -1436,7 +1437,7 @@ describe("ConfigurationSession", () => {
         it("addCanResetConfigurationChangedListener", async () => {
             const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
 
-            const handler = vi.fn<OnCanResetConfigurationChangedHandler>();
+            const handler = mock<OnCanResetConfigurationChangedHandler>();
             session.addCanResetConfigurationChangedListener(handler);
 
             // Handler must be called directly after registration.
@@ -1473,7 +1474,7 @@ describe("ConfigurationSession", () => {
                 }
             }) as ConfigurationSession;
 
-            const handler = vi.fn<OnConfigurationChangedHandler>();
+            const handler = mock<OnConfigurationChangedHandler>();
             session.addConfigurationChangedListener(handler);
 
             // Handler must be called directly after registration.
@@ -1481,10 +1482,10 @@ describe("ConfigurationSession", () => {
 
             const suspendFetchDeferredPromise = pDefer();
             const globalFetch = global.fetch;
-            global.fetch = async (input, init) => {
+            setFetch(async (input, init) => {
                 await suspendFetchDeferredPromise.promise;
                 return await globalFetch(input, init);
-            };
+            });
 
             const makeDecision = session.makeDecision({
                 type: AttributeType.Boolean,
@@ -1575,9 +1576,9 @@ describe("ConfigurationSession", () => {
             const session = await SessionFactory.createSession(getSessionContext("Configurator-TS-Model1")) as ConfigurationSession;
             const expectations = getConfigurationSessionExpectations(session);
 
-            const allHandler = vi.fn<OnDecisionsChangedHandler<CollectedDecision>>();
-            const implicitHandler = vi.fn<OnDecisionsChangedHandler<CollectedExplicitDecision>>();
-            const explicitHandler = vi.fn<OnDecisionsChangedHandler<CollectedImplicitDecision>>();
+            const allHandler = mock<OnDecisionsChangedHandler<CollectedDecision>>();
+            const implicitHandler = mock<OnDecisionsChangedHandler<CollectedExplicitDecision>>();
+            const explicitHandler = mock<OnDecisionsChangedHandler<CollectedImplicitDecision>>();
             session.addDecisionsChangedListener(allHandler);
             session.addDecisionsChangedListener(DecisionKind.Explicit, implicitHandler);
             session.addDecisionsChangedListener(DecisionKind.Implicit, explicitHandler);

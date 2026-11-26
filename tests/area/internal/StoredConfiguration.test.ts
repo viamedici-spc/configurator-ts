@@ -1,4 +1,4 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it} from "bun:test";
 import type { StoredConfiguration, StoredConfigurationInvalid} from "../../../src";
 import {ConfiguratorErrorType} from "../../../src";
 import {expectToBeLeft, expectToBeRight} from "../../setup/EitherExtensions";

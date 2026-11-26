@@ -1,8 +1,8 @@
 // noinspection DuplicatedCode
-/// <reference types="../../jest-extended" />
 
-import type { MockedFunction} from "vitest";
-import {afterAll, beforeEach, describe, expect, it, vi} from "vitest";
+import type {Mock} from "bun:test";
+import {setFetch} from "../../setup/Fetch";
+import {afterAll, beforeEach, describe, expect, it, mock} from "bun:test";
 import {E, pipe, RM, TE} from "@viamedici-spc/fp-ts-extensions";
 import type {
     MachineState} from "../../../src/domain/WorkProcessingMachine";
@@ -15,7 +15,7 @@ import {
     sessionStateWithOneMandatoryComponent,
     sessionStateWithOneMandatoryNumeric
 } from "../../data/SessionStates";
-import {createStateMutatingWorkItemDummy, createStatePreservingWorkItemDummy} from "../../data/WorkItem";
+import {createStateMutatingWorkItemDummy, createStatePreservingWorkItemDummy, handledLater} from "../../data/WorkItem";
 import type {
     Attribute,
     ServerError,
@@ -35,7 +35,7 @@ import type {
 import {expectToBeRight} from "../../setup/EitherExtensions";
 import type {WorkItem} from "../../../src/domain/model/WorkItem";
 import pDefer from "p-defer";
-import {closeSession, createSessionWithData} from "../../../src/domain/logic/EngineLogic";
+import type {closeSession, createSessionWithData} from "../../../src/domain/logic/EngineLogic";
 import waitForExpect from "wait-for-expect";
 import GlobalAttributeIdKeyBuilder from "../../../src/crossCutting/GlobalAttributeIdKeyBuilder";
 import {getComponentAttribute, getNumericAttribute} from "../../data/AttributeGeneration";
@@ -43,16 +43,25 @@ import {createStatePreservingWorkItem} from "../../../src/domain/logic/WorkItem"
 import * as Session from "../../../src/domain/logic/SessionLogic";
 import type {ScheduleTaskResult} from "../../../src/contract/Types";
 
-vi.mock("../../../src/domain/logic/EngineLogic");
-
-const createSessionWithDataMock: MockedFunction<typeof createSessionWithData> = createSessionWithData as any;
-const closeSessionMock: MockedFunction<typeof closeSession> = closeSession as any;
+// The machine talks to the engine only through EngineLogic, so every function of it is a mock here.
+const createSessionWithDataMock: Mock<typeof createSessionWithData> = mock();
+const closeSessionMock: Mock<typeof closeSession> = mock();
+mock.module("../../../src/domain/logic/EngineLogic", () => ({
+    createSession: mock(),
+    makeManyDecisions: mock(),
+    makeDecision: mock(),
+    explain: mock(),
+    closeSession: closeSessionMock,
+    setSessionContext: mock(),
+    reinitialize: mock(),
+    createSessionWithData: createSessionWithDataMock,
+}));
 const globalFetch = global.fetch;
 
 describe("WorkProcessingMachine", () => {
     let sut: ReturnType<typeof createWorkProcessingMachine>;
     let expectation: ReturnType<typeof getWorkProcessingMachineExpectations>;
-    const emittedMachineState = vi.fn<(machineState: MachineState) => void>();
+    const emittedMachineState = mock<(machineState: MachineState) => void>();
 
     function enqueueWork(workItem: WorkItem<any>, ...workItems: ReadonlyArray<WorkItem<any>>) {
         [workItem, ...workItems].forEach(w => {
@@ -61,8 +70,8 @@ describe("WorkProcessingMachine", () => {
     }
 
     beforeEach(() => {
-        vi.resetAllMocks();
-        global.fetch = () => Promise.reject();
+        mock.clearAllMocks();
+        setFetch(() => Promise.reject());
         sut = createWorkProcessingMachine(sessionStateWithOneMandatoryBoolean);
         sut.on("MachineState", s => {
             emittedMachineState(s);
@@ -75,7 +84,7 @@ describe("WorkProcessingMachine", () => {
         if (sut) {
             sut.stop();
         }
-        global.fetch = globalFetch;
+        setFetch(globalFetch);
     });
 
     it("Parallel execution of StatePreservingWork", async () => {
@@ -215,9 +224,9 @@ describe("WorkProcessingMachine", () => {
         if (w1Result.type === "return") {
             const w1SuccessResult = expectToBeRight(await w1Result.value());
             expect(w1SuccessResult.result).toBe(1);
-            expect(w1SuccessResult.sessionState).toEqual(w2.executeMock.mock.calls[0][0]);
+            expect<unknown>(w1SuccessResult.sessionState).toEqual(w2.executeMock.mock.calls[0][0]);
         } else {
-            expect(w1Result.type).toBe("return");
+            expect<unknown>(w1Result.type).toBe("return");
         }
 
         // Result of w2 must be parameter of w3.
@@ -225,9 +234,9 @@ describe("WorkProcessingMachine", () => {
         if (w2Result.type === "return") {
             const w2SuccessResult = expectToBeRight(await w2Result.value());
             expect(w2SuccessResult.result).toBe(2);
-            expect(w2SuccessResult.sessionState).toEqual(w3.executeMock.mock.calls[0][0]);
+            expect<unknown>(w2SuccessResult.sessionState).toEqual(w3.executeMock.mock.calls[0][0]);
         } else {
-            expect(w2Result.type).toBe("return");
+            expect<unknown>(w2Result.type).toBe("return");
         }
 
         // No work should be left.
@@ -438,8 +447,10 @@ describe("WorkProcessingMachine", () => {
 
             // w1 and w2 become rejected. w2 is reject because allowSimultaneouslyTermination was set to true.
             // If there was any error during session recovery, the error is always changed to SessionNotFound.
-            await expect(w1.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
-            await expect(w2.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
+            await Promise.all([
+                expect(w1.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound),
+                expect(w2.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound),
+            ]);
 
             // The third and fourth work should remain.
             expectation.expectWorkInOrder([w3.workItem, w4.workItem]);
@@ -489,8 +500,10 @@ describe("WorkProcessingMachine", () => {
 
             // w1 and w2 become rejected. w1 is reject because StatePreserving work is always rejected if parallel running work is rejected with SessionNotFound.
             // If there was any error during session recovery, the error is always changed to SessionNotFound.
-            await expect(w1.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
-            await expect(w2.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
+            await Promise.all([
+                expect(w1.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound),
+                expect(w2.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound),
+            ]);
 
             // w3 and w4 should remain because w3 doesn't allow simultaneously termination.
             expectation.expectWorkInOrder([w3.workItem, w4.workItem]);
@@ -593,7 +606,7 @@ describe("WorkProcessingMachine", () => {
         expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Boolean);
     });
 
-    it("Shutdown rejects all pending work", () => {
+    it("Shutdown rejects all pending work", async () => {
         sut.start();
 
         const w1 = createStateMutatingWorkItemDummy<number>(true);
@@ -605,9 +618,8 @@ describe("WorkProcessingMachine", () => {
 
         sut.send({type: "Shutdown"});
 
-        expect(w1.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.TaskCancelled} satisfies TaskCancelled);
-        expect(w2.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.TaskCancelled} satisfies TaskCancelled);
-        expect(w3.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.TaskCancelled} satisfies TaskCancelled);
+        await Promise.all([w1, w2, w3].map(w =>
+            expect(w.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.TaskCancelled} satisfies TaskCancelled)));
     });
 
     it("Errors during executing reject promise", async () => {
@@ -620,10 +632,14 @@ describe("WorkProcessingMachine", () => {
             throw new Error("MappingError");
         })();
 
+        handledLater(w1.deferredPromise.promise);
+        handledLater(w2.deferredPromise.promise);
         enqueueWork(w1, w2);
 
-        await expect(w1.deferredPromise.promise).rejects.toThrowError("MappingError");
-        await expect(w2.deferredPromise.promise).rejects.toThrowError("MappingError");
+        await Promise.all([
+            expect(w1.deferredPromise.promise).rejects.toThrow("MappingError"),
+            expect(w2.deferredPromise.promise).rejects.toThrow("MappingError"),
+        ]);
     });
 
     describe("ScheduleTask", () => {
