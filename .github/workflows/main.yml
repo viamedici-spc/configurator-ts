@@ -12,7 +12,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: viamedici-spc/github-ci/.github/workflows/build-bun.yml@feature/v4
+    uses: viamedici-spc/github-ci/.github/workflows/build-bun.yml@v4
     with:
       publish-environment: npm
     secrets:
