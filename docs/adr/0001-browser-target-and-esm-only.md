@@ -8,10 +8,11 @@ Date: 2026-11-26
 
 ## Context
 
-configurator-ts runs in configurator applications in the browser: through a bundler, or inside the self-contained
-bundle of configurator-framer loaded from a CDN. Server-side integrations use the engine's REST API directly. The
-package used to ship ES modules and CommonJS side by side, without `"type": "module"`, to keep older bundlers working;
-the ES build was not standard ESM, and consumers asked for plain Node.js support.
+configurator-ts runs in configurator applications in the browser: through a bundler, or inside the self-contained bundle
+of configurator-framer loaded from a CDN. Server-side integrations use the engine's REST API directly. The package used
+to ship ES modules and CommonJS side by side, without `"type": "module"`, to keep older bundlers working; the ES build
+was not standard ESM, and a consumer reported that it cannot be imported in plain Node.js
+([issue #2](https://github.com/viamedici-spc/configurator-ts/issues/2)).
 
 fp-ts 2.x, monocle-ts and morphic-ts have no `exports` map. Strict ESM resolution, as webpack 5 applies it to a
 `"type": "module"` package, rejects extensionless subpaths such as `fp-ts/Option`.
@@ -38,4 +39,5 @@ output imports the ES modules of fp-ts, monocle-ts and morphic-ts by full path, 
 
 - **Keep CommonJS beside ESM:** no supported environment needs it, and it made the ES build non-standard.
 - **Inline fp-ts, monocle-ts and morphic-ts:** would duplicate fp-ts for consumers that use it directly.
-- **Support Node.js:** a runtime no consumer of this library uses.
+- **Support Node.js:** not a runtime this library targets: server-side integrations use the engine's REST API, as the
+  context says.
