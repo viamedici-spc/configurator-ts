@@ -1,9 +1,8 @@
-/// <reference types="vite/client" />
-
 import memize from "memize";
 
 type LogLevel = "debug" | "info" | "warning" | "error" | "silent";
-let logLevel: LogLevel = import.meta.env?.PROD ? "error" : "debug";
+// Errors only, as in every published build so far; consumers raise it with Logger.setLogLevel.
+let logLevel: LogLevel = "error";
 const getValidLogLevels = memize((logLevel: LogLevel) => {
     switch (logLevel) {
         case "debug":
