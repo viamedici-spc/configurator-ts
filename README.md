@@ -16,8 +16,9 @@ Configuration Engine_ (HCE).
 It offers all the features of the HCE through a strongly typed API, eliminating the need to
 interact directly with the HCE's REST API.
 
-This library is intended for use in a browser environment and is not compatible with server environments
-like **Node.js**.
+This library is made for the **browser**: through a bundler (Vite, webpack 5, Rollup, esbuild, …) or as part of a
+bundle loaded from a CDN. It ships **ES modules only**. It is not made for server environments like **Node.js**; there,
+use the engine's REST API directly. In server-side rendering frameworks, use it on the client only.
 
 ## Framework Independence
 
@@ -70,11 +71,10 @@ Vue.js-based Single Page Application (SPA).
 
 ### 1. Install Package
 
-This library supports both **ESM** and **CommonJS**.
+The package is ESM only.
 
 ```bash
 npm install @viamedici-spc/configurator-ts
-yarn add @viamedici-spc/configurator-ts
 ```
 
 ### 2. Create a Session

@@ -1,49 +1,99 @@
-# Repository Guidelines
+# Repository guidelines
 
-## Project Structure & Module Organization
-- `src/` contains the library source, organized in layers:
-  - `src/contract/` is the public API surface: domain `Types.ts`, `ConfiguratorError.ts`, equality instances (`Eqs.ts`), `interpreter/`, `refinements/`, and `storedConfiguration/`.
-  - `src/domain/` is internal: `domain/logic/` (session/engine logic), `domain/mapper/` (engine⇄domain mapping), `domain/model/`.
-  - `src/apiClient/engine/Engine.ts` is the generated REST client and wire types for the Configuration Engine (see `npm run swagger`). Treat it as generated output.
-  - `src/crossCutting/` holds shared helpers; `src/index.ts` is the public entry point (`SessionFactory`, contract types, errors, interpreters).
-- `tests/` holds Vitest tests: `tests/area/contract/` (public-API / live-engine tests), `tests/area/internal/` (internal units), `tests/setup/` (helpers), `tests/data/` (fixtures).
-- `dist/` is the build output (ESM `index.js`, CJS `index.cjs`, types `index.d.ts`). `docs/` holds conventions. `scripts/` holds tooling.
+configurator-ts is the TypeScript client for SPC's configuration engine: sessions, decisions (optimistic), explain,
+store and restore, automatic resume of a lost session. configurator-react and configurator-framer build on it. Start
+with [docs/overview.md](docs/overview.md).
 
-## Architecture Overview
-- SPC uses a backend Configuration Engine (session-based REST API) that solves configuration decisions and returns consequences.
-- This package (configurator-ts) is the TypeScript client on top of that API: it manages sessions, automatic resume on `SessionNotFound`, optimistic decisions, and maps the wire contract to a stable domain contract.
-- `configurator-react` and `configurator-framer` build on this client. Keep the public `contract/` stable and backwards compatible, and never leak `Engine.*` wire types through `src/index.ts`.
+## Commands
 
-## Build, Test, and Development Commands
-- `npm run build` builds the library with Vite and generates bundled type declarations into `dist/`.
-- `npm test` runs Vitest once. Contract tests run against a real Configuration Engine.
-- `npm run test:watch` runs Vitest in watch mode.
-- `npm run typecheck` runs TypeScript without emitting.
-- `npm run swagger` regenerates `src/apiClient/engine/Engine.ts` from the engine's OpenAPI document.
+- `bun install` — install (Bun is the package manager; never npm, so no `package-lock.json`).
+- `bun run verify` — the gate before a change counts as done, its steps in parallel: `bun check` (sources and tests),
+  oxlint, `bun fmt --check`, `bun test --isolate`, the tsdown build, publint and arethetypeswrong.
+- The contract tests (`tests/area/contract/ConfigurationSession.test.ts`) run against the live engine and need
+  `HCA_ENGINE_ACCESS_TOKEN`: locally in the git-ignored `.env.test.local`, which `bun test` loads; `.env.example` says
+  where the token is found. Never commit a token.
+- `bun run swagger` regenerates `src/apiClient/engine/Engine.ts` from the engine's OpenAPI document; the file is
+  generated output and never edited by hand (lint and format skip it).
+- Dependencies are updated by hand when working on the library: `bun outdated`, then `bun audit`. `bunfig.toml` installs
+  only versions that have been public for three days (our own `@viamedici-spc` packages excepted).
 
-## Coding Style & Naming Conventions
-- TypeScript; 4-space indentation; semicolons.
-- Functional style with `@viamedici-spc/fp-ts-extensions`/`fp-ts` and `ts-pattern` (`match(...).with(...).exhaustive()`); prefer exhaustive matches over `if` chains.
-- PascalCase for types (`SessionContext`, `ExplicitDecision`), camelCase for functions/mappers (`mapSessionContext`).
-- Respect the layering: `contract` (public domain types) ↔ `domain/mapper` ↔ `apiClient/engine` (wire types). When you add a field to a public type (e.g. `SessionContext`), update its `Eq` in `src/contract/Eqs.ts` — `Eq.struct` requires every key.
+## Code
 
-## Testing Guidelines
-- Vitest; test files are `*.test.ts` under `tests/area/`.
-- Contract tests are integration tests that hit a live engine. They read `endpoints.engine` and `credentials.engine.accessToken` from `tests/config.json` (shallow-merged with `tests/config.local.json`, which takes precedence).
-- Run `npm run typecheck` and `npm test` before pushing — the publish pipeline runs the test suite and a red test blocks the release.
+- Layers: `src/contract/` (public types, errors, interpreters, `Eqs.ts`) ↔ `src/domain/mapper/` ↔ `src/apiClient/engine/`
+  (generated wire types). Never export a wire type through `src/index.ts`. A new field on a public type also updates its
+  `Eq` in `src/contract/Eqs.ts` (`Eq.struct` requires every key).
+- Functional style with `@viamedici-spc/fp-ts-extensions`/fp-ts and `ts-pattern` (`match(...).exhaustive()`); type-only
+  imports use `import type`. Conventions: [docs/conventions/code.md](docs/conventions/code.md).
 
-## Commit & Pull Request Guidelines
-- Commit history uses short, sentence-case messages, typically past tense (e.g. "Added support for fixed decisions").
-- Keep commits focused and avoid noisy, multi-topic changes. Ask before committing.
-- PRs should include a brief summary and testing notes; link related issues when applicable.
+## Commits and releases
 
-## Release & Versioning
-- `.github/workflows/main.yml` runs on every push and builds, tests, and publishes via the shared `viamedici-spc/github-ci` workflow (trusted publishing).
-- Branch builds publish a prerelease (`<base>-<branch>-<timestamp>`) under a dist-tag named after the branch; clean releases come from version tags. Dependent packages should pin the exact published version.
+- Short, sentence-case messages in the past tense (e.g. "Added support for fixed decisions"); one concern per commit;
+  issue references as `Fixes #<n>`. Ask before committing.
+- CI (`.github/workflows/main.yml`) runs the shared workflow `viamedici-spc/github-ci` (`build-bun.yml`): it verifies
+  every push and publishes with npm trusted publishing — `main` as release candidates, `feature/*` branches as
+  prereleases under a dist-tag named after the branch, version tags as releases. Dependent packages pin the exact
+  published version.
 
-## Configuration Tips
-- `src/apiClient/engine/Engine.ts` is generated; change the OpenAPI source/endpoint in `scripts/swaggerGeneration.mjs` and rerun `npm run swagger` instead of hand-editing the output.
-- `tests/config.json` carries the default engine endpoint/token for tests; override locally via `tests/config.local.json`.
+## This repository is public
 
-## Documentation
-- Conventions live under `docs/conventions/` (e.g. `changelog.md`). Follow the changelog convention when writing release notes (see `CHANGELOG.md`).
+Everything committed here is public: on GitHub, in the npm package, through jsDelivr. Documents, lists, code comments,
+TSDoc, tests, test fixtures and commit messages describe **only the public API and the behavior a consumer can
+observe**. Never write engine internals (how or why the engine does something behind its documented REST API), internal
+hosts, internal repositories or their contents, tokens, customer names or customer models, internal findings or
+analyses, or a person's name. An engine behavior is described by what a request returns; a workaround by what it does.
+Such material stays outside the repository, with the maintainers. A commit message is public once pushed, so check it
+before pushing. The full rule is in
+[docs/conventions/documentation.md](docs/conventions/documentation.md#this-repository-is-public).
+
+## Supported environments
+
+- **Browsers only**, as **ESM only**: through a bundler, or directly from jsDelivr.
+- **Not Node.js.** Server-side use goes through the engine's REST API, not this library. No `node:*` imports, no
+  `process` or `Buffer` in `src/`.
+- **SSR frameworks:** the library runs on the client only; a module's top level touches no browser global.
+
+## Verification
+
+`bun run verify` from the repository root, before a change counts as done; CI runs the same gate. A step is green
+when its exit code is 0, and only then. Details: [docs/conventions/code.md](docs/conventions/code.md#verification).
+
+## Documentation map: where what goes
+
+How we document is defined in [docs/conventions/documentation.md](docs/conventions/documentation.md); read it before
+creating or changing a document. Every file under `docs/` carries `status:` frontmatter; `README.md`, `AGENTS.md` and
+`CHANGELOG_DRAFT.md` carry none.
+
+| What | Where |
+|---|---|
+| Install, a first example, links onward (for users) | [README.md](README.md) |
+| The contract of one public member | TSDoc on it ([code.md](docs/conventions/code.md#tsdoc-on-the-public-api)) |
+| Purpose, contract, invariants, architecture, environments, commands | [docs/overview.md](docs/overview.md) |
+| Goals, non-goals, audiences | [docs/vision.md](docs/vision.md) |
+| A feature whose flow or edge cases need more than TSDoc | [docs/features/](docs/features/) |
+| A decision that is hard to reverse, with its why | [docs/adr/](docs/adr/) |
+| What changes for consumers in the next release | [CHANGELOG_DRAFT.md](CHANGELOG_DRAFT.md) |
+| Undecided | [docs/discussion-points.md](docs/discussion-points.md) |
+| Decided, not done | [docs/todo.md](docs/todo.md) |
+| Later, no commitment | [docs/backlog.md](docs/backlog.md) |
+| Waiting on a dependency, with its check | [docs/upstream-watch.md](docs/upstream-watch.md) |
+| How code is written, TSDoc, comments, the gate | [code.md](docs/conventions/code.md) |
+| How a received code review is worked through | [code-review.md](docs/conventions/code-review.md) |
+| The periodic documentation sweep | [documentation-review.md](docs/conventions/documentation-review.md) |
+| How release notes are written | [changelog.md](docs/conventions/changelog.md) |
+| Skeletons for every document | [templates/](docs/conventions/templates/) |
+
+Rules in short: one fact, one home; a state document describes the present and never its own history; no person is
+named; a decision taken over from another project is written as our own, with the constraint it rests on, and its
+source is not named; a code path in a comment or a document is written from the repository root.
+
+## Doc Delta, in the same commit as every substantive change
+
+1. Public API changed → TSDoc on every touched member, README examples that use it, `docs/overview.md` if the contract
+   or an invariant moved, an entry in `CHANGELOG_DRAFT.md`.
+2. Observable behavior changed → its feature note under `docs/features/`, and the changelog entry.
+3. A decision that is hard to reverse → an ADR in `docs/adr/`.
+4. A supported environment, a command or the toolchain changed → `docs/overview.md` and this file.
+5. A point opened or resolved → `docs/discussion-points.md`; decided, not done → `docs/todo.md`; later →
+   `docs/backlog.md`.
+6. A workaround for a dependency's limit → `docs/upstream-watch.md`, with its check.
+7. A borrowed decision → written into its ADR or state document as our own, with its constraint, without its source.
