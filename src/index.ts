@@ -155,7 +155,7 @@ import {
     Inclusion,
 } from "./contract/Types";
 import type {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
-import * as StoredConfigurationV1 from "./contract/storedConfiguration/StoredConfigurationV1";
+import type * as StoredConfigurationV1 from "./contract/storedConfiguration/StoredConfigurationV1";
 import * as ConfigurationInterpreter from "./contract/interpreter/ConfigurationInterpreter";
 import * as AttributeInterpreter from "./contract/interpreter/AttributeInterpreter";
 import * as ChoiceValueInterpreter from "./contract/interpreter/ChoiceValueInterpreter";
@@ -180,7 +180,7 @@ export {
     AttributeRefinements,
     CollectedDecisionRefinements,
     type StoredConfiguration,
-    StoredConfigurationV1,
+    type StoredConfigurationV1,
 
     // Eqs
     globalAttributeIdKeyEq,

@@ -8,6 +8,7 @@
 - **Type declarations without morphic-ts:** the stored-configuration types (`StoredConfiguration`,
   `StoredConfigurationV1.*`) are plain readonly types now; their arrays are `ReadonlyArray`. Code that changed a stored
   configuration in place has to copy it instead.
+- **`StoredConfigurationV1` is exported as a type only:** import it with `import type`.
 - **Error objects carry only their documented fields:** `ConfiguratorError` and its members are written out as readonly
   types; fields the engine adds to its error responses are no longer copied into the error objects.
 
