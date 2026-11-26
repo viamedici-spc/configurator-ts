@@ -74,113 +74,87 @@ const serverError: ServerError = {
     type: ConfiguratorErrorType.ServerError,
 };
 
+/** A problem whose type the engine names. `Unspecified` has an open `type` and is not one of them. */
+type NamedProblem<P = Engine.ProblemDetails> = P extends {type: infer T extends string}
+    ? string extends T
+        ? never
+        : P
+    : never;
+
+type NamedProblemType = NamedProblem["type"];
+
+/**
+ * One mapper per problem type the engine names. The record has to list every named type, so a type that a regenerated
+ * engine client adds fails the type check until it is mapped here.
+ */
+const problemMappers: {
+    readonly [T in NamedProblemType]: (problem: Extract<NamedProblem, {type: T}>) => ConfiguratorError;
+} = {
+    ConfigurationModelNotFeasible: mapConfigurationModelNotFeasible,
+    SpecifiedDeploymentForbidden: mapSpecifiedDeploymentForbidden,
+    AttributeNotFound: mapAttributeNotFound,
+    ChoiceAttributeNotFound: mapChoiceAttributeNotFound,
+    ComponentAttributeNotFound: mapComponentAttributeNotFound,
+    NumericAttributeNotFound: mapNumericAttributeNotFound,
+    BooleanAttributeNotFound: mapBooleanAttributeNotFound,
+    ChoiceValueNotFound: mapChoiceValueNotFound,
+    NumericDecisionOutOfRange: mapNumericDecisionOutOfRange,
+    ConflictWithConsequence: mapConflictWithConsequence,
+    DecisionsToRespectInvalid: mapDecisionsToRespectInvalid,
+    FixedDecisionsInvalid: mapFixedDecisionsInvalid,
+    SessionNotFound: mapSessionNotFound,
+    // makeManyDecisions handles this response itself; anywhere else it is a server error.
+    PutManyDecisionsConflict: () => serverError,
+    AssignedChannelNotFound: () => serverError,
+    InternalServerError: () => serverError,
+    // There is no public error type for an inactive attribute.
+    AttributeNotActive: () => serverError,
+    RequestTimeout: p => mapProblem(p, ConfiguratorErrorType.RequestTimeout) satisfies RequestTimeout,
+    RequestFailure: mapRequestFailure,
+    SerializationError: mapSerializationError,
+    MissingTenantIdClaim: p => mapProblem(p, ConfiguratorErrorType.MissingTenantIdClaim) satisfies MissingTenantIdClaim,
+    MissingSessionIdClaim: p =>
+        mapProblem(p, ConfiguratorErrorType.MissingSessionIdClaim) satisfies MissingSessionIdClaim,
+    TenantAccessForbidden: p =>
+        mapProblem(p, ConfiguratorErrorType.TenantAccessForbidden) satisfies TenantAccessForbidden,
+    SessionIdInvalid: p => mapProblem(p, ConfiguratorErrorType.SessionIdInvalid) satisfies SessionIdInvalid,
+    AuthenticationFailure: p =>
+        mapProblem(p, ConfiguratorErrorType.AuthenticationFailure) satisfies AuthenticationFailure,
+    SideLoadingForbidden: p => mapProblem(p, ConfiguratorErrorType.SideLoadingForbidden) satisfies SideLoadingForbidden,
+    ConfigurationModelInvalid: mapConfigurationModelInvalid,
+    SolutionNotFeasible: p => mapProblem(p, ConfiguratorErrorType.SolutionNotFeasible) satisfies SolutionNotFeasible,
+    ConfigurationModelNotFound: p =>
+        mapProblem(p, ConfiguratorErrorType.ConfigurationModelNotFound) satisfies ConfigurationModelNotFound,
+    SolverInitializationFailure: p =>
+        mapProblem(p, ConfiguratorErrorType.SolverInitializationFailure) satisfies SolverInitializationFailure,
+    ConfigurationModelLoadFailure: p =>
+        mapProblem(p, ConfiguratorErrorType.ConfigurationModelLoadFailure) satisfies ConfigurationModelLoadFailure,
+    ConfigurationInitializationFailure: mapConfigurationInitializationFailure,
+    SolverPoolInitializationFailure: p =>
+        mapProblem(p, ConfiguratorErrorType.SolverPoolInitializationFailure) satisfies SolverPoolInitializationFailure,
+    SetDecisionConflict: p => mapProblem(p, ConfiguratorErrorType.SetDecisionConflict) satisfies SetDecisionConflict,
+    SolveOperationTimeout: mapSolveOperationTimeout,
+    ExplainConflict: mapExplainConflict,
+    ExplainFailure: mapExplainFailure,
+    SnapshotInvalid: mapSnapshotInvalid,
+    SnapshotNotFound: p => mapProblem(p, ConfiguratorErrorType.SnapshotNotFound) satisfies SnapshotNotFound,
+    SessionParametersInvalid: p =>
+        mapProblem(p, ConfiguratorErrorType.SessionParametersInvalid) satisfies SessionParametersInvalid,
+};
+
+function isNamedProblem(problem: Engine.ProblemDetails): problem is NamedProblem {
+    return Object.hasOwn(problemMappers, problem.type);
+}
+
 export function mapConfiguratorError(problemDetails: Engine.ProblemDetails): ConfiguratorError {
-    return (
-        match(problemDetails)
-            .returnType<ConfiguratorError>()
-            .with({type: "ConfigurationModelNotFeasible"}, mapConfigurationModelNotFeasible)
-            .with({type: "SpecifiedDeploymentForbidden"}, mapSpecifiedDeploymentForbidden)
-            .with({type: "AttributeNotFound"}, mapAttributeNotFound)
-            .with({type: "ChoiceAttributeNotFound"}, mapChoiceAttributeNotFound)
-            .with({type: "ComponentAttributeNotFound"}, mapComponentAttributeNotFound)
-            .with({type: "NumericAttributeNotFound"}, mapNumericAttributeNotFound)
-            .with({type: "BooleanAttributeNotFound"}, mapBooleanAttributeNotFound)
-            .with({type: "ChoiceValueNotFound"}, mapChoiceValueNotFound)
-            .with({type: "NumericDecisionOutOfRange"}, mapNumericDecisionOutOfRange)
-            .with({type: "ConflictWithConsequence"}, mapConflictWithConsequence)
-            .with({type: "DecisionsToRespectInvalid"}, mapDecisionsToRespectInvalid)
-            .with({type: "FixedDecisionsInvalid"}, mapFixedDecisionsInvalid)
-            .with({type: "SessionNotFound"}, mapSessionNotFound)
-            // This response is handled explicit by the MakeManyDecisions method. If it occurs outside the MakeManyDecisions scope, it is probably a ServerError.
-            .with({type: "PutManyDecisionsConflict"}, () => serverError)
-            .with({type: "AssignedChannelNotFound"}, () => serverError)
-            .with({type: "InternalServerError"}, () => serverError)
-            .with(
-                {type: "RequestTimeout"},
-                p => mapProblem(p, ConfiguratorErrorType.RequestTimeout) satisfies RequestTimeout,
-            )
-            .with({type: "RequestFailure"}, mapRequestFailure)
-            .with({type: "SerializationError"}, mapSerializationError)
-            .with(
-                {type: "MissingTenantIdClaim"},
-                p => mapProblem(p, ConfiguratorErrorType.MissingTenantIdClaim) satisfies MissingTenantIdClaim,
-            )
-            .with(
-                {type: "MissingSessionIdClaim"},
-                p => mapProblem(p, ConfiguratorErrorType.MissingSessionIdClaim) satisfies MissingSessionIdClaim,
-            )
-            .with(
-                {type: "TenantAccessForbidden"},
-                p => mapProblem(p, ConfiguratorErrorType.TenantAccessForbidden) satisfies TenantAccessForbidden,
-            )
-            .with(
-                {type: "SessionIdInvalid"},
-                p => mapProblem(p, ConfiguratorErrorType.SessionIdInvalid) satisfies SessionIdInvalid,
-            )
-            .with(
-                {type: "AuthenticationFailure"},
-                p => mapProblem(p, ConfiguratorErrorType.AuthenticationFailure) satisfies AuthenticationFailure,
-            )
-            .with(
-                {type: "SideLoadingForbidden"},
-                p => mapProblem(p, ConfiguratorErrorType.SideLoadingForbidden) satisfies SideLoadingForbidden,
-            )
-            .with({type: "ConfigurationModelInvalid"}, mapConfigurationModelInvalid)
-            .with(
-                {type: "SolutionNotFeasible"},
-                p => mapProblem(p, ConfiguratorErrorType.SolutionNotFeasible) satisfies SolutionNotFeasible,
-            )
-            .with(
-                {type: "ConfigurationModelNotFound"},
-                p =>
-                    mapProblem(
-                        p,
-                        ConfiguratorErrorType.ConfigurationModelNotFound,
-                    ) satisfies ConfigurationModelNotFound,
-            )
-            .with(
-                {type: "SolverInitializationFailure"},
-                p =>
-                    mapProblem(
-                        p,
-                        ConfiguratorErrorType.SolverInitializationFailure,
-                    ) satisfies SolverInitializationFailure,
-            )
-            .with(
-                {type: "ConfigurationModelLoadFailure"},
-                p =>
-                    mapProblem(
-                        p,
-                        ConfiguratorErrorType.ConfigurationModelLoadFailure,
-                    ) satisfies ConfigurationModelLoadFailure,
-            )
-            .with({type: "ConfigurationInitializationFailure"}, mapConfigurationInitializationFailure)
-            .with(
-                {type: "SolverPoolInitializationFailure"},
-                p =>
-                    mapProblem(
-                        p,
-                        ConfiguratorErrorType.SolverPoolInitializationFailure,
-                    ) satisfies SolverPoolInitializationFailure,
-            )
-            .with(
-                {type: "SetDecisionConflict"},
-                p => mapProblem(p, ConfiguratorErrorType.SetDecisionConflict) satisfies SetDecisionConflict,
-            )
-            .with({type: "SolveOperationTimeout"}, mapSolveOperationTimeout)
-            .with({type: "ExplainConflict"}, mapExplainConflict)
-            .with({type: "ExplainFailure"}, mapExplainFailure)
-            .with({type: "SnapshotInvalid"}, mapSnapshotInvalid)
-            .with(
-                {type: "SnapshotNotFound"},
-                p => mapProblem(p, ConfiguratorErrorType.SnapshotNotFound) satisfies SnapshotNotFound,
-            )
-            .with(
-                {type: "SessionParametersInvalid"},
-                p => mapProblem(p, ConfiguratorErrorType.SessionParametersInvalid) satisfies SessionParametersInvalid,
-            )
-            .otherwise(() => serverError)
-    );
+    if (!isNamedProblem(problemDetails)) {
+        // `Unspecified`, or a type the engine client does not name.
+        return serverError;
+    }
+
+    // Each entry of the record takes the problem of its own type; TypeScript cannot follow that link through the lookup.
+    const mapProblemOfItsType = problemMappers[problemDetails.type] as (problem: NamedProblem) => ConfiguratorError;
+    return mapProblemOfItsType(problemDetails);
 }
 
 type ProblemBase = Pick<Engine.ProblemDetails, "title" | "detail">;

@@ -25,6 +25,9 @@ of that maintenance.
 ## Consequences
 
 - A change of the engine's contract shows up as a type error in the mappers, not as a silent change of the public API.
+  Every problem type the engine names has an entry in the mapper record of
+  `src/domain/mapper/EngineToDomainMapping.ts`, so a newly named type fails the type check until it is mapped; a problem
+  without a named type is a `ServerError`.
 - Public error objects carry only their declared fields; their properties are readonly.
 - The generator needs TypeScript 5's compiler API while the library builds with TypeScript 7; installs are isolated per
   workspace package (`linker = "isolated"` in `bunfig.toml`).
