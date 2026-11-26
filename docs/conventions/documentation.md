@@ -149,9 +149,9 @@ it would have to restate; the README shows a path through the API and leaves the
 
 ## The individual documents
 
-- **`README.md`:** user-facing. What the library is in a paragraph, installation (bundler and jsDelivr), a first
-  example that compiles against the current API, and links to the documentation. It never carries contract detail that
-  TSDoc or `overview.md` owns.
+- **`README.md`:** user-facing. What the library is in a paragraph, installation (through a bundler; from jsDelivr where
+  the package is meant to be loaded that way), a first example that compiles against the current API, and links to the
+  documentation. It never carries contract detail that TSDoc or `overview.md` owns.
 - **`overview.md`:** the living entry, with a fixed spine: *Purpose* (including what is out of scope) · *Public
   contract* (the entry point and what it exports, by name and link) · *Invariants* · *Architecture* · *Supported
   environments* · *Commands* · *Links*. It names and links; the detail lives in TSDoc, feature notes and ADRs. The spine

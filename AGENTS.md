@@ -53,7 +53,7 @@ before pushing. The full rule is in
 
 ## Supported environments
 
-- **Browsers only**, as **ESM only**: through a bundler, or directly from jsDelivr.
+- **Browsers only**, as **ESM only**: through a bundler, or inside the configurator-framer bundle from a CDN.
 - **Not Node.js.** Server-side use goes through the engine's REST API, not this library. No `node:*` imports, no
   `process` or `Buffer` in `src/`.
 - **SSR frameworks:** the library runs on the client only; a module's top level touches no browser global.
