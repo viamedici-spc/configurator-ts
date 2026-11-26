@@ -110,10 +110,23 @@ const serverSideSessionCreationApiClients = new Map<string, EngineApi>();
 /** Requests send no `Referer`, so the application's page URL does not reach the engine. */
 const referrerPolicy: ReferrerPolicy = "no-referrer";
 
+/**
+ * The fetch call itself rejected: the request did not reach the engine or no response arrived (network, CORS,
+ * aborted). A response that arrived but cannot be read is not this error.
+ */
+export class FetchRejected extends Error {
+    constructor(cause: unknown) {
+        super("The fetch call rejected.", {cause});
+        this.name = "FetchRejected";
+    }
+}
+
 // The global fetch is looked up on every request, not once when the client is created, so that a fetch replaced later
 // (by a test or an application) takes effect for the cached clients too.
 function currentFetch(input: Request | string, init?: RequestInit): Promise<Response> {
-    return globalThis.fetch(input, init);
+    return globalThis.fetch(input, init).catch((cause: unknown) => {
+        throw new FetchRejected(cause);
+    });
 }
 
 export function getApiClient(apiBaseUrl: string | undefined): EngineApi {

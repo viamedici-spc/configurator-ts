@@ -28,6 +28,28 @@ describe("EngineLogic", () => {
         expect<unknown>(problemDetail.type).toBe("ConnectionError");
     });
 
+    it("createSession - ServerError when a success response is not JSON", async () => {
+        fetchMock.mockImplementation(() =>
+            Promise.resolve(
+                new Response("<html>Proxy page</html>", {status: 200, headers: {"Content-Type": "text/html"}}),
+            ),
+        );
+        const createSessionResult = await Logic.createSession(SessionContextWithModelWithOneMandatoryChoice)();
+
+        expect<unknown>(expectToBeLeft(createSessionResult).type).toBe("ServerError");
+    });
+
+    it("createSession - ServerError when an error response is not JSON", async () => {
+        fetchMock.mockImplementation(() =>
+            Promise.resolve(
+                new Response("<html>Bad Gateway</html>", {status: 502, headers: {"Content-Type": "text/html"}}),
+            ),
+        );
+        const createSessionResult = await Logic.createSession(SessionContextWithModelWithOneMandatoryChoice)();
+
+        expect<unknown>(expectToBeLeft(createSessionResult).type).toBe("ServerError");
+    });
+
     it("createSession - ServerError if response is malformed", async () => {
         fetchMock.mockImplementation(() =>
             Promise.resolve(

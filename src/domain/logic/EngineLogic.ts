@@ -14,8 +14,8 @@ import type {
 import type {ConnectionError, ConfiguratorError, ServerError} from "../../contract/ConfiguratorError";
 import {ConfiguratorErrorType} from "../../contract/ConfiguratorError";
 import type {TaskEither} from "@viamedici-spc/fp-ts-extensions";
-import {E, I, identity, O, pipe, RA, T, TE} from "@viamedici-spc/fp-ts-extensions";
-import {getApiClient, getServerSideSessionCreationApiClient} from "../EngineApiClient";
+import {E, I, O, pipe, RA, TE} from "@viamedici-spc/fp-ts-extensions";
+import {FetchRejected, getApiClient, getServerSideSessionCreationApiClient} from "../EngineApiClient";
 import type {EngineApi, EngineResponse, RequestParams} from "../EngineApiClient";
 import * as DtoE from "../mapper/DomainToEngineMapping";
 import * as EtoD from "../mapper/EngineToDomainMapping";
@@ -355,17 +355,9 @@ function request<T, E = unknown>(
     customConfiguratorErrorMapper?: (e: E) => Option<ConfiguratorError>,
 ): TaskEither<ConfiguratorError, T> {
     return pipe(
-        // A rejection means the request did not reach the engine (network, CORS, aborted).
-        TE.tryCatch(request, (): EngineResponse<T> => ({})),
-        TE.match(identity, identity),
-        T.map<EngineResponse<T>, E.Either<ConfiguratorError, T>>(r => {
-            if (r.response == null) {
-                return E.left({
-                    type: ConfiguratorErrorType.ConnectionError,
-                } satisfies ConnectionError);
-            }
-
-            if (r.response.ok) {
+        TE.tryCatch(request, mapRejection),
+        TE.chainEitherK((r): E.Either<ConfiguratorError, T> => {
+            if (r.response?.ok === true) {
                 // A response without content (e.g. closing a session) carries no data.
                 return E.right(r.data as T);
             }
@@ -389,6 +381,20 @@ function request<T, E = unknown>(
             } satisfies ServerError);
         }),
     );
+}
+
+/**
+ * A rejected fetch call means the request did not reach the engine or no response arrived (network, CORS, aborted):
+ * `ConnectionError`. Any other rejection comes from a response that arrived but cannot be read, such as a success
+ * response that is not JSON: `ServerError`.
+ */
+function mapRejection(reason: unknown): ConfiguratorError {
+    if (reason instanceof FetchRejected) {
+        return {type: ConfiguratorErrorType.ConnectionError} satisfies ConnectionError;
+    }
+
+    Logger.error("Received a response that cannot be read:", reason);
+    return {type: ConfiguratorErrorType.ServerError} satisfies ServerError;
 }
 
 function getHeadersForSession(sessionState: Required<Pick<ConfigurationSessionState, "sessionId">>): HeadersInit {
