@@ -34,13 +34,13 @@ export function getBooleanAttribute(globalOrLocalId: string | GlobalAttributeId,
         selection: Selection.Mandatory,
         possibleDecisionStates: [true, false],
         isPossibleDecisionStatesImmutable: false,
-        ...partial ?? {},
+        ...partial,
     };
 
     const hashedAttribute: HashedAttribute & BooleanAttribute = {
         ...attribute,
         hash: calculateAttributeHash(attribute),
-        ...partial ?? {},
+        ...partial,
     };
 
     return [key, hashedAttribute];
@@ -67,13 +67,13 @@ export function getNumericAttribute(globalOrLocalId: string | GlobalAttributeId,
             max: 10
         },
         isPossibleDecisionStatesImmutable: false,
-        ...partial ?? {},
+        ...partial,
     };
 
     const hashedAttribute: HashedAttribute & NumericAttribute = {
         ...attribute,
         hash: calculateAttributeHash(attribute),
-        ...partial ?? {},
+        ...partial,
     };
 
     return [key, hashedAttribute];
@@ -97,13 +97,13 @@ export function getComponentAttribute(globalOrLocalId: string | GlobalAttributeI
         inclusion: Inclusion.Optional,
         possibleDecisionStates: [ComponentDecisionState.Included, ComponentDecisionState.Excluded],
         isPossibleDecisionStatesImmutable: false,
-        ...partial ?? {},
+        ...partial,
     };
 
     const hashedAttribute: HashedAttribute & ComponentAttribute = {
         ...attribute,
         hash: calculateAttributeHash(attribute),
-        ...partial ?? {},
+        ...partial,
     };
 
     return [key, hashedAttribute];
@@ -141,13 +141,13 @@ export function getChoiceAttribute(globalOrLocalId: string | GlobalAttributeId, 
                 isPossibleDecisionStatesImmutable: false,
             } satisfies ChoiceValue]
         ]),
-        ...partial ?? {},
+        ...partial,
     };
 
     const hashedAttribute: HashedAttribute & ChoiceAttribute = {
         ...attribute,
         hash: calculateAttributeHash(attribute),
-        ...partial ?? {},
+        ...partial,
     };
 
     return [key, hashedAttribute];

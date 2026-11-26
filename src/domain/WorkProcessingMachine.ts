@@ -99,7 +99,7 @@ const workProcessingMachine = setup({
         emitted: {} as MachineState
     },
     guards: {
-        isSessionNotFoundProblem: ({}, {result}: RunTaskResult) => pipe(
+        isSessionNotFoundProblem: (_, {result}: RunTaskResult) => pipe(
             result,
             E.match(() => false, E.match(l => l.error.type === "SessionNotFound", () => false))
         )

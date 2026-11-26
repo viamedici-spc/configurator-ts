@@ -1021,7 +1021,7 @@ describe.skipIf(!engineAvailable)("ConfigurationSession", () => {
                             } satisfies Decision<boolean>);
                         });
                         expect(makeManyDecisions.rejectedDecisions[0]).toEqual(desiredBool2Decision);
-                    } catch (e) {
+                    } catch {
                         expectations.expectBooleanAttribute({localId: "GetBlocked1"}, a => {
                             expect(a.decision).toEqual({
                                 kind: DecisionKind.Implicit,
