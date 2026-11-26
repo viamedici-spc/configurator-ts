@@ -29,7 +29,7 @@ library below it. A Mermaid diagram where it helps.>
 
 ## Supported environments
 
-- **Browsers**, as ESM, through a bundler or directly from jsDelivr.
+- **Browsers**, as ESM, through a bundler, or inside a self-contained bundle loaded from a CDN.
 - **Not Node.js.** Server-side use goes through the engine's REST API.
 - **SSR frameworks:** client-side only.
 
