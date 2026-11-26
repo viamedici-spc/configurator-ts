@@ -11,7 +11,7 @@ with [docs/overview.md](docs/overview.md).
   oxlint, `bun fmt --check`, `bun test --isolate`, the tsdown build, publint and arethetypeswrong.
 - The contract tests (`tests/area/contract/ConfigurationSession.test.ts`) run against the live engine and need
   `HCA_ENGINE_ACCESS_TOKEN`: locally in the git-ignored `.env.test.local`, which `bun test` loads; `.env.example` says
-  where the token is found. Never commit a token.
+  how to get the token. Never commit a token.
 - `bun run --filter scripts generate-engine-types` regenerates the wire types in `src/apiClient/engine/Engine.ts` from
   the engine's OpenAPI document (the generator is its own Bun package in `scripts/`); the file is generated output and
   never edited by hand (lint and format skip it). Public types are written by hand and never derive from wire types.

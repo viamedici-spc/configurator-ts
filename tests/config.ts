@@ -10,7 +10,7 @@ const isPullRequestFromFork = process.env["GITHUB_EVENT_NAME"] === "pull_request
 
 if (accessToken === undefined && !isPullRequestFromFork) {
     throw new Error(
-        "HCA_ENGINE_ACCESS_TOKEN is not set. Put it into .env.test.local (see .env.example for where to find it).",
+        "HCA_ENGINE_ACCESS_TOKEN is not set. Put it into .env.test.local (see .env.example for how to get it).",
     );
 }
 
