@@ -1,3 +1,7 @@
+---
+status: accepted
+---
+
 # Changelog Convention
 
 This convention defines changelog creation for the **Configurator TS** library (a JavaScript/TypeScript package).
