@@ -16,7 +16,7 @@ yet.
 - **We would rather** emit `fp-ts/Option`, `monocle-ts/Lens` and `@morphic-ts/batteries/lib/…` as written in the
   sources.
 - **We do instead** rewrite these imports to full ES module paths in `tsdown.config.ts`.
-- **What blocks it:** neither package has an `exports` map, so strict ESM resolution cannot resolve their subpaths.
+- **What blocks it:** none of them has an `exports` map, so strict ESM resolution cannot resolve their subpaths.
 - **Check** (an `exports` field means the gate has lifted for that package):
 
   ```bash
@@ -25,8 +25,9 @@ yet.
 
 - **What it would buy:** the plugin in `tsdown.config.ts` goes away, and applications testing with Vitest no longer need
   `server.deps.inline` (README).
-- **Upstream:** both are in maintenance; whether to keep them is open (see discussion points).
-- **Last checked:** fp-ts 2.16.11 and @morphic-ts/batteries 3.0.0, 2026-11-26: no `exports` field.
+- **Upstream:** all three are in maintenance or unmaintained; whether to keep them is open (see discussion points).
+- **Last checked:** fp-ts 2.16.11, monocle-ts 2.3.13 and @morphic-ts/batteries 3.0.0, 2026-11-26: no `exports`
+  field.
 
 ### Let @morphic-ts load tslib itself
 

@@ -13,14 +13,14 @@ bundle of configurator-framer loaded from a CDN. Server-side integrations use th
 package used to ship ES modules and CommonJS side by side, without `"type": "module"`, to keep older bundlers working;
 the ES build was not standard ESM, and consumers asked for plain Node.js support.
 
-fp-ts 2.x and morphic-ts have no `exports` map. Strict ESM resolution, as webpack 5 applies it to a `"type": "module"`
-package, rejects extensionless subpaths such as `fp-ts/Option`.
+fp-ts 2.x, monocle-ts and morphic-ts have no `exports` map. Strict ESM resolution, as webpack 5 applies it to a
+`"type": "module"` package, rejects extensionless subpaths such as `fp-ts/Option`.
 
 ## Decision
 
 The package is ESM only (`"type": "module"`, `exports` with the ES module and its declarations) and supports browsers
 through a bundler or a CDN bundle. Node.js is not a supported runtime. All dependencies stay external; the JavaScript
-output imports the ES modules of fp-ts and morphic-ts by full path, the declarations keep the usual paths.
+output imports the ES modules of fp-ts, monocle-ts and morphic-ts by full path, the declarations keep the usual paths.
 
 ## Consequences
 
@@ -37,5 +37,5 @@ output imports the ES modules of fp-ts and morphic-ts by full path, the declarat
 ## Alternatives considered
 
 - **Keep CommonJS beside ESM:** no supported environment needs it, and it made the ES build non-standard.
-- **Inline fp-ts and morphic-ts:** would duplicate fp-ts for consumers that use it directly.
+- **Inline fp-ts, monocle-ts and morphic-ts:** would duplicate fp-ts for consumers that use it directly.
 - **Support Node.js:** a runtime no consumer of this library uses.
