@@ -1,0 +1,5 @@
+[install]
+# Supply-chain guard: install only versions that have been public for at least three days; our own packages are
+# exempt, so a fresh prerelease of a library below can be consumed right away.
+minimumReleaseAge = 259200
+minimumReleaseAgeExcludes = ["@viamedici-spc/fp-ts-extensions"]
