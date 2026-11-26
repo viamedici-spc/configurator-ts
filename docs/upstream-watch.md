@@ -62,15 +62,17 @@ yet.
 
 - **We would rather** lint with Bun itself.
 - **We do instead** run oxlint (`bun run lint`).
-- **Check** (help text instead of "Script not found" means it exists):
+- **What blocks it:** Bun has no released linter.
+- **Check** (a line means Bun lists `lint` among its own commands; inside this repository `bun lint` would run the
+  package's `lint` script instead):
 
   ```bash
-  bun lint --help
+  bun --help | grep -w lint
   ```
 
 - **What it would buy:** one tool less.
 - **Upstream:** Bun release notes.
-- **Last checked:** Bun 1.4.5, 2026-11-26: not available.
+- **Last checked:** Bun 1.4.5, 2026-11-26: no `lint` command.
 
 ### `toIncludeSameMembers`, `toSatisfyAll` and `toSatisfyAny` in `bun:test`
 
