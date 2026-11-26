@@ -25,7 +25,8 @@ output imports the ES modules of fp-ts and morphic-ts by full path, the declarat
 ## Consequences
 
 - No CommonJS build; `require` is not supported.
-- Plain Node.js cannot import the package (fp-ts's ES files are not ES modules to Node.js). Tests run in Bun.
+- Plain Node.js cannot import the package: it loads fp-ts's ES files, but cannot resolve their imports, which have no
+  file extension. Tests run in Bun.
 - In server-side rendering frameworks the library runs on the client only.
 - The default log level is set in code (`error`), no longer derived from the bundler's build mode.
 - Test runners that run in Node.js (Vitest) must let their bundler transform fp-ts and the SPC packages
