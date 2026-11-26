@@ -123,9 +123,28 @@ export class FetchRejected extends Error {
 
 // The global fetch is looked up on every request, not once when the client is created, so that a fetch replaced later
 // (by a test or an application) takes effect for the cached clients too.
-function currentFetch(input: Request | string, init?: RequestInit): Promise<Response> {
+function currentFetch(input: string, init?: RequestInit): Promise<Response> {
     return globalThis.fetch(input, init).catch((cause: unknown) => {
         throw new FetchRejected(cause);
+    });
+}
+
+/**
+ * Sends a request openapi-fetch built to `url`, as a URL and an init rather than the `Request` itself.
+ *
+ * ⚠️ Two environments need this. Framer replaces the global fetch with a hook that cannot take a `Request` with a body
+ * ("Cannot construct a Request with a Request object that has already been used"), so every POST and PUT would fail
+ * there. And the body is forwarded as bytes: a `Request` passed as the `init` of a new request hands over its body as a
+ * stream, which Chrome rejects over HTTP/1.1 and Firefox sends empty.
+ */
+async function fetchAsInit(url: string, request: Request): Promise<Response> {
+    return currentFetch(url, {
+        method: request.method,
+        headers: request.headers,
+        body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.arrayBuffer(),
+        signal: request.signal,
+        credentials: request.credentials,
+        referrerPolicy,
     });
 }
 
@@ -135,7 +154,7 @@ export function getApiClient(apiBaseUrl: string | undefined): EngineApi {
     let apiClient = apiClients.get(baseUrl);
     if (!apiClient) {
         apiClient = createEngineApi(
-            createClient<Paths>({baseUrl, fetch: request => currentFetch(request), referrerPolicy}),
+            createClient<Paths>({baseUrl, fetch: request => fetchAsInit(request.url, request)}),
         );
         apiClients.set(baseUrl, apiClient);
     }
@@ -147,18 +166,12 @@ export function getServerSideSessionCreationApiClient(sessionCreateUrl: string):
     let apiClient = serverSideSessionCreationApiClients.get(sessionCreateUrl);
     if (!apiClient) {
         // Every request of this client goes to the sessionCreateUrl, keeping method, headers and body.
-        // ⚠️ The body is forwarded as bytes. A `Request` passed as the `init` of a new request hands over its body as a
-        // stream: Chrome then rejects the request over HTTP/1.1, and Firefox sends it with an empty body.
-        const redirectingFetch = async (request: Request): Promise<Response> =>
-            currentFetch(sessionCreateUrl, {
-                method: request.method,
-                headers: request.headers,
-                body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.arrayBuffer(),
-                signal: request.signal,
-                credentials: request.credentials,
-                referrerPolicy,
-            });
-        apiClient = createEngineApi(createClient<Paths>({baseUrl: defaultEngineBaseUrl, fetch: redirectingFetch}));
+        apiClient = createEngineApi(
+            createClient<Paths>({
+                baseUrl: defaultEngineBaseUrl,
+                fetch: request => fetchAsInit(sessionCreateUrl, request),
+            }),
+        );
         serverSideSessionCreationApiClients.set(sessionCreateUrl, apiClient);
     }
 
