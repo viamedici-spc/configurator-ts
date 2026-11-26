@@ -1,5 +1,5 @@
 import type {StoredConfiguration} from "../../contract/storedConfiguration/StoredConfiguration";
-import { StoredConfiguration_} from "../../contract/storedConfiguration/StoredConfiguration";
+import {StoredConfiguration_} from "../../contract/storedConfiguration/StoredConfigurationCodec";
 import {E, pipe, RA} from "@viamedici-spc/fp-ts-extensions";
 import {match} from "ts-pattern";
 import type { CollectedExplicitDecision,

@@ -62,10 +62,6 @@
     "xstate": "^5.17.4"
   },
   "inlinedDependencies": {
-    "@morphic-ts/adt": "3.0.0",
-    "@morphic-ts/common": "3.0.0",
-    "@morphic-ts/model-algebras": "3.0.0",
-    "@morphic-ts/summoners": "3.0.0",
     "monocle-ts": "2.3.13"
   }
 }

@@ -1,16 +1,50 @@
-import type {AType} from "@morphic-ts/summoners";
-import type {
-    BooleanDecision_,
-    ChoiceDecision_,
-    ComponentDecision_, Decision_,
-    GlobalAttributeId_,
-    NumericDecision_, StoredConfigurationV1_
-} from "./StoredConfigurationSummonsV1";
+/**
+ * Version 1 of a stored configuration: the explicit decisions of a session, so that a later session can restore them.
+ * The shapes are plain readonly types; `src/contract/storedConfiguration/StoredConfigurationCodec.ts` validates them
+ * at runtime.
+ */
 
-export type GlobalAttributeId = AType<typeof GlobalAttributeId_>;
-export type NumericDecision = AType<typeof NumericDecision_>;
-export type BooleanDecision = AType<typeof BooleanDecision_>;
-export type ChoiceDecision = AType<typeof ChoiceDecision_>;
-export type ComponentDecision = AType<typeof ComponentDecision_>;
-export type Decision = AType<typeof Decision_>;
-export type StoredConfigurationV1 = AType<typeof StoredConfigurationV1_>;
+/** Identifies an attribute across the configuration model, its components and shared models. */
+export type GlobalAttributeId = Readonly<{
+    localId: string;
+    componentPath: ReadonlyArray<string> | undefined;
+    sharedConfigurationModelId: string | undefined;
+}>;
+
+/** A stored decision on a numeric attribute. */
+export type NumericDecision = Readonly<{
+    type: "Numeric";
+    attributeId: GlobalAttributeId;
+    state: number;
+}>;
+
+/** A stored decision on a boolean attribute. */
+export type BooleanDecision = Readonly<{
+    type: "Boolean";
+    attributeId: GlobalAttributeId;
+    state: boolean;
+}>;
+
+/** A stored decision on a choice value. */
+export type ChoiceDecision = Readonly<{
+    type: "Choice";
+    attributeId: GlobalAttributeId;
+    choiceValueId: string;
+    state: "Included" | "Excluded";
+}>;
+
+/** A stored decision on a component attribute. */
+export type ComponentDecision = Readonly<{
+    type: "Component";
+    attributeId: GlobalAttributeId;
+    state: "Included" | "Excluded";
+}>;
+
+/** A stored decision of any attribute type, tagged by `type`. */
+export type Decision = NumericDecision | BooleanDecision | ChoiceDecision | ComponentDecision;
+
+/** A stored configuration in schema version 1. */
+export type StoredConfigurationV1 = Readonly<{
+    schemaVersion: 1;
+    explicitDecisions: ReadonlyArray<Decision>;
+}>;

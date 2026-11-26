@@ -58,7 +58,7 @@ const malformedConfigurations: any[] = [
     },
 ];
 
-const wellFormedConfigurations: any[] = [
+const wellFormedConfigurations: StoredConfiguration[] = [
     {
         schemaVersion: 1,
         explicitDecisions: []
@@ -75,6 +75,16 @@ const wellFormedConfigurations: any[] = [
             choiceValueId: "Val",
             state: "Included"
         }]
+    },
+    {
+        // Every decision type and every attribute-id field, so the codecs and the public types stay in step.
+        schemaVersion: 1,
+        explicitDecisions: [
+            {type: "Numeric", attributeId: {localId: "N", componentPath: ["C1", "C2"], sharedConfigurationModelId: "Shared"}, state: 4.5},
+            {type: "Boolean", attributeId: {localId: "B", componentPath: undefined, sharedConfigurationModelId: undefined}, state: false},
+            {type: "Choice", attributeId: {localId: "Ch", componentPath: ["C1"], sharedConfigurationModelId: undefined}, choiceValueId: "V", state: "Excluded"},
+            {type: "Component", attributeId: {localId: "Co", componentPath: undefined, sharedConfigurationModelId: "Shared"}, state: "Included"},
+        ]
     },
 ];
 

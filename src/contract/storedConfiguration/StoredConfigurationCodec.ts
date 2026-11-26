@@ -1,3 +1,6 @@
+// Runtime validation of stored configurations. The public types live in StoredConfigurationV1.ts and
+// StoredConfiguration.ts as plain readonly types, so the published typings need no morphic types (whose declarations no
+// longer resolve under TypeScript 7); tests/area/internal/StoredConfiguration.test.ts keeps codecs and types in step.
 import {summonFor} from "@morphic-ts/batteries/lib/summoner-ESBAST";
 
 const {summon} = summonFor<{}>({});
@@ -45,3 +48,6 @@ export const StoredConfigurationV1_ = summon(F => F.interface({
     schemaVersion: F.numberLiteral(1),
     explicitDecisions: F.array(Decision_(F))
 }, "StoredConfigurationV1"));
+export const StoredConfiguration_ = summon(F => F.taggedUnion("type", {
+    [1]: StoredConfigurationV1_(F)
+}, "StoredConfiguration"));
