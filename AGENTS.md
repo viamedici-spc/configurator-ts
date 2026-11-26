@@ -12,15 +12,17 @@ with [docs/overview.md](docs/overview.md).
 - The contract tests (`tests/area/contract/ConfigurationSession.test.ts`) run against the live engine and need
   `HCA_ENGINE_ACCESS_TOKEN`: locally in the git-ignored `.env.test.local`, which `bun test` loads; `.env.example` says
   where the token is found. Never commit a token.
-- `bun run swagger` regenerates `src/apiClient/engine/Engine.ts` from the engine's OpenAPI document; the file is
-  generated output and never edited by hand (lint and format skip it).
+- `bun run --filter scripts generate-engine-types` regenerates the wire types in `src/apiClient/engine/Engine.ts` from
+  the engine's OpenAPI document (the generator is its own Bun package in `scripts/`); the file is generated output and
+  never edited by hand (lint and format skip it). Public types are written by hand and never derive from wire types.
 - Dependencies are updated by hand when working on the library: `bun outdated`, then `bun audit`. `bunfig.toml` installs
   only versions that have been public for three days (our own `@viamedici-spc` packages excepted).
 
 ## Code
 
 - Layers: `src/contract/` (public types, errors, interpreters, `Eqs.ts`) ↔ `src/domain/mapper/` ↔ `src/apiClient/engine/`
-  (generated wire types). Never export a wire type through `src/index.ts`. A new field on a public type also updates its
+  (generated wire types; requests via openapi-fetch in `src/domain/EngineApiClient.ts`). Never export or derive a public
+  type from a wire type. A new field on a public type also updates its
   `Eq` in `src/contract/Eqs.ts` (`Eq.struct` requires every key).
 - Functional style with `@viamedici-spc/fp-ts-extensions`/fp-ts and `ts-pattern` (`match(...).exhaustive()`); type-only
   imports use `import type`. Conventions: [docs/conventions/code.md](docs/conventions/code.md).

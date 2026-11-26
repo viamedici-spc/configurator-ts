@@ -25,8 +25,9 @@ API serves that), and modelling (configuration models are made in SPC's modellin
 
 ## Invariants
 
-- **No wire type leaves the library.** Types of the generated engine client (`src/apiClient/engine/`) are mapped to the
-  domain in `src/domain/mapper/` and never exported.
+- **No wire type leaves the library, and no public type derives from one.** The generated wire types
+  (`src/apiClient/engine/`) are mapped to the domain in `src/domain/mapper/`; the public types are written by hand
+  ([ADR 0004](adr/0004-engine-client-and-hand-written-public-types.md)).
 - **Every public type is immutable** (readonly properties, readonly collections).
 - **A failure a caller can meet is a `ConfiguratorError`**, delivered as a rejected promise or in a result type.
 - **The published typings need neither fp-ts internals nor morphic-ts**: they pass a type check without `skipLibCheck`.
@@ -35,7 +36,7 @@ API serves that), and modelling (configuration models are made in SPC's modellin
 
 `ConfigurationSession` wraps an XState machine (`src/domain/WorkProcessingMachine.ts`) that serialises the work on a
 session: decisions, explanations, context changes, restoring a lost session. Engine calls are fp-ts `TaskEither`s in
-`src/domain/logic/EngineLogic.ts`; optimistic decisions are applied in `src/domain/logic/OptimisticDecisions.ts` and
+`src/domain/logic/EngineLogic.ts`, sent by openapi-fetch (`src/domain/EngineApiClient.ts`); optimistic decisions are applied in `src/domain/logic/OptimisticDecisions.ts` and
 reconciled with the engine's answer. Feature notes: [fixed decisions](features/fixed-decisions.md).
 
 ## Supported environments
@@ -50,7 +51,7 @@ Browsers, as ESM, through a bundler or inside a CDN bundle; not Node.js ([ADR 00
 | `bun run verify` | The gate, its steps in parallel: type check of sources and tests, lint, format check, tests, build with package checks. |
 | `bun run test` | Runs the tests; the contract tests need `HCA_ENGINE_ACCESS_TOKEN` (see `.env.example`). |
 | `bun run build` | Builds `dist/`. |
-| `bun run swagger` | Regenerates the engine client in `src/apiClient/engine/` from the engine's OpenAPI document. |
+| `bun run --filter scripts generate-engine-types` | Regenerates the wire types in `src/apiClient/engine/Engine.ts` from the engine's OpenAPI document. |
 | `bun fmt` | Formats the code. |
 
 The toolchain: [ADR 0002](adr/0002-bun-toolchain.md).
