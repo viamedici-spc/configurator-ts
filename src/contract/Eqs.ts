@@ -1,13 +1,12 @@
-import {Bool, Eq, EqT, Num, O, pipe, RA, RM, RR, some, Str} from "@viamedici-spc/fp-ts-extensions";
-import {
+import type {EqT} from "@viamedici-spc/fp-ts-extensions";
+import {Bool, Eq, Num, O, pipe, RA, RM, RR, some, Str} from "@viamedici-spc/fp-ts-extensions";
+import type {
     AllowedInExplain,
     AllowedRulesInExplain,
     AllowedRulesInExplainAll,
     AllowedRulesInExplainNone,
     AllowedRulesInExplainSpecific,
-    AllowedRulesInExplainType,
     Attribute,
-    AttributeType,
     AutomaticConflictResolution,
     BooleanAttribute,
     ChoiceAttribute,
@@ -21,7 +20,6 @@ import {
     ConfigurationModelFromChannel,
     ConfigurationModelFromPackage,
     ConfigurationModelSource,
-    ConfigurationModelSourceType,
     ConflictResolution,
     ConstraintExplanation,
     Decision,
@@ -50,9 +48,10 @@ import {
     OptimisticDecisionOptions,
     ServerSideSessionInitialisationOptions,
     SessionContext,
-    WizardStep
+    WizardStep,
 } from "./Types";
-import {
+import {AllowedRulesInExplainType, AttributeType, ConfigurationModelSourceType} from "./Types";
+import type {
     AttributeConsequence,
     AttributeDecision,
     AttributeMeta,
@@ -64,13 +63,13 @@ import {
     ComponentAttributeConsequence,
     ComponentAttributeDecision,
     NumericAttributeConsequence,
-    NumericAttributeDecision
+    NumericAttributeDecision,
 } from "../domain/model/PartialAttribute";
-import HashedConfiguration from "../domain/model/HashedConfiguration";
-import {HashedAttribute} from "../domain/model/HashedAttribute";
-import {MakeManyDecisionsConflict} from "./ConfiguratorError";
+import type HashedConfiguration from "../domain/model/HashedConfiguration";
+import type {HashedAttribute} from "../domain/model/HashedAttribute";
+import type {MakeManyDecisionsConflict} from "./ConfiguratorError";
 import {deepEqual} from "fast-equals";
-import ConfigurationRawData from "../domain/model/ConfigurationRawData";
+import type ConfigurationRawData from "../domain/model/ConfigurationRawData";
 import {match} from "ts-pattern";
 import {none} from "fp-ts/Option";
 
@@ -79,19 +78,19 @@ export const globalAttributeIdEq = Eq.struct<GlobalAttributeId>({
     localId: Str.Eq,
     componentPath: pipe(
         RA.getEq(Str.Eq),
-        Eq.contramap((a: ReadonlyArray<string> | null | undefined) => a ?? [])
+        Eq.contramap((a: ReadonlyArray<string> | null | undefined) => a ?? []),
     ),
     sharedConfigurationModelId: Eq.eqNullable(Str.Eq),
 });
 
 export const globalConstraintIdEq = Eq.struct<GlobalConstraintId>({
     localId: Str.Eq,
-    configurationModelId: Str.Eq
+    configurationModelId: Str.Eq,
 });
 
 export const manualConflictResolutionEq: EqT<ManualConflictResolution> = Eq.struct<ManualConflictResolution>({
     type: Str.Eq,
-    includeConstraintsInConflictExplanation: Bool.Eq
+    includeConstraintsInConflictExplanation: Bool.Eq,
 });
 
 export const automaticConflictResolutionEq: EqT<AutomaticConflictResolution> = Eq.struct<AutomaticConflictResolution>({
@@ -104,7 +103,7 @@ export const conflictResolutionEq: EqT<ConflictResolution> = Eq.union<ConflictRe
 
 export const dropExistingDecisionsModeEq: EqT<DropExistingDecisionsMode> = Eq.struct<DropExistingDecisionsMode>({
     type: Str.Eq,
-    conflictHandling: conflictResolutionEq
+    conflictHandling: conflictResolutionEq,
 });
 
 export const keepExistingDecisionsModeEq: EqT<KeepExistingDecisionsMode> = Eq.struct<KeepExistingDecisionsMode>({
@@ -180,32 +179,34 @@ export const fixedDecisionEq: EqT<FixedDecision> = Eq.union<FixedDecision>()
 export const explicitDecisionByIdEq = pipe(
     Eq.struct({
         attributeId: globalAttributeIdEq,
-        choiceValueId: O.getEq(Str.Eq)
+        choiceValueId: O.getEq(Str.Eq),
     }),
-    Eq.contramap((d: ExplicitDecision) => match(d)
-        .with({type: AttributeType.Choice}, c => ({
-            attributeId: c.attributeId,
-            choiceValueId: some(c.choiceValueId)
-        }))
-        .otherwise(d => ({
-            attributeId: d.attributeId,
-            choiceValueId: none
-        })))
+    Eq.contramap((d: ExplicitDecision) =>
+        match(d)
+            .with({type: AttributeType.Choice}, c => ({
+                attributeId: c.attributeId,
+                choiceValueId: some(c.choiceValueId),
+            }))
+            .otherwise(d => ({
+                attributeId: d.attributeId,
+                choiceValueId: none,
+            })),
+    ),
 );
 
 export const explainSolutionEq: EqT<ExplainSolution> = Eq.struct<ExplainSolution>({
     mode: makeManyDecisionsModeEq,
-    decisions: RA.getUnsortedArrayEq(explicitDecisionEq)
+    decisions: RA.getUnsortedArrayEq(explicitDecisionEq),
 });
 
 export const decisionExplanationEq: EqT<DecisionExplanation> = Eq.struct<DecisionExplanation>({
     causedByDecisions: RA.getUnsortedArrayEq(explicitDecisionEq),
-    solution: explainSolutionEq
+    solution: explainSolutionEq,
 });
 
 export const constraintExplanationEq: EqT<ConstraintExplanation> = Eq.struct<ConstraintExplanation>({
     causedByCardinalities: RA.getUnsortedArrayEq(globalAttributeIdEq),
-    causedByRules: RA.getUnsortedArrayEq(globalConstraintIdEq)
+    causedByRules: RA.getUnsortedArrayEq(globalConstraintIdEq),
 });
 
 export const attributeMetaEq: EqT<AttributeMeta> = Eq.struct<AttributeMeta>({
@@ -213,13 +214,15 @@ export const attributeMetaEq: EqT<AttributeMeta> = Eq.struct<AttributeMeta>({
     sourceId: Eq.struct({
         configurationModel: Str.Eq,
         localId: Str.Eq,
-    })
+    }),
 });
 
-const nullableBooleanDecisionEq: EqT<Decision<boolean> | null> = Eq.eqNullable(Eq.struct<Decision<boolean>>({
-    state: Bool.Eq,
-    kind: Str.Eq
-}));
+const nullableBooleanDecisionEq: EqT<Decision<boolean> | null> = Eq.eqNullable(
+    Eq.struct<Decision<boolean>>({
+        state: Bool.Eq,
+        kind: Str.Eq,
+    }),
+);
 export const booleanAttributeDecisionEq: EqT<BooleanAttributeDecision> = Eq.struct<BooleanAttributeDecision>({
     type: Str.Eq,
     id: globalAttributeIdEq,
@@ -228,10 +231,12 @@ export const booleanAttributeDecisionEq: EqT<BooleanAttributeDecision> = Eq.stru
     nonOptimisticDecision: nullableBooleanDecisionEq,
 });
 
-const nullableNumericDecisionEq: EqT<Decision<number> | null> = Eq.eqNullable(Eq.struct<Decision<number>>({
-    state: Num.Eq,
-    kind: Str.Eq
-}));
+const nullableNumericDecisionEq: EqT<Decision<number> | null> = Eq.eqNullable(
+    Eq.struct<Decision<number>>({
+        state: Num.Eq,
+        kind: Str.Eq,
+    }),
+);
 export const numericAttributeDecisionEq: EqT<NumericAttributeDecision> = Eq.struct<NumericAttributeDecision>({
     type: Str.Eq,
     id: globalAttributeIdEq,
@@ -240,10 +245,12 @@ export const numericAttributeDecisionEq: EqT<NumericAttributeDecision> = Eq.stru
     nonOptimisticDecision: nullableNumericDecisionEq,
 });
 
-const nullableComponentDecisionEq: EqT<Decision<ComponentDecisionState> | null> = Eq.eqNullable(Eq.struct<Decision<ComponentDecisionState>>({
-    state: Str.Eq,
-    kind: Str.Eq
-}));
+const nullableComponentDecisionEq: EqT<Decision<ComponentDecisionState> | null> = Eq.eqNullable(
+    Eq.struct<Decision<ComponentDecisionState>>({
+        state: Str.Eq,
+        kind: Str.Eq,
+    }),
+);
 export const componentAttributeDecisionEq: EqT<ComponentAttributeDecision> = Eq.struct<ComponentAttributeDecision>({
     type: Str.Eq,
     id: globalAttributeIdEq,
@@ -252,19 +259,23 @@ export const componentAttributeDecisionEq: EqT<ComponentAttributeDecision> = Eq.
     nonOptimisticDecision: nullableComponentDecisionEq,
 });
 
-const nullableChoiceValueDecisionEq: EqT<Decision<ChoiceValueDecisionState> | null> = Eq.eqNullable(Eq.struct<Decision<ChoiceValueDecisionState>>({
-    state: Str.Eq,
-    kind: Str.Eq
-}));
+const nullableChoiceValueDecisionEq: EqT<Decision<ChoiceValueDecisionState> | null> = Eq.eqNullable(
+    Eq.struct<Decision<ChoiceValueDecisionState>>({
+        state: Str.Eq,
+        kind: Str.Eq,
+    }),
+);
 export const choiceAttributeDecisionEq: EqT<ChoiceAttributeDecision> = Eq.struct<ChoiceAttributeDecision>({
     type: Str.Eq,
     id: globalAttributeIdEq,
     key: globalAttributeIdKeyEq,
-    values: RA.getUnsortedArrayEq(Eq.struct<ChoiceValueDecision>({
-        id: Str.Eq,
-        decision: nullableChoiceValueDecisionEq,
-        nonOptimisticDecision: nullableChoiceValueDecisionEq,
-    }))
+    values: RA.getUnsortedArrayEq(
+        Eq.struct<ChoiceValueDecision>({
+            id: Str.Eq,
+            decision: nullableChoiceValueDecisionEq,
+            nonOptimisticDecision: nullableChoiceValueDecisionEq,
+        }),
+    ),
 });
 
 export const attributeDecisionEq: EqT<AttributeDecision> = Eq.union<AttributeDecision>()
@@ -280,7 +291,7 @@ export const booleanAttributeConsequenceEq: EqT<BooleanAttributeConsequence> = E
     possibleDecisionStates: RA.getUnsortedArrayEq(Bool.Eq),
     isPossibleDecisionStatesImmutable: Bool.Eq,
     selection: Str.Eq,
-    isSatisfied: Bool.Eq
+    isSatisfied: Bool.Eq,
 });
 
 export const numericAttributeConsequenceEq: EqT<NumericAttributeConsequence> = Eq.struct<NumericAttributeConsequence>({
@@ -297,16 +308,17 @@ export const numericAttributeConsequenceEq: EqT<NumericAttributeConsequence> = E
     decimalPlaces: Num.Eq,
 });
 
-export const componentAttributeConsequenceEq: EqT<ComponentAttributeConsequence> = Eq.struct<ComponentAttributeConsequence>({
-    type: Str.Eq,
-    id: globalAttributeIdEq,
-    key: globalAttributeIdKeyEq,
-    possibleDecisionStates: RA.getUnsortedArrayEq(Str.Eq),
-    isPossibleDecisionStatesImmutable: Bool.Eq,
-    isSatisfied: Bool.Eq,
-    inclusion: Str.Eq,
-    selection: Eq.eqNullable(Str.Eq),
-});
+export const componentAttributeConsequenceEq: EqT<ComponentAttributeConsequence> =
+    Eq.struct<ComponentAttributeConsequence>({
+        type: Str.Eq,
+        id: globalAttributeIdEq,
+        key: globalAttributeIdKeyEq,
+        possibleDecisionStates: RA.getUnsortedArrayEq(Str.Eq),
+        isPossibleDecisionStatesImmutable: Bool.Eq,
+        isSatisfied: Bool.Eq,
+        inclusion: Str.Eq,
+        selection: Eq.eqNullable(Str.Eq),
+    });
 
 export const choiceAttributeConsequenceEq: EqT<ChoiceAttributeConsequence> = Eq.struct<ChoiceAttributeConsequence>({
     type: Str.Eq,
@@ -317,26 +329,33 @@ export const choiceAttributeConsequenceEq: EqT<ChoiceAttributeConsequence> = Eq.
         upperBound: Num.Eq,
         lowerBound: Num.Eq,
     }),
-    values: RA.getUnsortedArrayEq(Eq.struct({
-        id: Str.Eq,
-        possibleDecisionStates: RA.getUnsortedArrayEq(Str.Eq),
-    }))
+    values: RA.getUnsortedArrayEq(
+        Eq.struct({
+            id: Str.Eq,
+            possibleDecisionStates: RA.getUnsortedArrayEq(Str.Eq),
+        }),
+    ),
 });
 
 export const attributeConsequenceEq: EqT<AttributeConsequence> = Eq.union<AttributeConsequence>()
     .with((c): c is BooleanAttributeConsequence => c.type === AttributeType.Boolean, booleanAttributeConsequenceEq)
     .with((c): c is NumericAttributeConsequence => c.type === AttributeType.Numeric, numericAttributeConsequenceEq)
-    .with((c): c is ComponentAttributeConsequence => c.type === AttributeType.Component, componentAttributeConsequenceEq)
+    .with(
+        (c): c is ComponentAttributeConsequence => c.type === AttributeType.Component,
+        componentAttributeConsequenceEq,
+    )
     .with((c): c is ChoiceAttributeConsequence => c.type === AttributeType.Choice, choiceAttributeConsequenceEq);
 
 const baseAttribute = {
     type: Str.Eq,
     id: globalAttributeIdEq,
     key: globalAttributeIdKeyEq,
-    sourceId: Eq.eqNullable(Eq.struct({
-        configurationModel: Str.Eq,
-        localId: Str.Eq,
-    })),
+    sourceId: Eq.eqNullable(
+        Eq.struct({
+            configurationModel: Str.Eq,
+            localId: Str.Eq,
+        }),
+    ),
     canContributeToConfigurationSatisfaction: Bool.Eq,
     isSatisfied: Bool.Eq,
 };
@@ -379,13 +398,16 @@ export const choiceAttributeEq: EqT<ChoiceAttribute> = Eq.struct<ChoiceAttribute
         upperBound: Num.Eq,
         lowerBound: Num.Eq,
     }),
-    values: RM.getEq(Str.Eq, Eq.struct<ChoiceValue>({
-        id: Str.Eq,
-        possibleDecisionStates: RA.getUnsortedArrayEq(Str.Eq),
-        isPossibleDecisionStatesImmutable: Bool.Eq,
-        decision: nullableChoiceValueDecisionEq,
-        nonOptimisticDecision: nullableChoiceValueDecisionEq,
-    }))
+    values: RM.getEq(
+        Str.Eq,
+        Eq.struct<ChoiceValue>({
+            id: Str.Eq,
+            possibleDecisionStates: RA.getUnsortedArrayEq(Str.Eq),
+            isPossibleDecisionStatesImmutable: Bool.Eq,
+            decision: nullableChoiceValueDecisionEq,
+            nonOptimisticDecision: nullableChoiceValueDecisionEq,
+        }),
+    ),
 });
 
 export const attributeEq: EqT<Attribute> = Eq.union<Attribute>()
@@ -398,12 +420,12 @@ export const hashedAttributeEq: EqT<HashedAttribute> = Eq.fromEquals((x, y) => x
 
 export const configurationEq: EqT<Configuration> = Eq.struct({
     isSatisfied: Bool.Eq,
-    attributes: RM.getEq(globalAttributeIdKeyEq, attributeEq)
+    attributes: RM.getEq(globalAttributeIdKeyEq, attributeEq),
 });
 
 export const hashedConfigurationEq: EqT<HashedConfiguration> = Eq.struct<HashedConfiguration>({
     isSatisfied: Bool.Eq,
-    attributes: RM.getEq(globalAttributeIdKeyEq, hashedAttributeEq)
+    attributes: RM.getEq(globalAttributeIdKeyEq, hashedAttributeEq),
 });
 
 export const fullExplainAnswerEq: EqT<FullExplainAnswer> = Eq.struct<FullExplainAnswer>({
@@ -419,28 +441,49 @@ export const makeManyDecisionsConflictEq: EqT<MakeManyDecisionsConflict> = Eq.st
     constraintExplanations: RA.getUnsortedArrayEq(constraintExplanationEq),
 });
 
-const sessionInitialisationOptionsEq: EqT<ServerSideSessionInitialisationOptions | ClientSideSessionInitialisationOptions> = Eq.union<ServerSideSessionInitialisationOptions | ClientSideSessionInitialisationOptions>()
-    .with((o): o is ClientSideSessionInitialisationOptions => (o as ClientSideSessionInitialisationOptions).accessToken != null, Eq.struct<ClientSideSessionInitialisationOptions>({
-        accessToken: Str.Eq,
-        additionalRequestHeaders: Eq.eqNullable(RR.getEq(Str.Eq)),
-    }))
-    .with((o): o is ServerSideSessionInitialisationOptions => (o as ServerSideSessionInitialisationOptions).sessionCreateUrl != null, Eq.struct<ServerSideSessionInitialisationOptions>({
-        sessionCreateUrl: Str.Eq,
-    }));
+const sessionInitialisationOptionsEq: EqT<
+    ServerSideSessionInitialisationOptions | ClientSideSessionInitialisationOptions
+> = Eq.union<ServerSideSessionInitialisationOptions | ClientSideSessionInitialisationOptions>()
+    .with(
+        (o): o is ClientSideSessionInitialisationOptions =>
+            (o as ClientSideSessionInitialisationOptions).accessToken != null,
+        Eq.struct<ClientSideSessionInitialisationOptions>({
+            accessToken: Str.Eq,
+            additionalRequestHeaders: Eq.eqNullable(RR.getEq(Str.Eq)),
+        }),
+    )
+    .with(
+        (o): o is ServerSideSessionInitialisationOptions =>
+            (o as ServerSideSessionInitialisationOptions).sessionCreateUrl != null,
+        Eq.struct<ServerSideSessionInitialisationOptions>({
+            sessionCreateUrl: Str.Eq,
+        }),
+    );
 
 const allowedInExplain: EqT<AllowedInExplain> = Eq.struct<AllowedInExplain>({
-    rules: Eq.eqNullable(Eq.union<AllowedRulesInExplain>()
-        .with((a): a is AllowedRulesInExplainNone => a.type === AllowedRulesInExplainType.none, Eq.struct({type: Str.Eq}))
-        .with((a): a is AllowedRulesInExplainAll => a.type === AllowedRulesInExplainType.all, Eq.struct({type: Str.Eq}))
-        .with((a): a is AllowedRulesInExplainSpecific => a.type === AllowedRulesInExplainType.specific, Eq.struct({
-            type: Str.Eq,
-            rules: RA.getUnsortedArrayEq(globalConstraintIdEq)
-        })))
+    rules: Eq.eqNullable(
+        Eq.union<AllowedRulesInExplain>()
+            .with(
+                (a): a is AllowedRulesInExplainNone => a.type === AllowedRulesInExplainType.none,
+                Eq.struct({type: Str.Eq}),
+            )
+            .with(
+                (a): a is AllowedRulesInExplainAll => a.type === AllowedRulesInExplainType.all,
+                Eq.struct({type: Str.Eq}),
+            )
+            .with(
+                (a): a is AllowedRulesInExplainSpecific => a.type === AllowedRulesInExplainType.specific,
+                Eq.struct({
+                    type: Str.Eq,
+                    rules: RA.getUnsortedArrayEq(globalConstraintIdEq),
+                }),
+            ),
+    ),
 });
 
 const decisionsToRespectEq: EqT<DecisionsToRespect> = Eq.struct<DecisionsToRespect>({
     attributeId: globalAttributeIdEq,
-    decisions: RA.getUnsortedArrayEq(globalAttributeIdEq)
+    decisions: RA.getUnsortedArrayEq(globalAttributeIdEq),
 });
 
 const wizardStepEq: EqT<WizardStep> = Eq.struct<WizardStep>({
@@ -448,27 +491,35 @@ const wizardStepEq: EqT<WizardStep> = Eq.struct<WizardStep>({
 });
 
 const configurationModelSourceEq: EqT<ConfigurationModelSource> = Eq.union<ConfigurationModelSource>()
-    .with((s): s is ConfigurationModelFromChannel => s.type === ConfigurationModelSourceType.Channel, Eq.struct<ConfigurationModelFromChannel>({
-        type: Str.Eq,
-        channel: Str.Eq,
-        deploymentName: Str.Eq
-    }))
-    .with((s): s is ConfigurationModelFromPackage => s.type === ConfigurationModelSourceType.Package, Eq.struct<ConfigurationModelFromPackage>({
-        type: Str.Eq,
-        configurationModelPackage: Eq.fromEquals(deepEqual)
-    }));
+    .with(
+        (s): s is ConfigurationModelFromChannel => s.type === ConfigurationModelSourceType.Channel,
+        Eq.struct<ConfigurationModelFromChannel>({
+            type: Str.Eq,
+            channel: Str.Eq,
+            deploymentName: Str.Eq,
+        }),
+    )
+    .with(
+        (s): s is ConfigurationModelFromPackage => s.type === ConfigurationModelSourceType.Package,
+        Eq.struct<ConfigurationModelFromPackage>({
+            type: Str.Eq,
+            configurationModelPackage: Eq.fromEquals(deepEqual),
+        }),
+    );
 
 export const sessionContextEq: EqT<SessionContext> = Eq.struct<SessionContext>({
     apiBaseUrl: Eq.eqNullable(Str.Eq),
     sessionInitialisationOptions: sessionInitialisationOptionsEq,
     configurationModelSource: configurationModelSourceEq,
     provideSourceId: Eq.eqNullable(Bool.Eq),
-    optimisticDecisionOptions: Eq.eqNullable(Eq.struct<OptimisticDecisionOptions>({
-        restoreConfiguration: Eq.eqNullable(Bool.Eq),
-        applySolution: Eq.eqNullable(Bool.Eq),
-        makeDecision: Eq.eqNullable(Bool.Eq),
-        makeManyDecisions: Eq.eqNullable(Bool.Eq)
-    })),
+    optimisticDecisionOptions: Eq.eqNullable(
+        Eq.struct<OptimisticDecisionOptions>({
+            restoreConfiguration: Eq.eqNullable(Bool.Eq),
+            applySolution: Eq.eqNullable(Bool.Eq),
+            makeDecision: Eq.eqNullable(Bool.Eq),
+            makeManyDecisions: Eq.eqNullable(Bool.Eq),
+        }),
+    ),
     allowedInExplain: Eq.eqNullable(allowedInExplain),
     attributeRelations: Eq.eqNullable(RA.getUnsortedArrayEq(decisionsToRespectEq)),
     wizardAttributeRelations: Eq.eqNullable(RA.getEq(wizardStepEq)),
@@ -490,5 +541,5 @@ export const configurationChangesEq: EqT<ConfigurationChanges> = Eq.struct<Confi
         added: RA.getUnsortedArrayEq(attributeEq),
         changed: RA.getUnsortedArrayEq(attributeEq),
         removed: RA.getUnsortedArrayEq(globalAttributeIdEq),
-    })
+    }),
 });

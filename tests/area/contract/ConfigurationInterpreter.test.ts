@@ -1,19 +1,12 @@
-/// <reference types="../../jest-extended" />
-
-import {describe, expect, it} from "vitest";
+import {describe, expect, it} from "bun:test";
 import * as Interpreter from "../../../src/contract/interpreter/ConfigurationInterpreter";
-import {
-    Attribute,
-    AttributeType,
-    Configuration,
-    GlobalAttributeId,
-    GlobalAttributeIdKey
-} from "../../../src";
+import type {Attribute, Configuration, GlobalAttributeId, GlobalAttributeIdKey} from "../../../src";
+import {AttributeType} from "../../../src";
 import {
     getBooleanAttribute,
     getChoiceAttribute,
     getComponentAttribute,
-    getNumericAttribute
+    getNumericAttribute,
 } from "../../data/AttributeGeneration";
 import {globalAttributeIdEq} from "../../../src";
 
@@ -44,10 +37,12 @@ describe("ConfigurationInterpreter", () => {
             getBooleanAttribute({sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "B1"}),
             getNumericAttribute({sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "N1"}),
             getChoiceAttribute({sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "CH1"}),
-        ])
+        ]),
     };
 
-    function expectAttribute(attributes: ReadonlyArray<Attribute>): (attributeId: GlobalAttributeId, attributeType: AttributeType) => void {
+    function expectAttribute(
+        attributes: ReadonlyArray<Attribute>,
+    ): (attributeId: GlobalAttributeId, attributeType: AttributeType) => void {
         return (attributeId, attributeType) => {
             const attribute = attributes.find(a => globalAttributeIdEq.equals(a.id, attributeId));
             expect(attribute).toBeTruthy();
@@ -65,8 +60,12 @@ describe("ConfigurationInterpreter", () => {
         expectAttribute(attributes)({localId: "CH1"}, AttributeType.Choice);
     });
 
-    it.each([true, false])("getAttributesOfSharedConfigurationModel", (includeSubcomponents) => {
-        const attributes = Interpreter.getAttributesOfSharedConfigurationModel(sut.attributes, "S1", includeSubcomponents);
+    it.each([true, false])("getAttributesOfSharedConfigurationModel", includeSubcomponents => {
+        const attributes = Interpreter.getAttributesOfSharedConfigurationModel(
+            sut.attributes,
+            "S1",
+            includeSubcomponents,
+        );
 
         if (includeSubcomponents) {
             expect(attributes.map(a => a.id)).toIncludeSameMembers([
@@ -80,7 +79,7 @@ describe("ConfigurationInterpreter", () => {
                 {sharedConfigurationModelId: "S1", componentPath: ["C1"], localId: "CH1"},
                 {sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "B1"},
                 {sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "N1"},
-                {sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "CH1"}
+                {sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "CH1"},
             ]);
         } else {
             expect(attributes.map(a => a.id)).toIncludeSameMembers([
@@ -92,12 +91,20 @@ describe("ConfigurationInterpreter", () => {
         }
     });
 
-    it.each([true, false])("getAttributesOfComponentAttribute", (includeSubcomponents) => {
-        const attributes1 = Interpreter.getAttributesOfComponentAttribute(sut.attributes, {localId: "C1"}, includeSubcomponents);
-        const attributes2 = Interpreter.getAttributesOfComponentAttribute(sut.attributes, {
-            sharedConfigurationModelId: "S1",
-            localId: "C1"
-        }, includeSubcomponents);
+    it.each([true, false])("getAttributesOfComponentAttribute", includeSubcomponents => {
+        const attributes1 = Interpreter.getAttributesOfComponentAttribute(
+            sut.attributes,
+            {localId: "C1"},
+            includeSubcomponents,
+        );
+        const attributes2 = Interpreter.getAttributesOfComponentAttribute(
+            sut.attributes,
+            {
+                sharedConfigurationModelId: "S1",
+                localId: "C1",
+            },
+            includeSubcomponents,
+        );
 
         if (includeSubcomponents) {
             expect(attributes1.map(a => a.id)).toIncludeSameMembers([
@@ -107,7 +114,7 @@ describe("ConfigurationInterpreter", () => {
                 {componentPath: ["C1"], localId: "CH1"},
                 {componentPath: ["C1", "C1.1"], localId: "B1"},
                 {componentPath: ["C1", "C1.1"], localId: "N1"},
-                {componentPath: ["C1", "C1.1"], localId: "CH1"}
+                {componentPath: ["C1", "C1.1"], localId: "CH1"},
             ]);
             expect(attributes2.map(a => a.id)).toIncludeSameMembers([
                 {sharedConfigurationModelId: "S1", componentPath: ["C1"], localId: "B1"},
@@ -151,7 +158,7 @@ describe("ConfigurationInterpreter", () => {
                 {componentPath: ["C1", "C1.1"], localId: "B1"},
                 {sharedConfigurationModelId: "S1", localId: "B1"},
                 {sharedConfigurationModelId: "S1", componentPath: ["C1"], localId: "B1"},
-                {sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "B1"}
+                {sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "B1"},
             ]);
         });
 
@@ -165,7 +172,7 @@ describe("ConfigurationInterpreter", () => {
                 {componentPath: ["C1", "C1.1"], localId: "N1"},
                 {sharedConfigurationModelId: "S1", localId: "N1"},
                 {sharedConfigurationModelId: "S1", componentPath: ["C1"], localId: "N1"},
-                {sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "N1"}
+                {sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "N1"},
             ]);
         });
 
@@ -191,7 +198,7 @@ describe("ConfigurationInterpreter", () => {
                 {componentPath: ["C1", "C1.1"], localId: "CH1"},
                 {sharedConfigurationModelId: "S1", localId: "CH1"},
                 {sharedConfigurationModelId: "S1", componentPath: ["C1"], localId: "CH1"},
-                {sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "CH1"}
+                {sharedConfigurationModelId: "S1", componentPath: ["C1", "C1.1"], localId: "CH1"},
             ]);
         });
     });
@@ -202,47 +209,47 @@ describe("ConfigurationInterpreter", () => {
             {componentPath: ["C1"], localId: localId},
             {
                 sharedConfigurationModelId: "S1",
-                localId: localId
+                localId: localId,
             },
             {
                 sharedConfigurationModelId: "S1",
                 componentPath: ["C1"],
-                localId: localId
-            }
+                localId: localId,
+            },
         ];
         const componentIds: ReadonlyArray<GlobalAttributeId> = [
             {localId: "C1"},
             {componentPath: ["C1"], localId: "C1.1"},
             {
                 sharedConfigurationModelId: "S1",
-                localId: "C1"
+                localId: "C1",
             },
             {
                 sharedConfigurationModelId: "S1",
                 componentPath: ["C1"],
-                localId: "C1.1"
-            }
+                localId: "C1.1",
+            },
         ];
 
-        it.each(getIds("B1"))("getBooleanAttribute", (id) => {
+        it.each(getIds("B1"))("getBooleanAttribute", id => {
             const attribute = Interpreter.getBooleanAttribute(sut, id);
 
             expect(attribute).toBeTruthy();
         });
 
-        it.each(getIds("N1"))("getNumericAttribute", (id) => {
+        it.each(getIds("N1"))("getNumericAttribute", id => {
             const attribute = Interpreter.getNumericAttribute(sut, id);
 
             expect(attribute).toBeTruthy();
         });
 
-        it.each(componentIds)("getComponentAttribute", (id) => {
+        it.each(componentIds)("getComponentAttribute", id => {
             const attribute = Interpreter.getComponentAttribute(sut, id);
 
             expect(attribute).toBeTruthy();
         });
 
-        it.each(getIds("CH1"))("getChoiceAttribute", (id) => {
+        it.each(getIds("CH1"))("getChoiceAttribute", id => {
             const attribute = Interpreter.getChoiceAttribute(sut, id);
 
             expect(attribute).toBeTruthy();

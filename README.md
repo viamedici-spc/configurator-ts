@@ -16,8 +16,10 @@ Configuration Engine_ (HCE).
 It offers all the features of the HCE through a strongly typed API, eliminating the need to
 interact directly with the HCE's REST API.
 
-This library is intended for use in a browser environment and is not compatible with server environments
-like **Node.js**.
+This library is made for the **browser**: through a bundler (Vite, webpack 5, Rollup, esbuild, …) or as part of a bundle
+loaded from a CDN. It ships **ES modules only**. It is not made for server environments like **Node.js**; there, use the
+engine's REST API directly. In server-side rendering frameworks, use it on the client only. TypeScript resolves it with
+`moduleResolution` `bundler`, `node16` or `nodenext`.
 
 ## Framework Independence
 
@@ -25,9 +27,8 @@ The library is designed to be framework-agnostic, allowing you to use any framew
 configurator application. The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) for example is
 implemented with **Vue.js**.
 
-For **React** users, we offer a dedicated
-library, [configurator-react](https://github.com/viamedici-spc/configurator-react), which is built on top of this
-library. It provides easy-to-use components and hooks to streamline your development process.
+For **React** applications, see [configurator-react](https://github.com/viamedici-spc/configurator-react), with
+components and hooks for React.
 
 ## Features
 
@@ -60,6 +61,24 @@ resolve the conflict.
 
 A versioned data format with backward compatibility is provided to store and restore the configuration state.
 
+## Testing with Vitest
+
+fp-ts 2.x ships ES modules whose imports have no file extensions, which Node.js cannot load. Test runners that run in
+Node.js, such as Vitest, therefore have to let their bundler transform fp-ts and the SPC packages:
+
+```ts
+// vitest.config.ts
+import {defineConfig} from "vitest/config";
+
+export default defineConfig({
+    test: {
+        server: {deps: {inline: [/fp-ts/, /@viamedici-spc\//]}},
+    },
+});
+```
+
+`bun test` and the bundlers (Vite, webpack 5, Rollup, esbuild) need no such setting.
+
 ## Demo App
 
 The [Demo App](https://github.com/viamedici-spc/configurator-ts-demo) is a comprehensive showcase of the features
@@ -70,11 +89,10 @@ Vue.js-based Single Page Application (SPA).
 
 ### 1. Install Package
 
-This library supports both **ESM** and **CommonJS**.
+The package is ESM only.
 
 ```bash
 npm install @viamedici-spc/configurator-ts
-yarn add @viamedici-spc/configurator-ts
 ```
 
 ### 2. Create a Session

@@ -2,70 +2,70 @@
   "name": "@viamedici-spc/configurator-ts",
   "version": "0.0.0",
   "description": "TypeScript library to build configurator web applications based on the Viamedici Headless Configuration Engine (HCE).",
+  "keywords": [
+    "configuration",
+    "constraint",
+    "csp",
+    "hce",
+    "problem",
+    "product",
+    "satisfaction",
+    "solver",
+    "spc",
+    "viamedici"
+  ],
+  "license": "MIT",
+  "author": "Viamedici Software GmbH",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/viamedici-spc/configurator-ts.git"
   },
-  "sideEffects": false,
+  "workspaces": [
+    "scripts"
+  ],
   "files": [
     "dist"
   ],
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "sideEffects": false,
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "vite build",
-    "test": "vitest --run",
-    "test:watch": "vitest watch --reporter default",
-    "typecheck": "tsc --noEmit",
-    "swagger": "node scripts/swaggerGeneration.mjs",
-    "postinstall": "npm-sort"
-  },
-  "keywords": [
-    "viamedici",
-    "product",
-    "configuration",
-    "spc",
-    "hce",
-    "csp",
-    "constraint",
-    "satisfaction",
-    "problem",
-    "solver"
-  ],
-  "author": "Viamedici Software GmbH",
-  "license": "MIT",
-  "devDependencies": {
-    "@types/spark-md5": "^3.0.4",
-    "@vitest/coverage-istanbul": "^2.1.1",
-    "jest-extended": "^4.0.2",
-    "npm-sort": "^0.0.4",
-    "swagger-typescript-api": "^13.0.3",
-    "typescript": "^5.6.2",
-    "vite": "^5.4.7",
-    "vite-plugin-dts": "^4.2.2",
-    "vite-plugin-externalize-deps": "^0.8.0",
-    "vitest": "^2.1.1",
-    "wait-for-expect": "^3.0.2"
+    "build": "tsdown",
+    "format:check": "bun fmt --check",
+    "lint": "oxlint --deny-warnings",
+    "test": "bun test --isolate",
+    "typecheck": "bun check && bun check -p tests && bun check -p scripts && bun check -p package-check",
+    "verify": "bun run --parallel typecheck lint format:check test verify:package",
+    "verify:package": "bun package-check/build.ts && bun package-check/consumer.ts && publint --strict && attw --pack . --profile esm-only --format table-flipped"
   },
   "dependencies": {
     "@morphic-ts/batteries": "^3.0.0",
-    "@viamedici-spc/fp-ts-extensions": "^1.2.0",
-    "dyna-guid": "^2.1.2",
-    "fast-equals": "^2.0.0",
-    "fp-ts": "^2.16.5",
-    "memize": "^2.1.0",
+    "@morphic-ts/model-algebras": "^3.0.0",
+    "@viamedici-spc/fp-ts-extensions": "2.0.0",
+    "dyna-guid": "^2.3.3",
+    "fast-equals": "^6.4.1",
+    "fp-ts": "^2.16.11",
+    "memize": "^2.1.1",
+    "monocle-ts": "^2.3.13",
+    "openapi-fetch": "^0.17.0",
     "p-defer": "^4.0.1",
     "spark-md5": "^3.0.2",
-    "ts-pattern": "^5.0.6",
+    "ts-pattern": "^5.9.2",
     "tslib": "^2.7.0",
-    "xstate": "^5.17.4"
-  }
+    "xstate": "^5.33.4"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@types/bun": "^1.4.5",
+    "@types/spark-md5": "^3.0.5",
+    "oxlint": "^1.94.0",
+    "publint": "^0.3.25",
+    "tsdown": "^0.23.7",
+    "typescript": "7.0.2",
+    "wait-for-expect": "^3.0.2"
+  },
+  "packageManager": "bun@1.4.5"
 }

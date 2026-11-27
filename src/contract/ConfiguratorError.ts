@@ -1,13 +1,21 @@
-import {
+import type {
     ChannelId,
     ChoiceValueId,
     ConstraintExplanation,
     DecisionExplanation,
     FixedDecision,
-    GlobalAttributeId
+    GlobalAttributeId,
 } from "./Types";
-import * as Engine from "../apiClient/engine/Engine";
 
+/** What went wrong, as a person reads it: the problem details the engine sends with an error. */
+export type ConfiguratorErrorText = {
+    /** A short summary of the kind of error, the same for every occurrence of it. */
+    readonly title: string;
+    /** What went wrong in this occurrence. */
+    readonly detail: string;
+};
+
+/** The `type` of every {@link ConfiguratorError}, which tells its members apart. */
 export enum ConfiguratorErrorType {
     RequestTimeout = "RequestTimeout",
     RequestFailure = "RequestFailure",
@@ -53,134 +61,282 @@ export enum ConfiguratorErrorType {
     SessionParametersInvalid = "SessionParametersInvalid",
 }
 
-type ReplaceType<E extends { type: string }, T extends ConfiguratorErrorType> = Omit<E, "type"> & { readonly type: T };
+/** The engine did not finish the request in time. */
+export type RequestTimeout = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.RequestTimeout;
+};
 
-export type RequestTimeout = ReplaceType<Engine.RequestTimeout, ConfiguratorErrorType.RequestTimeout>;
-export type RequestFailure = ReplaceType<Engine.RequestFailure, ConfiguratorErrorType.RequestFailure>;
-export type SerializationError = ReplaceType<Engine.SerializationError, ConfiguratorErrorType.SerializationError>;
-export type MissingTenantIdClaim = ReplaceType<Engine.MissingTenantIdClaim, ConfiguratorErrorType.MissingTenantIdClaim>;
-export type MissingSessionIdClaim = ReplaceType<Engine.MissingSessionIdClaim, ConfiguratorErrorType.MissingSessionIdClaim>;
-export type TenantAccessForbidden = ReplaceType<Engine.TenantAccessForbidden, ConfiguratorErrorType.TenantAccessForbidden>;
-export type SessionIdInvalid = ReplaceType<Engine.SessionIdInvalid, ConfiguratorErrorType.SessionIdInvalid>;
-export type AuthenticationFailure = ReplaceType<Engine.AuthenticationFailure, ConfiguratorErrorType.AuthenticationFailure>;
-export type SideLoadingForbidden = ReplaceType<Engine.SideLoadingForbidden, ConfiguratorErrorType.SideLoadingForbidden>;
-export type ConfigurationModelInvalid = ReplaceType<Engine.ConfigurationModelInvalid, ConfiguratorErrorType.ConfigurationModelInvalid>;
-export type SolutionNotFeasible = ReplaceType<Engine.SolutionNotFeasible, ConfiguratorErrorType.SolutionNotFeasible>;
-export type ConfigurationModelNotFound = ReplaceType<Engine.ConfigurationModelNotFound, ConfiguratorErrorType.ConfigurationModelNotFound>;
-export type SolverInitializationFailure = ReplaceType<Engine.SolverInitializationFailure, ConfiguratorErrorType.SolverInitializationFailure>;
-export type ConfigurationModelLoadFailure = ReplaceType<Engine.ConfigurationModelLoadFailure, ConfiguratorErrorType.ConfigurationModelLoadFailure>;
-export type ConfigurationInitializationFailure = ReplaceType<Engine.ConfigurationInitializationFailure, ConfiguratorErrorType.ConfigurationInitializationFailure>;
-export type SolverPoolInitializationFailure = ReplaceType<Engine.SolverPoolInitializationFailure, ConfiguratorErrorType.SolverPoolInitializationFailure>;
-export type SetDecisionConflict = ReplaceType<Engine.SetDecisionConflict, ConfiguratorErrorType.SetDecisionConflict>;
-export type SolveOperationTimeout = ReplaceType<Engine.SolveOperationTimeout, ConfiguratorErrorType.SolveOperationTimeout>;
-export type ExplainConflict = ReplaceType<Engine.ExplainConflict, ConfiguratorErrorType.ExplainConflict>;
-export type ExplainFailure = ReplaceType<Engine.ExplainFailure, ConfiguratorErrorType.ExplainFailure>;
-export type SnapshotInvalid = ReplaceType<Engine.SnapshotInvalid, ConfiguratorErrorType.SnapshotInvalid>;
-export type SnapshotNotFound = ReplaceType<Engine.SnapshotNotFound, ConfiguratorErrorType.SnapshotNotFound>;
-export type SessionParametersInvalid = ReplaceType<Engine.SessionParametersInvalid, ConfiguratorErrorType.SessionParametersInvalid>;
+/** The engine failed while processing the request; `exception` describes the failure. */
+export type RequestFailure = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.RequestFailure;
+    /** The engine's description of the failure. */
+    readonly exception: string;
+};
 
-export type ConfigurationModelNotFeasible =
-    Omit<Engine.ConfigurationModelNotFeasible, "type" | "constraintExplanations">
-    & {
+/** The engine could not read the request body; `jsonException` describes what it could not parse. */
+export type SerializationError = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.SerializationError;
+    /** What the engine could not parse in the request body. */
+    readonly jsonException: string;
+};
+
+/** The access token does not name a tenant. */
+export type MissingTenantIdClaim = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.MissingTenantIdClaim;
+};
+
+/** The session token does not name a session. */
+export type MissingSessionIdClaim = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.MissingSessionIdClaim;
+};
+
+/** The access token does not grant access to the tenant it names. */
+export type TenantAccessForbidden = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.TenantAccessForbidden;
+};
+
+/** The session ID sent with the request is not a valid session ID. */
+export type SessionIdInvalid = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.SessionIdInvalid;
+};
+
+/** The engine rejected the access token, e.g. because it is missing, expired or malformed. */
+export type AuthenticationFailure = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.AuthenticationFailure;
+};
+
+/** The access token does not allow creating a session from a configuration model package. */
+export type SideLoadingForbidden = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.SideLoadingForbidden;
+};
+
+/** The configuration model is invalid; `validationMessage`, when present, says why. */
+export type ConfigurationModelInvalid = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.ConfigurationModelInvalid;
+    /** Why the configuration model is invalid, when the engine says. */
+    readonly validationMessage?: string | null;
+};
+
+/** No solution exists for the requested decisions. */
+export type SolutionNotFeasible = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.SolutionNotFeasible;
+};
+
+/** The requested configuration model does not exist. */
+export type ConfigurationModelNotFound = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.ConfigurationModelNotFound;
+};
+
+/** The engine could not prepare the configuration model for solving. */
+export type SolverInitializationFailure = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.SolverInitializationFailure;
+};
+
+/** The engine could not load the configuration model. */
+export type ConfigurationModelLoadFailure = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.ConfigurationModelLoadFailure;
+};
+
+/** The engine could not set up the session's configuration; `deploymentId`, when present, names the deployment. */
+export type ConfigurationInitializationFailure = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.ConfigurationInitializationFailure;
+    /** The deployment whose configuration could not be set up, when known. */
+    readonly deploymentId?: string | null;
+};
+
+/** The engine had no solver available for the session; a later attempt may succeed. */
+export type SolverPoolInitializationFailure = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.SolverPoolInitializationFailure;
+};
+
+/** The decision conflicts with the current configuration and was not applied. */
+export type SetDecisionConflict = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.SetDecisionConflict;
+};
+
+/** Solving took longer than allowed; `timeout` is the limit that was exceeded. */
+export type SolveOperationTimeout = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.SolveOperationTimeout;
+    /** The time limit that was exceeded, as the engine formats it. */
+    readonly timeout: string;
+};
+
+/** The explain question could not be answered because of a conflict; `source` names where it arose. */
+export type ExplainConflict = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.ExplainConflict;
+    /** Where the conflict arose. */
+    readonly source: string;
+};
+
+/** The explain question could not be answered; `source` names where it failed. */
+export type ExplainFailure = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.ExplainFailure;
+    /** Where the failure arose. */
+    readonly source: string;
+};
+
+/** The snapshot sent to the engine is invalid; `validationPath` points to the offending part. */
+export type SnapshotInvalid = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.SnapshotInvalid;
+    /** Why the snapshot is invalid. */
+    readonly validationMessage: string;
+    /** The path to the offending part of the snapshot. */
+    readonly validationPath: ReadonlyArray<string>;
+};
+
+/** The requested snapshot does not exist. */
+export type SnapshotNotFound = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.SnapshotNotFound;
+};
+
+/** The parameters for creating the session are invalid. */
+export type SessionParametersInvalid = ConfiguratorErrorText & {
+    readonly type: ConfiguratorErrorType.SessionParametersInvalid;
+};
+
+/** The configuration model has no solution at all; `constraintExplanations` name the constraints that cause it. */
+export type ConfigurationModelNotFeasible = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.ConfigurationModelNotFeasible;
+    /** The constraints that together leave no solution. */
     readonly constraintExplanations: ReadonlyArray<ConstraintExplanation>;
 };
 
-export type MakeManyDecisionsConflict =
-    Omit<Engine.PutManyDecisionsConflict, "type" | "decisionExplanations" | "constraintExplanations">
-    & {
+/** The decisions passed to `makeManyDecisions` conflict; the explanations show solutions that resolve the conflict. */
+export type MakeManyDecisionsConflict = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.MakeManyDecisionsConflict;
+    /** Explanations of the conflict by decisions, each with a solution. */
     readonly decisionExplanations: ReadonlyArray<DecisionExplanation>;
+    /** Explanations of the conflict by constraints. */
     readonly constraintExplanations: ReadonlyArray<ConstraintExplanation>;
 };
 
-export type SpecifiedDeploymentForbidden =
-    Omit<Engine.SpecifiedDeploymentForbidden, "type" | "channel">
-    & {
+/** The access token does not allow using the requested deployment on that channel. */
+export type SpecifiedDeploymentForbidden = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.SpecifiedDeploymentForbidden;
+    /** The requested channel. */
     readonly channel: ChannelId;
+    /** The requested deployment. */
+    readonly deploymentName: string;
 };
 
-export type AttributeNotFound = Omit<Engine.AttributeNotFound, "type" | "globalAttributeId"> & {
+/** No attribute with this ID exists in the configuration model. */
+export type AttributeNotFound = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.AttributeNotFound;
+    /** The attribute that was not found. */
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type ChoiceAttributeNotFound = Omit<Engine.ChoiceAttributeNotFound, "type" | "globalAttributeId"> & {
+/** No choice attribute with this ID exists in the configuration model. */
+export type ChoiceAttributeNotFound = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.ChoiceAttributeNotFound;
+    /** The attribute that was not found. */
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type ComponentAttributeNotFound = Omit<Engine.ComponentAttributeNotFound, "type" | "globalAttributeId"> & {
+/** No component attribute with this ID exists in the configuration model. */
+export type ComponentAttributeNotFound = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.ComponentAttributeNotFound;
+    /** The attribute that was not found. */
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type NumericAttributeNotFound = Omit<Engine.NumericAttributeNotFound, "type" | "globalAttributeId"> & {
+/** No numeric attribute with this ID exists in the configuration model. */
+export type NumericAttributeNotFound = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.NumericAttributeNotFound;
+    /** The attribute that was not found. */
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type BooleanAttributeNotFound = Omit<Engine.BooleanAttributeNotFound, "type" | "globalAttributeId"> & {
+/** No boolean attribute with this ID exists in the configuration model. */
+export type BooleanAttributeNotFound = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.BooleanAttributeNotFound;
+    /** The attribute that was not found. */
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type ChoiceValueNotFound = Omit<Engine.ChoiceValueNotFound, "type" | "globalChoiceValueId"> & {
+/** The choice attribute has no value with this ID. */
+export type ChoiceValueNotFound = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.ChoiceValueNotFound;
+    /** The choice attribute. */
     readonly globalAttributeId: GlobalAttributeId;
+    /** The value that was not found. */
     readonly choiceValueId: ChoiceValueId;
 };
 
-export type NumericDecisionOutOfRange = Omit<Engine.NumericDecisionOutOfRange, "type" | "globalAttributeId"> & {
+/** The numeric decision lies outside the attribute's `range`; `decision` is the rejected value. */
+export type NumericDecisionOutOfRange = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.NumericDecisionOutOfRange;
+    /** The numeric attribute. */
     readonly globalAttributeId: GlobalAttributeId;
+    /** The allowed range, as the engine formats it. */
+    readonly range: string;
+    /** The rejected value. */
+    readonly decision: number;
 };
 
-export type ConflictWithConsequence =
-    Omit<Engine.ConflictWithConsequence, "type" | "globalAttributeId" | "choiceValueId">
-    & {
+/** The decision contradicts a consequence of the current configuration and was not applied. */
+export type ConflictWithConsequence = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.ConflictWithConsequence;
+    /** The attribute of the rejected decision. */
     readonly globalAttributeId: GlobalAttributeId;
+    /** The choice value of the rejected decision, for a choice attribute. */
     readonly choiceValueId?: ChoiceValueId | null;
 };
 
-export type DecisionsToRespectInvalid = Omit<Engine.DecisionsToRespectInvalid, "type" | "globalAttributeId"> & {
+/** The attribute relations in the session context are invalid; `validationMessage` says why. */
+export type DecisionsToRespectInvalid = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.DecisionsToRespectInvalid;
+    /** Why the attribute relations are invalid. */
+    readonly validationMessage: string;
+    /** The attribute whose relations are invalid. */
     readonly globalAttributeId: GlobalAttributeId;
 };
 
-export type FixedDecisionsInvalid = Omit<Engine.FixedDecisionsInvalid, "type" | "rejectedDecisions"> & {
+/** The fixed decisions in the session context were rejected; `rejectedDecisions` lists them. */
+export type FixedDecisionsInvalid = ConfiguratorErrorText & {
     readonly type: ConfiguratorErrorType.FixedDecisionsInvalid;
+    /** The fixed decisions the engine rejected. */
     readonly rejectedDecisions: ReadonlyArray<FixedDecision>;
+    /** Why the engine rejected them. */
+    readonly validationMessage: string;
 };
 
+/** The session does not exist (anymore), e.g. because it expired, and could not be restored. */
 export type SessionNotFound = {
     readonly type: ConfiguratorErrorType.SessionNotFound;
 };
 
+/** The engine answered with an error the client does not expect. */
 export type ServerError = {
     readonly type: ConfiguratorErrorType.ServerError;
-}
+};
 
+/** The engine could not be reached, e.g. because of a network failure. */
 export type ConnectionError = {
     readonly type: ConfiguratorErrorType.ConnectionError;
-}
+};
 
+/** The operation was cancelled before it completed because the session is shutting down. */
 export type TaskCancelled = {
     readonly type: ConfiguratorErrorType.TaskCancelled;
-}
+};
 
+/** The session was closed; it accepts no further operations. */
 export type SessionClosed = {
     readonly type: ConfiguratorErrorType.SessionClosed;
-}
+};
 
+/** The stored configuration does not match the expected format and could not be restored. */
 export type StoredConfigurationInvalid = {
     readonly type: ConfiguratorErrorType.StoredConfigurationInvalid;
-}
+};
 
+/**
+ * Every error an operation of the library rejects with. Its `type` tells the members apart; the engine's errors also
+ * carry {@link ConfiguratorErrorText}.
+ */
 export type ConfiguratorError =
-// Original Engine errors
+    // Reported by the engine
     | RequestTimeout
     | RequestFailure
     | SerializationError
@@ -204,7 +360,7 @@ export type ConfiguratorError =
     | SnapshotInvalid
     | SnapshotNotFound
     | SessionParametersInvalid
-    // Modified Engine errors
+    // Reported by the engine, with their fields mapped to the library's types
     | ConfigurationModelNotFeasible
     | MakeManyDecisionsConflict
     | SpecifiedDeploymentForbidden
@@ -219,7 +375,7 @@ export type ConfiguratorError =
     | DecisionsToRespectInvalid
     | FixedDecisionsInvalid
     | SessionNotFound
-    // Newly introduced errors
+    // Raised by the library
     | ServerError
     | ConnectionError
     | TaskCancelled

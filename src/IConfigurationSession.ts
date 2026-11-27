@@ -1,4 +1,4 @@
-import {
+import type {
     Configuration,
     ConstraintsExplainAnswer,
     DecisionsExplainAnswer,
@@ -19,10 +19,18 @@ import {
     OnStoredConfigurationChangedHandler,
     OnDecisionsChangedHandler,
     MakeManyDecisionsResult,
-    MakeManyDecisionsMode
+    MakeManyDecisionsMode,
 } from "./contract/Types";
-import {ConfiguratorError, SessionClosed, TaskCancelled, MakeManyDecisionsConflict} from "./contract/ConfiguratorError";
-import {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
+// Referenced only by the TSDoc of the methods below (@throws, {@link}).
+/* oxlint-disable no-unused-vars */
+import type {
+    ConfiguratorError,
+    SessionClosed,
+    TaskCancelled,
+    MakeManyDecisionsConflict,
+} from "./contract/ConfiguratorError";
+/* oxlint-enable no-unused-vars */
+import type {StoredConfiguration} from "./contract/storedConfiguration/StoredConfiguration";
 
 export default interface IConfigurationSession {
     /**
@@ -64,7 +72,10 @@ export default interface IConfigurationSession {
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
-    addDecisionsChangedListener(kind: DecisionKind.Explicit, handler: OnDecisionsChangedHandler<CollectedExplicitDecision>): Subscription;
+    addDecisionsChangedListener(
+        kind: DecisionKind.Explicit,
+        handler: OnDecisionsChangedHandler<CollectedExplicitDecision>,
+    ): Subscription;
 
     /**
      * Adds a listener that reacts to changes of {@link getDecisions}.
@@ -75,7 +86,10 @@ export default interface IConfigurationSession {
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
-    addDecisionsChangedListener(kind: DecisionKind.Implicit, handler: OnDecisionsChangedHandler<CollectedImplicitDecision>): Subscription;
+    addDecisionsChangedListener(
+        kind: DecisionKind.Implicit,
+        handler: OnDecisionsChangedHandler<CollectedImplicitDecision>,
+    ): Subscription;
 
     /**
      * Adds a listener that reacts to changes of {@link getDecisions}.
@@ -177,7 +191,10 @@ export default interface IConfigurationSession {
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
-    restoreConfiguration(storedConfiguration: StoredConfiguration, mode: MakeManyDecisionsMode): Promise<MakeManyDecisionsResult>;
+    restoreConfiguration(
+        storedConfiguration: StoredConfiguration,
+        mode: MakeManyDecisionsMode,
+    ): Promise<MakeManyDecisionsResult>;
 
     /**
      * Retrieves all explicit non-optimistic decisions in the current Configuration.
@@ -271,7 +288,10 @@ export default interface IConfigurationSession {
      * @throws {SessionClosed} If the session has already been closed using {@link close}.
      * @throws {ConfiguratorError} If a general configuration error occurs.
      */
-    makeManyDecisions(decisions: ReadonlyArray<ExplicitDecision>, mode: MakeManyDecisionsMode): Promise<MakeManyDecisionsResult>;
+    makeManyDecisions(
+        decisions: ReadonlyArray<ExplicitDecision>,
+        mode: MakeManyDecisionsMode,
+    ): Promise<MakeManyDecisionsResult>;
 
     /**
      * Sets the SessionContext of the session and attempts to migrate all existing decisions.

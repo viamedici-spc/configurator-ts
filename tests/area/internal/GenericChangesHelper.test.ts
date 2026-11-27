@@ -1,27 +1,26 @@
-import {describe, expect, it} from "vitest";
-import {
-    ConfigurationChanges,
-    DecisionKind,
-    GlobalAttributeIdKey
-} from "../../../src";
+import {describe, expect, it} from "bun:test";
+import type {ConfigurationChanges, GlobalAttributeIdKey} from "../../../src";
+import {DecisionKind} from "../../../src";
 import {flow, O, RM, some} from "@viamedici-spc/fp-ts-extensions";
 import {getBooleanAttribute} from "../../data/AttributeGeneration";
-import {HashedAttribute} from "../../../src/domain/model/HashedAttribute";
-import HashedConfiguration from "../../../src/domain/model/HashedConfiguration";
+import type {HashedAttribute} from "../../../src/domain/model/HashedAttribute";
+import type HashedConfiguration from "../../../src/domain/model/HashedConfiguration";
 import GenericChangesHandler from "../../../src/domain/logic/GenericChangesHandler";
 import {calculateConfigurationChangedHandler} from "../../../src/domain/logic/HandlerChangeCalculation";
 import * as RT from "fp-ts/ReadonlyTuple";
 import {none} from "fp-ts/Option";
 
-const newHandler = () => new GenericChangesHandler<HashedConfiguration, ConfigurationChanges>(flow(calculateConfigurationChangedHandler, O.map(RT.snd)));
+const newHandler = () =>
+    new GenericChangesHandler<HashedConfiguration, ConfigurationChanges>(
+        flow(calculateConfigurationChangedHandler, O.map(RT.snd)),
+    );
 
 describe("GenericChangesHandler", () => {
     it("Generates initial changes", () => {
         const configuration: HashedConfiguration = {
             isSatisfied: true,
-            attributes: new Map<GlobalAttributeIdKey, HashedAttribute>()
+            attributes: new Map<GlobalAttributeIdKey, HashedAttribute>(),
         };
-
 
         const handlerWithChanges = newHandler();
         handlerWithChanges.setValue(configuration);
@@ -29,20 +28,22 @@ describe("GenericChangesHandler", () => {
 
         expect(handlerWithoutChanges.getChanges()).toStrictEqual(none);
 
-        expect(handlerWithChanges.getChanges()).toStrictEqual(some({
-            isSatisfied: true,
-            attributes: {
-                added: [],
-                changed: [],
-                removed: []
-            }
-        } satisfies ConfigurationChanges));
+        expect(handlerWithChanges.getChanges()).toStrictEqual(
+            some({
+                isSatisfied: true,
+                attributes: {
+                    added: [],
+                    changed: [],
+                    removed: [],
+                },
+            } satisfies ConfigurationChanges),
+        );
     });
 
     it("ClearChanges", () => {
         const configuration: HashedConfiguration = {
             isSatisfied: true,
-            attributes: new Map<GlobalAttributeIdKey, HashedAttribute>()
+            attributes: new Map<GlobalAttributeIdKey, HashedAttribute>(),
         };
 
         const handler = newHandler();
@@ -58,7 +59,7 @@ describe("GenericChangesHandler", () => {
 
         const configuration: HashedConfiguration = {
             isSatisfied: true,
-            attributes: mutableAttributeMap
+            attributes: mutableAttributeMap,
         };
 
         const handler = newHandler();
@@ -83,7 +84,7 @@ describe("GenericChangesHandler", () => {
                     getBooleanAttribute("A1"),
                     getBooleanAttribute("A2"),
                     getBooleanAttribute("A3"),
-                ])
+                ]),
             };
 
             const handler = newHandler();
@@ -97,32 +98,30 @@ describe("GenericChangesHandler", () => {
                     getBooleanAttribute("A2", {
                         decision: {
                             kind: DecisionKind.Implicit,
-                            state: true
-                        }
+                            state: true,
+                        },
                     }),
                     getBooleanAttribute("A4"),
-                ])
+                ]),
             });
 
-            expect(handler.getChanges()).toStrictEqual(some({
-                isSatisfied: false,
-                attributes: {
-                    added: [
-                        getBooleanAttribute("A4")[1]
-                    ],
-                    changed: [
-                        getBooleanAttribute("A2", {
-                            decision: {
-                                kind: DecisionKind.Implicit,
-                                state: true
-                            }
-                        })[1]
-                    ],
-                    removed: [
-                        getBooleanAttribute("A3")[1].id
-                    ]
-                }
-            } satisfies ConfigurationChanges));
+            expect(handler.getChanges()).toStrictEqual(
+                some({
+                    isSatisfied: false,
+                    attributes: {
+                        added: [getBooleanAttribute("A4")[1]],
+                        changed: [
+                            getBooleanAttribute("A2", {
+                                decision: {
+                                    kind: DecisionKind.Implicit,
+                                    state: true,
+                                },
+                            })[1],
+                        ],
+                        removed: [getBooleanAttribute("A3")[1].id],
+                    },
+                } satisfies ConfigurationChanges),
+            );
         });
 
         it("Changes are determined by Hash only", () => {
@@ -130,9 +129,9 @@ describe("GenericChangesHandler", () => {
                 isSatisfied: true,
                 attributes: new Map<GlobalAttributeIdKey, HashedAttribute>([
                     getBooleanAttribute("A1", {
-                        hash: "123"
+                        hash: "123",
                     }),
-                ])
+                ]),
             };
 
             const handler = newHandler();
@@ -145,12 +144,12 @@ describe("GenericChangesHandler", () => {
                     getBooleanAttribute("A1", {
                         decision: {
                             kind: DecisionKind.Implicit,
-                            state: true
+                            state: true,
                         },
                         // The hash is still the same.
-                        hash: "123"
+                        hash: "123",
                     }),
-                ])
+                ]),
             });
 
             // The changes of attributes are only compared using the hash. Therefore, the changes to Decision are not recognized.
@@ -160,9 +159,7 @@ describe("GenericChangesHandler", () => {
         it("Changes are discarded when Attribute is reset", () => {
             const initialConfiguration: HashedConfiguration = {
                 isSatisfied: true,
-                attributes: new Map<GlobalAttributeIdKey, HashedAttribute>([
-                    getBooleanAttribute("A1"),
-                ])
+                attributes: new Map<GlobalAttributeIdKey, HashedAttribute>([getBooleanAttribute("A1")]),
             };
 
             const handler = newHandler();
@@ -175,17 +172,15 @@ describe("GenericChangesHandler", () => {
                     getBooleanAttribute("A1", {
                         decision: {
                             kind: DecisionKind.Implicit,
-                            state: true
-                        }
+                            state: true,
+                        },
                     }),
-                ])
+                ]),
             });
 
             handler.setValue({
                 isSatisfied: true,
-                attributes: new Map<GlobalAttributeIdKey, HashedAttribute>([
-                    getBooleanAttribute("A1"),
-                ])
+                attributes: new Map<GlobalAttributeIdKey, HashedAttribute>([getBooleanAttribute("A1")]),
             });
 
             expect(handler.getChanges()).toStrictEqual(none);

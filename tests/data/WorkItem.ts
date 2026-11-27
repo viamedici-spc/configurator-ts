@@ -1,26 +1,30 @@
-import {expect, vi} from "vitest";
+import {expect, mock} from "bun:test";
 import {guid} from "dyna-guid";
-import pDefer, {DeferredPromise} from "p-defer";
-import {
+import type {DeferredPromise} from "p-defer";
+import pDefer from "p-defer";
+import type {
     ErrorWithSessionState,
     PureError,
     StateMutatingWorkItem,
-    StatePreservingWorkItem
+    StatePreservingWorkItem,
 } from "../../src/domain/model/WorkItem";
-import {Mock} from "vitest";
-import {E, pipe, T} from "@viamedici-spc/fp-ts-extensions";
-import {Either} from "fp-ts/Either";
-import {ConfiguratorError} from "../../src";
-import {EngineErrorResult, EngineSuccessResultT} from "../../src/domain/logic/EngineLogic";
+import type {Mock} from "bun:test";
+import type {T} from "@viamedici-spc/fp-ts-extensions";
+import {E, pipe} from "@viamedici-spc/fp-ts-extensions";
+import type {Either} from "fp-ts/Either";
+import type {ConfiguratorError} from "../../src";
+import type {EngineErrorResult, EngineSuccessResultT} from "../../src/domain/logic/EngineLogic";
 
 export function createStatePreservingWorkItemDummy<T>(): {
-    resolveExecute: (e: Either<ConfiguratorError, T>) => void,
-    workItem: StatePreservingWorkItem<T>,
-    resultPromise: Promise<T>,
-    executeMock: Mock<StatePreservingWorkItem<T>["execute"]>
+    resolveExecute: (e: Either<ConfiguratorError, T>) => void;
+    workItem: StatePreservingWorkItem<T>;
+    resultPromise: Promise<T>;
+    executeMock: Mock<StatePreservingWorkItem<T>["execute"]>;
 } {
-    let executeResultPromise: DeferredPromise<T.ExtractTaskType<ReturnType<StatePreservingWorkItem<T>["execute"]>>> | null = null;
-    const executeMock = vi.fn<StatePreservingWorkItem<T>["execute"]>(() => {
+    let executeResultPromise: DeferredPromise<
+        T.ExtractTaskType<ReturnType<StatePreservingWorkItem<T>["execute"]>>
+    > | null = null;
+    const executeMock = mock<StatePreservingWorkItem<T>["execute"]>(() => {
         executeResultPromise = pDefer();
         return () => {
             expect(executeResultPromise).toBeTruthy();
@@ -33,31 +37,44 @@ export function createStatePreservingWorkItemDummy<T>(): {
         type: "StatePreserving",
         itemId: guid(),
         deferredPromise: pDefer<T>(),
-        execute: executeMock
+        execute: executeMock,
     } satisfies StatePreservingWorkItem<T>;
 
     return {
         resolveExecute: e => {
             expect(executeResultPromise).toBeTruthy();
-            executeResultPromise!.resolve(pipe(e, E.mapLeft(l => ({
-                type: "PureError",
-                error: l
-            } satisfies PureError))));
+            executeResultPromise!.resolve(
+                pipe(
+                    e,
+                    E.mapLeft(
+                        l =>
+                            ({
+                                type: "PureError",
+                                error: l,
+                            }) satisfies PureError,
+                    ),
+                ),
+            );
         },
-        resultPromise: workItem.deferredPromise.promise,
+        resultPromise: handledLater(workItem.deferredPromise.promise),
         executeMock: executeMock,
-        workItem: workItem
+        workItem: workItem,
     };
 }
 
-export function createStateMutatingWorkItemDummy<T>(allowSimultaneouslyTermination: boolean, optimisticAttributeUpdater?: StateMutatingWorkItem<T>["optimisticAttributeUpdater"]): {
-    resolveExecute: (e: Either<EngineErrorResult, EngineSuccessResultT<T>>) => void,
-    workItem: StateMutatingWorkItem<T>,
-    resultPromise: Promise<T>,
-    executeMock: Mock<StateMutatingWorkItem<T>["execute"]>
+export function createStateMutatingWorkItemDummy<T>(
+    allowSimultaneouslyTermination: boolean,
+    optimisticAttributeUpdater?: StateMutatingWorkItem<T>["optimisticAttributeUpdater"],
+): {
+    resolveExecute: (e: Either<EngineErrorResult, EngineSuccessResultT<T>>) => void;
+    workItem: StateMutatingWorkItem<T>;
+    resultPromise: Promise<T>;
+    executeMock: Mock<StateMutatingWorkItem<T>["execute"]>;
 } {
-    let executeResultPromise: DeferredPromise<T.ExtractTaskType<ReturnType<StateMutatingWorkItem<T>["execute"]>>> | null = null;
-    const executeMock = vi.fn<StateMutatingWorkItem<T>["execute"]>(() => {
+    let executeResultPromise: DeferredPromise<
+        T.ExtractTaskType<ReturnType<StateMutatingWorkItem<T>["execute"]>>
+    > | null = null;
+    const executeMock = mock<StateMutatingWorkItem<T>["execute"]>(() => {
         executeResultPromise = pDefer();
         return () => {
             expect(executeResultPromise).toBeTruthy();
@@ -72,19 +89,36 @@ export function createStateMutatingWorkItemDummy<T>(allowSimultaneouslyTerminati
         allowSimultaneouslyTermination: allowSimultaneouslyTermination,
         deferredPromise: pDefer<T>(),
         execute: executeMock,
-        optimisticAttributeUpdater: optimisticAttributeUpdater ?? null
+        optimisticAttributeUpdater: optimisticAttributeUpdater ?? null,
     } satisfies StateMutatingWorkItem<T>;
 
     return {
         resolveExecute: e => {
             expect(executeResultPromise).toBeTruthy();
-            executeResultPromise!.resolve(pipe(e, E.mapLeft(l => ({
-                ...l,
-                type: "ErrorWithSessionState",
-            } satisfies ErrorWithSessionState))));
+            executeResultPromise!.resolve(
+                pipe(
+                    e,
+                    E.mapLeft(
+                        l =>
+                            ({
+                                ...l,
+                                type: "ErrorWithSessionState",
+                            }) satisfies ErrorWithSessionState,
+                    ),
+                ),
+            );
         },
-        resultPromise: workItem.deferredPromise.promise,
+        resultPromise: handledLater(workItem.deferredPromise.promise),
         executeMock: executeMock,
-        workItem: workItem
+        workItem: workItem,
     };
+}
+
+/**
+ * Marks a work item's promise as handled, because a test often asserts its rejection only after it happened. bun test
+ * fails a test on a rejection that has no handler yet; the promise itself stays rejected for the assertion.
+ */
+export function handledLater<T>(promise: Promise<T>): Promise<T> {
+    promise.catch(() => undefined);
+    return promise;
 }

@@ -1,4 +1,5 @@
-import {ConfigurationModelSource, ConfigurationModelSourceType} from "../../src";
+import type {ConfigurationModelSource} from "../../src";
+import {ConfigurationModelSourceType} from "../../src";
 
 export const ModelWithOneMandatoryChoice: ConfigurationModelSource = {
     type: ConfigurationModelSourceType.Package,
@@ -8,17 +9,16 @@ export const ModelWithOneMandatoryChoice: ConfigurationModelSource = {
             {
                 configurationModelId: "model1",
                 attributes: {
-                    choiceAttributes: [{
-                        attributeId: "a1",
-                        choiceValues: [
-                            {choiceValueId: "v1"},
-                            {choiceValueId: "v2"},
-                        ],
-                        lowerBound: 1,
-                        upperBound: 1
-                    }]
-                }
-            }
-        ]
-    }
+                    choiceAttributes: [
+                        {
+                            attributeId: "a1",
+                            choiceValues: [{choiceValueId: "v1"}, {choiceValueId: "v2"}],
+                            lowerBound: 1,
+                            upperBound: 1,
+                        },
+                    ],
+                },
+            },
+        ],
+    },
 };

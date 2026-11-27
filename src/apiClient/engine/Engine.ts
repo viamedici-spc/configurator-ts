@@ -1,2620 +1,2833 @@
-/* eslint-disable */
-/* tslint:disable */
-/*
- * ---------------------------------------------------------------
- * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
- * ##                                                           ##
- * ## AUTHOR: acacode                                           ##
- * ## SOURCE: https://github.com/acacode/swagger-typescript-api ##
- * ---------------------------------------------------------------
- */
-
-export interface Unspecified {
-  type?: string | null;
-  title?: string | null;
-  /** @format int32 */
-  status?: number | null;
-  detail?: string | null;
-  instance?: string | null;
-  [key: string]: any;
-}
-
-export type ProblemDetails = BaseProblemDetails &
-  (
-    | BaseProblemDetailsTypeMapping<"RequestTimeout", RequestTimeout>
-    | BaseProblemDetailsTypeMapping<"RequestFailure", RequestFailure>
-    | BaseProblemDetailsTypeMapping<"SerializationError", SerializationError>
-    | BaseProblemDetailsTypeMapping<"InternalServerError", InternalServerError>
-    | BaseProblemDetailsTypeMapping<"MissingTenantIdClaim", MissingTenantIdClaim>
-    | BaseProblemDetailsTypeMapping<"MissingSessionIdClaim", MissingSessionIdClaim>
-    | BaseProblemDetailsTypeMapping<"TenantAccessForbidden", TenantAccessForbidden>
-    | BaseProblemDetailsTypeMapping<"SessionIdInvalid", SessionIdInvalid>
-    | BaseProblemDetailsTypeMapping<"AuthenticationFailure", AuthenticationFailure>
-    | BaseProblemDetailsTypeMapping<"SideLoadingForbidden", SideLoadingForbidden>
-    | BaseProblemDetailsTypeMapping<"SpecifiedDeploymentForbidden", SpecifiedDeploymentForbidden>
-    | BaseProblemDetailsTypeMapping<"AttributeNotFound", AttributeNotFound>
-    | BaseProblemDetailsTypeMapping<"ChoiceAttributeNotFound", ChoiceAttributeNotFound>
-    | BaseProblemDetailsTypeMapping<"ChoiceValueNotFound", ChoiceValueNotFound>
-    | BaseProblemDetailsTypeMapping<"NumericAttributeNotFound", NumericAttributeNotFound>
-    | BaseProblemDetailsTypeMapping<"BooleanAttributeNotFound", BooleanAttributeNotFound>
-    | BaseProblemDetailsTypeMapping<"ComponentAttributeNotFound", ComponentAttributeNotFound>
-    | BaseProblemDetailsTypeMapping<"NumericDecisionOutOfRange", NumericDecisionOutOfRange>
-    | BaseProblemDetailsTypeMapping<"ConflictWithConsequence", ConflictWithConsequence>
-    | BaseProblemDetailsTypeMapping<"ConfigurationModelInvalid", ConfigurationModelInvalid>
-    | BaseProblemDetailsTypeMapping<"DecisionsToRespectInvalid", DecisionsToRespectInvalid>
-    | BaseProblemDetailsTypeMapping<"FixedDecisionsInvalid", FixedDecisionsInvalid>
-    | BaseProblemDetailsTypeMapping<"SessionParametersInvalid", SessionParametersInvalid>
-    | BaseProblemDetailsTypeMapping<"ConfigurationModelNotFeasible", ConfigurationModelNotFeasible>
-    | BaseProblemDetailsTypeMapping<"SolutionNotFeasible", SolutionNotFeasible>
-    | BaseProblemDetailsTypeMapping<"PutManyDecisionsConflict", PutManyDecisionsConflict>
-    | BaseProblemDetailsTypeMapping<"SetDecisionConflict", SetDecisionConflict>
-    | BaseProblemDetailsTypeMapping<"SessionNotFound", SessionNotFound>
-    | BaseProblemDetailsTypeMapping<"ConfigurationModelNotFound", ConfigurationModelNotFound>
-    | BaseProblemDetailsTypeMapping<"SolverInitializationFailure", SolverInitializationFailure>
-    | BaseProblemDetailsTypeMapping<"ConfigurationModelLoadFailure", ConfigurationModelLoadFailure>
-    | BaseProblemDetailsTypeMapping<"ConfigurationInitializationFailure", ConfigurationInitializationFailure>
-    | BaseProblemDetailsTypeMapping<"SolverPoolInitializationFailure", SolverPoolInitializationFailure>
-    | BaseProblemDetailsTypeMapping<"SolveOperationTimeout", SolveOperationTimeout>
-    | BaseProblemDetailsTypeMapping<"ExplainConflict", ExplainConflict>
-    | BaseProblemDetailsTypeMapping<"ExplainFailure", ExplainFailure>
-    | BaseProblemDetailsTypeMapping<"SnapshotInvalid", SnapshotInvalid>
-    | BaseProblemDetailsTypeMapping<"SnapshotNotFound", SnapshotNotFound>
-    | BaseProblemDetailsTypeMapping<"AssignedChannelNotFound", AssignedChannelNotFound>
-  );
-
-export enum HttpStatusCode {
-  Continue = "Continue",
-  SwitchingProtocols = "SwitchingProtocols",
-  Processing = "Processing",
-  EarlyHints = "EarlyHints",
-  OK = "OK",
-  Created = "Created",
-  Accepted = "Accepted",
-  NonAuthoritativeInformation = "NonAuthoritativeInformation",
-  NoContent = "NoContent",
-  ResetContent = "ResetContent",
-  PartialContent = "PartialContent",
-  MultiStatus = "MultiStatus",
-  AlreadyReported = "AlreadyReported",
-  IMUsed = "IMUsed",
-  MultipleChoices = "MultipleChoices",
-  Ambiguous = "Ambiguous",
-  MovedPermanently = "MovedPermanently",
-  Moved = "Moved",
-  Found = "Found",
-  Redirect = "Redirect",
-  SeeOther = "SeeOther",
-  RedirectMethod = "RedirectMethod",
-  NotModified = "NotModified",
-  UseProxy = "UseProxy",
-  Unused = "Unused",
-  TemporaryRedirect = "TemporaryRedirect",
-  RedirectKeepVerb = "RedirectKeepVerb",
-  PermanentRedirect = "PermanentRedirect",
-  BadRequest = "BadRequest",
-  Unauthorized = "Unauthorized",
-  PaymentRequired = "PaymentRequired",
-  Forbidden = "Forbidden",
-  NotFound = "NotFound",
-  MethodNotAllowed = "MethodNotAllowed",
-  NotAcceptable = "NotAcceptable",
-  ProxyAuthenticationRequired = "ProxyAuthenticationRequired",
-  RequestTimeout = "RequestTimeout",
-  Conflict = "Conflict",
-  Gone = "Gone",
-  LengthRequired = "LengthRequired",
-  PreconditionFailed = "PreconditionFailed",
-  RequestEntityTooLarge = "RequestEntityTooLarge",
-  RequestUriTooLong = "RequestUriTooLong",
-  UnsupportedMediaType = "UnsupportedMediaType",
-  RequestedRangeNotSatisfiable = "RequestedRangeNotSatisfiable",
-  ExpectationFailed = "ExpectationFailed",
-  MisdirectedRequest = "MisdirectedRequest",
-  UnprocessableEntity = "UnprocessableEntity",
-  UnprocessableContent = "UnprocessableContent",
-  Locked = "Locked",
-  FailedDependency = "FailedDependency",
-  UpgradeRequired = "UpgradeRequired",
-  PreconditionRequired = "PreconditionRequired",
-  TooManyRequests = "TooManyRequests",
-  RequestHeaderFieldsTooLarge = "RequestHeaderFieldsTooLarge",
-  UnavailableForLegalReasons = "UnavailableForLegalReasons",
-  InternalServerError = "InternalServerError",
-  NotImplemented = "NotImplemented",
-  BadGateway = "BadGateway",
-  ServiceUnavailable = "ServiceUnavailable",
-  GatewayTimeout = "GatewayTimeout",
-  HttpVersionNotSupported = "HttpVersionNotSupported",
-  VariantAlsoNegotiates = "VariantAlsoNegotiates",
-  InsufficientStorage = "InsufficientStorage",
-  LoopDetected = "LoopDetected",
-  NotExtended = "NotExtended",
-  NetworkAuthenticationRequired = "NetworkAuthenticationRequired",
-}
-
-export interface RequestTimeout {
-  type: "RequestTimeout";
-  title: string;
-  detail: string;
-}
-
-export interface RequestFailure {
-  type: "RequestFailure";
-  title: string;
-  detail: string;
-  exception: string;
-}
-
-export interface SerializationError {
-  type: "SerializationError";
-  title: string;
-  detail: string;
-  jsonException: string;
-}
-
-export interface InternalServerError {
-  type: "InternalServerError";
-  title: string;
-  detail: string;
-  originalProblemType: string;
-}
-
-export interface MissingTenantIdClaim {
-  type: "MissingTenantIdClaim";
-  title: string;
-  detail: string;
-}
-
-export interface MissingSessionIdClaim {
-  type: "MissingSessionIdClaim";
-  title: string;
-  detail: string;
-}
-
-export interface TenantAccessForbidden {
-  type: "TenantAccessForbidden";
-  title: string;
-  detail: string;
-}
-
-export interface SessionIdInvalid {
-  type: "SessionIdInvalid";
-  title: string;
-  detail: string;
-}
-
-export interface AuthenticationFailure {
-  type: "AuthenticationFailure";
-  title: string;
-  detail: string;
-}
-
-export interface SideLoadingForbidden {
-  type: "SideLoadingForbidden";
-  title: string;
-  detail: string;
-}
-
-export interface SpecifiedDeploymentForbidden {
-  type: "SpecifiedDeploymentForbidden";
-  title: string;
-  detail: string;
-  channel: string;
-  deploymentName: string;
-}
-
-export interface AttributeNotFound {
-  type: "AttributeNotFound";
-  title: string;
-  detail: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  globalAttributeId: GlobalAttributeId;
-}
-
-/**
- * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
- * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
- * the identifier components is used.
- * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
- * because it is the path to an Attribute.
- * shared component path localId
- * Details can be found in the API product documentation.
- */
-export interface GlobalAttributeId {
-  /**
-   * The LocalId is the last part of the Attribute Path if there exists a set of referenced Configuration Models .
-   * It identifies a local Attribute within a specific Configuration Model.
-   * Example: In a Configuration Model "Automobile" could be declared an Attribute with the LocalId "Color".
-   * Further examples can be found in the API product documentation.
-   */
-  localId: string;
-  /**
-   * The SharedConfigurationModelId is the first part of the Attribute Path (identifier of an Attribute) if it
-   * is declared in a Shared Configuration Model which is included in the
-   * Configuration Model under consideration.
-   * Example path while modeling: "shared::TechnicalShared::AutomobileType". "shared" is a key word of the
-   * modelling language, "TechnicalShared" is the name (identifier) of a Shared Configuration Model,
-   * "AutomobileType" is the name (identifier) of an Attribute, which is declared in "TechnicalShared".
-   * For example, the Attribute "AutomobileType" is used in a Configuration Model called "Automobile".
-   * Further examples can be found in the API product documentation.
-   */
-  sharedConfigurationModelId?: string | null;
-  /**
-   * The ComponentPath is part of the Attribute Path (identifier of an Attribute) if it
-   * is declared in a Component Configuration Model that is referenced in a Configuration Model under consideration.
-   * Example path while modeling: "Engine::EngineType". "EngineType" is the name (identifier) of a
-   * Component Configuration Model, "EngineType" is the name (identifier) of an Attribute, which
-   * is declared in "Engine".
-   * For example, the Attribute "EngineType" is used in a Configuration Model called "Automobile".
-   * Further examples can be found in the API product documentation.
-   */
-  componentPath?: string[] | null;
-}
-
-export interface ChoiceAttributeNotFound {
-  type: "ChoiceAttributeNotFound";
-  title: string;
-  detail: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  globalAttributeId: GlobalAttributeId;
-}
-
-export interface ChoiceValueNotFound {
-  type: "ChoiceValueNotFound";
-  title: string;
-  detail: string;
-  globalChoiceValueId: GlobalChoiceValueId;
-}
-
-export interface GlobalChoiceValueId {
-  choiceValueId: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-}
-
-export interface NumericAttributeNotFound {
-  type: "NumericAttributeNotFound";
-  title: string;
-  detail: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  globalAttributeId: GlobalAttributeId;
-}
-
-export interface BooleanAttributeNotFound {
-  type: "BooleanAttributeNotFound";
-  title: string;
-  detail: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  globalAttributeId: GlobalAttributeId;
-}
-
-export interface ComponentAttributeNotFound {
-  type: "ComponentAttributeNotFound";
-  title: string;
-  detail: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  globalAttributeId: GlobalAttributeId;
-}
-
-export interface NumericDecisionOutOfRange {
-  type: "NumericDecisionOutOfRange";
-  title: string;
-  detail: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  globalAttributeId: GlobalAttributeId;
-  range: string;
-  /** @format decimal */
-  decision: number;
-}
-
-export interface ConflictWithConsequence {
-  type: "ConflictWithConsequence";
-  title: string;
-  detail: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  globalAttributeId: GlobalAttributeId;
-  choiceValueId?: string | null;
-}
-
-export interface ConfigurationModelInvalid {
-  type: "ConfigurationModelInvalid";
-  title: string;
-  detail: string;
-  validationMessage?: string | null;
-}
-
-export interface DecisionsToRespectInvalid {
-  type: "DecisionsToRespectInvalid";
-  title: string;
-  detail: string;
-  validationMessage: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  globalAttributeId: GlobalAttributeId;
-}
-
-export interface FixedDecisionsInvalid {
-  type: "FixedDecisionsInvalid";
-  title: string;
-  detail: string;
-  rejectedDecisions: FixedDecision[];
-  validationMessage: string;
-}
-
-export type FixedDecision = BaseFixedDecision &
-  (
-    | BaseFixedDecisionTypeMapping<"Choice", FixedChoiceValueDecision>
-    | BaseFixedDecisionTypeMapping<"Numeric", FixedNumericDecision>
-    | BaseFixedDecisionTypeMapping<"Boolean", FixedBooleanDecision>
-    | BaseFixedDecisionTypeMapping<"Component", FixedComponentDecision>
-  );
-
-/** The object "FixedChoiceValueDecision" encapsulates  a list of Choice Values with the associated current Decision State. */
-export interface FixedChoiceValueDecision {
-  type: "Choice";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  choiceValueId: string;
-  /**
-   * The "Decision State" refers to a Value of a Choice Attribute or a referenced
-   * Component Configuration Model. It is transmitted to the Configuration Engine with a request.
-   * ### Included
-   * "Included" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * are taken into account when the Configuration Engine searches for a Solution.
-   * - In case of a Choice Attribute this is analogous to selecting a Value.
-   *
-   * ### Excluded
-   * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * are not taken into account when the Configuration Engine searches for a Solution.
-   * - In case of a Choice Attribute an excluded Value can not become the subject of an Implicit Decision.
-   */
-  state: FixedDecisionState;
-}
-
-/**
- * The "Decision State" refers to a Value of a Choice Attribute or a referenced
- * Component Configuration Model. It is transmitted to the Configuration Engine with a request.
- * ### Included
- * "Included" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
- * are taken into account when the Configuration Engine searches for a Solution.
- * - In case of a Choice Attribute this is analogous to selecting a Value.
- *
- * ### Excluded
- * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
- * are not taken into account when the Configuration Engine searches for a Solution.
- * - In case of a Choice Attribute an excluded Value can not become the subject of an Implicit Decision.
- */
-export enum FixedDecisionState {
-  Included = "Included",
-  Excluded = "Excluded",
-}
-
-/** The object "FixedNumericDecision" encapsulates a Numeric Value with the associated current Decision State. */
-export interface FixedNumericDecision {
-  type: "Numeric";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  /** @format decimal */
-  state: number;
-}
-
-/** The object "FixedBooleanDecision" encapsulates a Boolean Value with the associated current Decision State. */
-export interface FixedBooleanDecision {
-  type: "Boolean";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  state: boolean;
-}
-
-/**
- * The object "FixedComponentDecision" specifies weather a referenced Component Configuration Model is taken into account
- * if the Configuration Engine searches a Solution.
- */
-export interface FixedComponentDecision {
-  type: "Component";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  /**
-   * The "Decision State" refers to a Value of a Choice Attribute or a referenced
-   * Component Configuration Model. It is transmitted to the Configuration Engine with a request.
-   * ### Included
-   * "Included" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * are taken into account when the Configuration Engine searches for a Solution.
-   * - In case of a Choice Attribute this is analogous to selecting a Value.
-   *
-   * ### Excluded
-   * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * are not taken into account when the Configuration Engine searches for a Solution.
-   * - In case of a Choice Attribute an excluded Value can not become the subject of an Implicit Decision.
-   */
-  state: FixedDecisionState;
-}
-
-export interface SessionParametersInvalid {
-  type: "SessionParametersInvalid";
-  title: string;
-  detail: string;
-}
-
-export interface ConfigurationModelNotFeasible {
-  type: "ConfigurationModelNotFeasible";
-  title: string;
-  detail: string;
-  constraintExplanations?: ConstraintExplanation[] | null;
-}
-
-export interface ConstraintExplanation {
-  causedByCardinalities: CardinalityConstraint[];
-  causedByRules: RuleConstraint[];
-}
-
-export interface CardinalityConstraint {
-  type: "Cardinality";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-}
-
-export interface RuleConstraint {
-  type: "Rule";
-  constraintId: GlobalConstraintId;
-}
-
-export interface GlobalConstraintId {
-  localId: string;
-  configurationModelId: string;
-}
-
-export type ConstraintDescription = BaseConstraintDescription &
-  (
-    | BaseConstraintDescriptionTypeMapping<"Rule", RuleConstraint>
-    | BaseConstraintDescriptionTypeMapping<"Cardinality", CardinalityConstraint>
-  );
-
-export interface SolutionNotFeasible {
-  type: "SolutionNotFeasible";
-  title: string;
-  detail: string;
-}
-
-export interface PutManyDecisionsConflict {
-  type: "PutManyDecisionsConflict";
-  title: string;
-  detail: string;
-  constraintExplanations: ConstraintExplanation[];
-  decisionExplanations: DecisionExplanation[];
-}
-
-/**
- * In an Explanation are specified the Explicit Decisions (Choice, Numeric, Boolean and Component)
- * which lead to the current Value-Decision State respectively Model-Decision State (Excluded, Included).
- */
-export interface DecisionExplanation {
-  causedByChoiceDecisions: CausedByChoiceValueDecision[];
-  causedByNumericDecisions: CausedByNumericDecision[];
-  causedByBooleanDecisions: CausedByBooleanDecision[];
-  causedByComponentDecisions: CausedByComponentDecision[];
-}
-
-/** The object "CausedByChoiceDecision" encapsulates  a list of Choice Values with the associated current Decision State. */
-export interface CausedByChoiceValueDecision {
-  type: "Choice";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  reason: Reason;
-  choiceValueId: string;
-  /**
-   * A Decision is a decision about an Attribute. For each Value, it is stated explicitly or implicitly
-   * whether it should be included in the search for a Solution by the Configuration Engine.
-   * Before a Decision is made, there are two possible "Decision States": "Included" and "Excluded".
-   * In case of a Choice Attribute, these are "Value-Decision States", i. e. Decision States regarding a Choice Value.
-   * In case of a Component Attribute, these are "Model-Decision States", i. e. Decision States regarding a
-   * Component Configuration Model.
-   * ### Included
-   * "Included" means that a Value of a Choice Attribute or a referenced Component Configuration Model
-   * can be taken into account when the Configuration Engine searches for a Solution.
-   * ### Excluded
-   * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * cannot be taken into account when the Configuration Engine searches for a Solution.
-   */
-  state: PossibleDecisionState;
-}
-
-export enum Reason {
-  NotAvailable = "NotAvailable",
-  StateNotPossible = "StateNotPossible",
-}
-
-/**
- * A Decision is a decision about an Attribute. For each Value, it is stated explicitly or implicitly
- * whether it should be included in the search for a Solution by the Configuration Engine.
- * Before a Decision is made, there are two possible "Decision States": "Included" and "Excluded".
- * In case of a Choice Attribute, these are "Value-Decision States", i. e. Decision States regarding a Choice Value.
- * In case of a Component Attribute, these are "Model-Decision States", i. e. Decision States regarding a
- * Component Configuration Model.
- * ### Included
- * "Included" means that a Value of a Choice Attribute or a referenced Component Configuration Model
- * can be taken into account when the Configuration Engine searches for a Solution.
- * ### Excluded
- * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
- * cannot be taken into account when the Configuration Engine searches for a Solution.
- */
-export enum PossibleDecisionState {
-  Included = "Included",
-  Excluded = "Excluded",
-}
-
-/** The object "CausedByNumericDecision" encapsulates a Numeric Value with the associated current Decision State. */
-export interface CausedByNumericDecision {
-  type: "Numeric";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  reason: Reason;
-  /** @format decimal */
-  state?: number | null;
-}
-
-/** The object "CausedByBooleanDecision" encapsulates a Boolean Value with the associated current Decision State. */
-export interface CausedByBooleanDecision {
-  type: "Boolean";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  reason: Reason;
-  state?: boolean | null;
-}
-
-/**
- * The object "CausedByComponentDecision" specifies weather a referenced Component Configuration Model is taken into account
- * if the Configuration Engine searches a Solution.
- */
-export interface CausedByComponentDecision {
-  type: "Component";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  reason: Reason;
-  /**
-   * A Decision is a decision about an Attribute. For each Value, it is stated explicitly or implicitly
-   * whether it should be included in the search for a Solution by the Configuration Engine.
-   * Before a Decision is made, there are two possible "Decision States": "Included" and "Excluded".
-   * In case of a Choice Attribute, these are "Value-Decision States", i. e. Decision States regarding a Choice Value.
-   * In case of a Component Attribute, these are "Model-Decision States", i. e. Decision States regarding a
-   * Component Configuration Model.
-   * ### Included
-   * "Included" means that a Value of a Choice Attribute or a referenced Component Configuration Model
-   * can be taken into account when the Configuration Engine searches for a Solution.
-   * ### Excluded
-   * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * cannot be taken into account when the Configuration Engine searches for a Solution.
-   */
-  state: PossibleDecisionState;
-}
-
-export type CausedByDecision = BaseCausedByDecision &
-  (
-    | BaseCausedByDecisionTypeMapping<"Choice", CausedByChoiceValueDecision>
-    | BaseCausedByDecisionTypeMapping<"Numeric", CausedByNumericDecision>
-    | BaseCausedByDecisionTypeMapping<"Boolean", CausedByBooleanDecision>
-    | BaseCausedByDecisionTypeMapping<"Component", CausedByComponentDecision>
-  );
-
-export interface SetDecisionConflict {
-  type: "SetDecisionConflict";
-  title: string;
-  detail: string;
-}
-
-export interface SessionNotFound {
-  type: "SessionNotFound";
-  title: string;
-  detail: string;
-  sessionId: GlobalSessionId;
-}
-
-export interface GlobalSessionId {
-  sessionId: string;
-  tenantId: string;
-}
-
-export interface ConfigurationModelNotFound {
-  type: "ConfigurationModelNotFound";
-  title: string;
-  detail: string;
-}
-
-export interface SolverInitializationFailure {
-  type: "SolverInitializationFailure";
-  title: string;
-  detail: string;
-}
-
-export interface ConfigurationModelLoadFailure {
-  type: "ConfigurationModelLoadFailure";
-  title: string;
-  detail: string;
-}
-
-export interface ConfigurationInitializationFailure {
-  type: "ConfigurationInitializationFailure";
-  title: string;
-  detail: string;
-  deploymentId?: string | null;
-}
-
-export interface SolverPoolInitializationFailure {
-  type: "SolverPoolInitializationFailure";
-  title: string;
-  detail: string;
-}
-
-export interface SolveOperationTimeout {
-  type: "SolveOperationTimeout";
-  title: string;
-  detail: string;
-  timeout: string;
-}
-
-export interface ExplainConflict {
-  type: "ExplainConflict";
-  title: string;
-  detail: string;
-  source: string;
-}
-
-export interface ExplainFailure {
-  type: "ExplainFailure";
-  title: string;
-  detail: string;
-  source: string;
-}
-
-export interface SnapshotInvalid {
-  type: "SnapshotInvalid";
-  title: string;
-  detail: string;
-  validationMessage: string;
-  validationPath: string[];
-}
-
-export interface SnapshotNotFound {
-  type: "SnapshotNotFound";
-  title: string;
-  detail: string;
-}
-
-export interface AssignedChannelNotFound {
-  type: "AssignedChannelNotFound";
-  title: string;
-  detail: string;
-  globalChannelId: GlobalChannelId;
-}
-
-export interface GlobalChannelId {
-  deploymentId: GlobalDeploymentId;
-  channel: string;
-}
-
-export interface GlobalDeploymentId {
-  localId: string;
-  tenantId: string;
-}
-
-/**
- * The Consequences are the result of an evaluation weather of a Configuration Model or of made
- * Decisions in conjunction with a Configuration Model.
- * The Consequences object consists of a boolean attribute representing the overall
- * Configuration Model Satisfaction State and 4 arrays for the different types of Consequences:
- * Choice, Numeric, Boolean and Component. It represents the Configuration State at the beginning
- * of a Configuration Dialogue. During a Configuration Dialogue the "Consequences" are an
- * important part of the Configuration State.
- */
-export interface Consequences {
-  /**
-   * In this case, the meta attribute "IsConfigurationSatisfied" represents the "Configuration Model-Satisfaction State".
-   * It indicates for the whole Configuration Model if Decisions are still required to be made.
-   * If it is TRUE then the configuration can be concluded.
-   */
-  isConfigurationSatisfied: boolean;
-  /** Gives a hint if an attribute can contribute to the overall configuration satisfaction state. */
-  canAttributeContributeToConfigurationSatisfaction: GlobalAttributeId[];
-  /**
-   * The Choice Consequences are the result of an evaluation weather of a Configuration Model or of made
-   * Decisions in conjunction with a Configuration Model.
-   * For each Choice Attribute, represented by a Global Attribute ID, the following is specified:
-   * (1) By a boolean is specified whether a Decision is still necessary (isSatisfied = false) or not
-   *     (isSatisfied = true).
-   * (2) In the object "Cardinality" is specified the assignment type of the Attribute Values that is
-   *     determined during modeling (mandatory, optional, multiple).
-   * (3) Furthermore, the currently still possible Decision States are indicated for every Value.
-   *     These are represented in the form of a list of objects of type "ChoiceValueConsequence".
-   */
-  choiceConsequences: ChoiceConsequence[];
-  /**
-   * The Numeric Consequences are the result of an evaluation weather of a Configuration Model or of made
-   * Decisions in conjunction with a Configuration Model.
-   * For each Numeric Attribute, represented by a Global Attribute ID, the following is specified:
-   * (1) By a boolean is specified whether a Decision is still necessary (isSatisfied = false) or not
-   *     (isSatisfied = true).
-   * (2) The meta attribute "selection" indicates if a Value assignment is mandatory or not.
-   * (3) The meta attribute "range" specifies a range of numbers by specifying a maximum (max) and a minimum value (min).
-   * (4) The number of decimal places is specified by an integer value of the meta-attribute "decimalPlaces".
-   */
-  numericConsequences: NumericConsequence[];
-  /**
-   * The Boolean Consequences are the result of an evaluation weather of a Configuration Model or of made
-   * Decisions in conjunction with a Configuration Model.
-   * For each Boolean Attribute, represented by a Global Attribute ID, the following is specified:
-   * (1) By a boolean is specified whether a Decision is still necessary (isSatisfied = false) or not
-   *     (isSatisfied = true).
-   * (2) The meta attribute "selection" indicates if a Value assignment (the choice "true" or "false") is mandatory or not.
-   * (3) Furthermore, the currently still possible boolean states are indicated.
-   */
-  booleanConsequences: BooleanConsequence[];
-  /**
-   * The Component Consequences are the result of an evaluation weather of a Configuration Model or of made
-   * Decisions in conjunction with a Configuration Model.
-   * For each Component Attribute, represented by a Global Attribute ID, the following is specified:
-   * (1) By a boolean is specified whether a Decision is still necessary (isSatisfied = false) or not
-   *     (isSatisfied = true).
-   * (2) The meta attribute "inclusion" specifies whether a referenced Component Configuration Model is always
-   *     considered in finding a Solution (inclusion = "Always") or only under certain conditions (inclusion = "Optional").
-   * (3) The meta attribute "selection" indicates if the referencing of a Component Configuration Model is mandatory or not.
-   * (4) Furthermore, the currently still possible decision states are indicated.
-   *     These are represented in the form of a list of objects of type "ChoiceValueConsequence".
-   *     Examples can be found in the product documentation.
-   */
-  componentConsequences: ComponentConsequence[];
-}
-
-/**
- * A Choice Consequence is the result of an evaluation weather of a Configuration Model or of made
- * Decisions in conjunction with a Configuration Model.
- * For a Choice Attribute, represented by a Global Attribute ID, the following is specified:
- * (1) By a boolean is specified whether a Decision is still necessary (isSatisfied = false) or not
- *     (isSatisfied = true).
- * (2) In the object "Cardinality" is specified the assignment type of the Attribute Values that is
- *     determined during modeling (mandatory, optional, multiple).
- * (3) Furthermore, the currently still possible decision states are indicated for every Value.
- *     These are represented in the form of a list of objects of type "ChoiceValueConsequence".
- */
-export interface ChoiceConsequence {
-  /**
-   * The ability to nest Configuration Models in different ways requires an Attribute identifier
-   * that is unique across all Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used. Details can be found in the scheme "GlobalAttributeId".
-   */
-  attributeId: GlobalAttributeId;
-  /**
-   * In this case, the meta attribute "isSatisfied" represents the "Value Satisfaction State".
-   * The "Value" is the value of a Choice Attribute, which is always a string.
-   * It indicates for the Attribute under consideration whether Decisions still need to be made.
-   */
-  isSatisfied: boolean;
-  /**
-   * The value assignment for Attributes can be different: one or more mandatory Values respectively one or more optional Values.
-   * The allowed possibilities are specified by giving an upper as well as a lower limit value.
-   * Those limit values are contained in the object Cardinality.
-   */
-  cardinality: Cardinality;
-  /** "Values" represents a list of Choice Value Consequences. */
-  values: ChoiceValueConsequence[];
-}
-
-export interface Cardinality {
-  /**
-   * Controls how many Values must be selected.
-   * - 0 means that the selection of a Value is optional.
-   * - N means that a least N Values must be selected. For example: 1 means that mandatory 1 Value must be selected.
-   */
-  lowerBound: number;
-  /**
-   * Controls how many Values can be selected.
-   * - 1 means that only one Value can be selected.
-   * - N means that optional N Values can be selected.
-   */
-  upperBound: number;
-}
-
-/**
- * A Choice Value Consequence specifies the possible Decision States for a certain Value of a Choice Attribute.
- * It is represented by an object of the type "ChoiceValueConsequence".
- */
-export interface ChoiceValueConsequence {
-  /** Every item in an enumeration of Values of a Choice Attribute is identified by a string. */
-  choiceValueId: string;
-  /**
-   * There are zwo possible Decision States for a Value of a Choice Attribute: "Included" and "Excluded".
-   * The object "PossibleDecisionStates" specifies the currently still possible Decision States
-   * for a Choice Value.
-   */
-  possibleDecisionStates: PossibleDecisionState[];
-  /** States if this consequence is not influenced by user decisions. It is determined when the session is created. */
-  isPossibleDecisionStatesImmutable: boolean;
-}
-
-/**
- * A Numeric Consequence is the result of an evaluation weather of a Configuration Model or of made
- * Decisions in conjunction with a Configuration Model.
- * For a Numeric Attribute, represented by a Global Attribute ID, the following is specified:
- * (1) By a boolean is specified whether a Decision is still necessary (isSatisfied = false) or not
- *     (isSatisfied = true).
- * (2) The meta attribute "selection" indicates if a Value assignment is mandatory or not.
- * (3) The meta attribute "range" specifies a range of numbers by specifying a maximum (max) and a minimum value (min).
- * (4) The number of decimal places is specified by an integer value of the meta-attribute "decimalPlaces".
- */
-export interface NumericConsequence {
-  /**
-   * The ability to nest Configuration Models and reuse them in Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used. Details can be found in the scheme "GlobalAttributeId".
-   */
-  attributeId: GlobalAttributeId;
-  /**
-   * In this case, the meta attribute "isSatisfied" represents the "Value Satisfaction State".
-   * The "Value" is the value  of a Numeric Attribute, which is always a decimal number.
-   * It indicates for the Attribute under consideration whether Decisions still need to be made.
-   */
-  isSatisfied: boolean;
-  /**
-   * A Configurator must be able to realize different use cases. The API must support this, of course.
-   * Therefore, there are two possibilities regarding the value assignment of a Numeric Attribute:
-   * "Mandatory" means that a Value must be assigned to the considered Numeric Attribute,
-   * for example by an user input.
-   * "Optional" means that an assignment can be made - but is not required.
-   * The meta attribute represents the design decision of the modeler. It can be used, for example,
-   * for the state display of a control.
-   */
-  selection: Selection;
-  /**
-   * Declaring the numeric range for a Numeric Attribute can significantly affect the response time
-   * of some routes. The numeric range should therefore be chosen as small as possible.
-   */
-  range: NumericValueRange;
-  /**
-   * The number of decimal places for the Values of a Numeric Attribute can significantly affect
-   * the response time of some routes. Therefore it should be chosen as small as possible.
-   */
-  decimalPlaces: number;
-  /** States if this consequence is not influenced by user decisions. It is determined when the session is created. */
-  isPossibleDecisionStatesImmutable: boolean;
-}
-
-/**
- * There are two possibilities regarding the value assignment of Attributes of the type
- * Boolean, Numeric or Component:
- *
- * ### Mandatory
- * "Mandatory" means that an assignment of a Value must be done. The Value can be
- * - depending on the type of the Attribute - a numeric, a boolean or a reference
- * to a Component Configuration Model.
- *
- * ### Optional
- * "Optional" means that such an assignment can - but not must - be done.
- *
- * The value of the meta attribute "selection" represents the design decision of the modeler.
- * It can be used, for example, for the state display of a control.
- * Examples can be found in the product documentation.
- */
-export enum Selection {
-  Mandatory = "Mandatory",
-  Optional = "Optional",
-}
-
-/**
- * Declaring the numeric range for a Numeric Attribute can significantly affect the response time
- * of some routes. The numerical range should therefore be chosen as small as possible.
- */
-export interface NumericValueRange {
-  /**
-   * The minimum value of a numerical range should be chosen as small as possible.
-   * @format decimal
-   */
-  min: number;
-  /**
-   * The maximum value of a numerical range should be chosen as small as possible.
-   * @format decimal
-   */
-  max: number;
-}
-
-/**
- * A Boolean Consequence is the result of an evaluation weather of a Configuration Model or of made
- * Decisions in conjunction with a Configuration Model.
- * For a Boolean Attribute, represented by a Global Attribute ID, the following is specified:
- * (1) By a boolean is specified whether a Decision is still necessary (isSatisfied = false) or not
- *     (isSatisfied = true).
- * (2) The meta attribute "selection" indicates if a Value assignment (the choice "true" or "false") is mandatory or not.
- * (3) Furthermore, the currently still possible boolean states are indicated.
- */
-export interface BooleanConsequence {
-  /**
-   * The ability to nest Configuration Models and reuse them in Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used. Details can be found in the scheme "GlobalAttributeId".
-   */
-  attributeId: GlobalAttributeId;
-  /**
-   * In this case, the meta attribute "isSatisfied" represents the "Value Satisfaction State".
-   * The "Value" is one of the two Values of a Boolean Attribute.
-   * It indicates for the Attribute under consideration whether Decisions still need to be made.
-   */
-  isSatisfied: boolean;
-  /**
-   * A Configurator must be able to realize different use cases. The API must support this, of course.
-   * Therefore, there are two possibilities regarding the value assignment of a Boolean Attribute:
-   * "Mandatory" means that an assignment TRUE respectively FALSE must be done.
-   * "Optional" means that an assignment TRUE respectively FALSE can be done -
-   * especially also by the Configuration Engine.
-   * The meta attribute represents the design decision of the modeler. It can be used, for example,
-   * for the state display of a control.
-   */
-  selection: Selection;
-  /**
-   * In case of a Boolean Attribute the two possible Decision States are "True" and "False".
-   * The object "PossibleDecisionStates" encapsulates the currently still
-   * possible boolean states.
-   */
-  possibleDecisionStates: boolean[];
-  /** States if this consequence is not influenced by user decisions. It is determined when the session is created. */
-  isPossibleDecisionStatesImmutable: boolean;
-}
-
-/**
- * A Component Consequence is the result of an evaluation weather of a Configuration Model or of made
- * Decisions in conjunction with a Configuration Model.
- * For a Component Attribute, represented by a Global Attribute ID, the following is specified:
- * (1) By a boolean is specified whether a Decision is still necessary (isSatisfied = false) or not
- *     (isSatisfied = true).
- * (2) The meta attribute "inclusion" specifies whether a referenced Component Configuration Model is always
- *     considered in finding a Solution (inclusion = "Always") or only under certain conditions (inclusion = "Optional").
- * (3) The meta attribute "selection" indicates if the referencing of a Component Configuration Model is mandatory or not.
- * (4) Furthermore, the currently still possible Decision States are indicated.
- *     These are represented in the form of a list of objects of type "ChoiceValueConsequence".
- *     Examples can be found in the product documentation.
- */
-export interface ComponentConsequence {
-  /**
-   * The ability to nest Configuration Models and reuse them in Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used. Details can be found in the scheme "GlobalAttributeId".
-   */
-  attributeId: GlobalAttributeId;
-  /**
-   * In this case, the meta attribute "isSatisfied" represents the "Value Satisfaction State".
-   * The "Value" in this case is the name (identifier) of a Component Configuration Model.
-   * It indicates for the Component Attribute under consideration whether Decisions still need to be made.
-   * For details and examples see the product documentation.
-   */
-  isSatisfied: boolean;
-  /**
-   * The meta attribute "inclusion" maps a design decision when modeling a real-world product. A certain component of a
-   * product or system of the real world is either mandatory or it is not required in every case.
-   * Accordingly, the reference to a Component Configuration Model is set fixed (inclusion = Always) or
-   * it is optional and can be set when necessary (inclusion = Optional).
-   * Examples can be found in the product documentation.
-   */
-  inclusion: Inclusion;
-  /**
-   * The meta attribute "selection" is only relevant if the value assignment for a Component Attribute is optional,
-   * i.e. a Component Configuration Model is referenced optionally (inclusion = Optional).
-   * There are two possibilities regarding an optionally referenced Component Configuration Model:
-   * "Mandatory" means that a decision whether or not to reference a Component Configuration Model is mandatory.
-   * "Optional" means that a decision whether or not to reference a Component Configuration Model is optionally.
-   * Such a reference can be also set by the Configuration Engine.
-   * The meta attribute represents the design decision of the modeler. It can be used, for example,
-   * for the state display of a control.
-   */
-  selection?: Selection | null;
-  /**
-   * There are two possible Decision States for a Value of a Component Attribute which is a reference to a
-   * Component Configuration Model: "Included" and "Excluded".
-   * A referenced Component Configuration Model may be part of finding a Solution (Decision State = "Included")
-   * or it may be excluded from finding a Solution Decision State = "Excluded"). In other words,
-   * the Attributes of the referenced Component Configuration Model and their Values are part of the
-   * configuration result or not. Examples can be found in the product documentation.
-   * The object "PossibleDecisionStates" encapsulates the currently still possible Decision States for the
-   * referenced Component Configuration Model.
-   */
-  possibleDecisionStates: PossibleDecisionState[];
-  /** States if this consequence is not influenced by user decisions. It is determined when the session is created. */
-  isPossibleDecisionStatesImmutable: boolean;
-}
-
-/**
- * The value of the meta attribute "inclusion" maps a design decision when modeling a real product world. A certain component of a
- * product or system of the real world is either mandatory or it is not required in every case.
- * Accordingly, the reference to a Component Configuration Model is set fixed (inclusion = Always) or
- * it is optional and can be set when necessary (inclusion = Optional).
- * Examples can be found in the product documentation.
- */
-export enum Inclusion {
-  Always = "Always",
-  Optional = "Optional",
-}
-
-/** Contains the resulting changes of the configuration session. */
-export interface PutDecisionResponse {
-  /**
-   * The Consequences are the result of an evaluation weather of a Configuration Model or of made
-   * Decisions in conjunction with a Configuration Model.
-   */
-  consequences: Consequences;
-  /**
-   * Affected Decisions are those that were influenced by the Decision(s) given with the request.
-   * The influence is a result of the Rule evaluation by the Configuration Engine.
-   * The Decisions contained in the request are also returned.
-   */
-  affectedDecisions: Decisions;
-}
-
-/**
- * A Decision is a decision about an Attribute. For each Value, it is stated explicitly or implicitly
- * whether it should be included in the search for a Solution by the Configuration Engine.
- * The object "Decisions" covers lists of Decisions of the 4 various possible kinds.
- * See also the corresponding schemas.
- */
-export interface Decisions {
-  /** The object "BooleanDecisions" encapsulates  a list of Boolean Decisions. */
-  booleanDecisions: BooleanDecision[];
-  /** The object "NumericDecisions" encapsulates  a list of Numeric Decisions. */
-  numericDecisions: NumericDecision[];
-  /** The object "ComponentDecisions" encapsulates  a list of Component Decisions. */
-  componentDecisions: ComponentDecision[];
-  /** The object "ChoiceValueDecisions" encapsulates  a list of Choice Decisions. */
-  choiceValueDecisions: ChoiceValueDecision[];
-}
-
-export interface BooleanDecision {
-  /**
-   * The ability to nest Configuration Models and reuse them in Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used. Details can be found in the scheme "GlobalAttributeId".
-   */
-  attributeId: GlobalAttributeId;
-  /**
-   * In the case of a Boolean Decision, the meta attribute "state" represents one of the two Values of the
-   * considered Boolean Attribute.
-   * The specified Value is always included when the Configuration Engine searches a solution.
-   * The other Value is automatically excluded.
-   */
-  state?: boolean | null;
-  /**
-   * The meta-attribute "kind" represents the so-called Value Decision Kind.
-   * It indicates the responsibility for the selected Value Decision State.
-   *
-   * ### Implicit
-   *             "Implicit" means that the inclusion or exclusion of a Value has been made
-   * by the Configuration Engine when there is no other decision left.
-   *
-   * ### Explicit
-   * "Explicit" means that the inclusion or exclusion of a Value has been made
-   * by the consumer of the API.
-   */
-  kind: DecisionKind;
-}
-
-/**
- * ### Implicit
- * "Implicit" means that the inclusion or exclusion of a Value has been made
- * by the Configuration Engine when there is no other decision left.
- *
- * ### Explicit
- * "Explicit" means that the inclusion or exclusion of a Value has been made
- * by the consumer.
- */
-export enum DecisionKind {
-  Implicit = "Implicit",
-  Explicit = "Explicit",
-}
-
-export interface NumericDecision {
-  /**
-   * The ability to nest Configuration Models and reuse them in Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used. Details can be found in the scheme "GlobalAttributeId".
-   */
-  attributeId: GlobalAttributeId;
-  /**
-   * In the case of a Numeric Decision, the meta attribute "state" represents the Value of the considered
-   * Numeric Attribute (a decimal number).
-   * This Value is always included when the Configuration Engine searches a solution.
-   * @format decimal
-   */
-  state?: number | null;
-  /**
-   * The meta-attribute "kind" represents the so-called Value Decision Kind.
-   * It indicates the responsibility for the selected Value Decision State.
-   *
-   * ### Implicit
-   *             "Implicit" means that the inclusion or exclusion of a Value has been made
-   * by the Configuration Engine when there is no other decision left.
-   *
-   * ### Explicit
-   * "Explicit" means that the inclusion or exclusion of a Value has been made
-   * by the consumer of the API.
-   */
-  kind: DecisionKind;
-}
-
-export interface ComponentDecision {
-  /**
-   * The ability to nest Configuration Models and reuse them in Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used. Details can be found in the scheme "GlobalAttributeId".
-   */
-  attributeId: GlobalAttributeId;
-  /**
-   * The meta-attribute "state" represents the so-called Value Decision State. In case of a
-   * Component Attribute means "Value" the reference to a Component Configuration Model.
-   *
-   * ### state = “Included”
-   * "Included" means that the referenced Component Configuration Model
-   * is taken into account when the Configuration Engine searches for a Solution.
-   *
-   * ### state = “Excluded”
-   * "Excluded" means that he referenced Component Configuration Model is not taken into account
-   * when the Configuration Engine searches for a Solution.
-   *
-   * ### state = "Undefined"
-   * "Undefined" states that it is not yet decided if the referenced
-   * Component Configuration Model is taken into account or not.
-   * - A referenced Component Configuration Model that has the Decision State "undefined"
-   *   can still become the subject of an Implicit Decision.
-   */
-  state: DecisionState;
-  /**
-   * The meta-attribute "kind" represents the so-called Value Decision Kind.
-   * It indicates the responsibility for the selected Value Decision State.
-   *
-   * ### Implicit
-   *             "Implicit" means that the inclusion or exclusion of a Value has been made
-   * by the Configuration Engine when there is no other decision left.
-   *
-   * ### Explicit
-   * "Explicit" means that the inclusion or exclusion of a Value has been made
-   * by the consumer of the API.
-   */
-  kind: DecisionKind;
-}
-
-/**
- * The "Decision State" refers to a Value of a Choice Attribute or a referenced
- * Component Configuration Model. It is transmitted to the Configuration Engine with a request.
- * ### Included
- * "Included" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
- * are taken into account when the Configuration Engine searches for a Solution.
- * - In case of a Choice Attribute this is analogous to selecting a Value.
- *
- * ### Excluded
- * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
- * are not taken into account when the Configuration Engine searches for a Solution.
- * - In case of a Choice Attribute an excluded Value can not become the subject of an Implicit Decision.
- *
- * ### Undefined
- * "Undefined" states that it is not yet decided if a considered Choice Value or a referenced
- * Component Configuration Model are taken into account or not.
- * - In case of a Choice Attribute this is analogous to not having selected a Value.
- * - An undefined Choice Value can still become the subject of an Implicit Decision.
- * - A referenced Component Configuration Model that has the Decision State "undefined"
- *   can also become the subject of an Implicit Decision.
- */
-export enum DecisionState {
-  Included = "Included",
-  Excluded = "Excluded",
-  Undefined = "Undefined",
-}
-
-/**
- * A Choice Value Decision is a decision regarding a Value of a Choice Attribute.
- * Such a decision can be made explicitly by a user of the API, e.g. a Configurator or implicitly
- * by the Configuration Engine.
- * It concerns the question of whether a Value is included in finding a Solution
- * (Value-Decision State = “Included”) or not (Value-Decision State = “Excluded”).
- * It also specifies for the considered Value who is responsible for including or excluding:
- * the API consumer or the Configuration Engine.
- */
-export interface ChoiceValueDecision {
-  /**
-   * The ability to nest Configuration Models and reuse them in Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used. Details can be found in the scheme "GlobalAttributeId".
-   */
-  attributeId: GlobalAttributeId;
-  /** A Choice Value is identified by a string. */
-  choiceValueId: string;
-  /**
-   * The meta-attribute "state" represents the so-called Value Decision State.
-   *
-   * ### state = “Included”
-   * "Included" means that the considered Choice Value is taken into account
-   * when the Configuration Engine searches for a Solution.
-   * - This is analogous to selecting a Value.
-   *
-   * ### state = “Excluded”
-   * "Excluded" means that the considered Choice Value is not taken into account
-   * when the Configuration Engine searches for a Solution.
-   * - An excluded Value can not become the subject of an Implicit Decision.
-   *
-   * ### state = "Undefined"
-   * "Undefined" states that it is not yet decided if the considered Choice Value is
-   * taken into account or not.
-   * - This is analogous to not having selected a Value.
-   * - An undefined Choice Value can still become the subject of an Implicit Decision.
-   */
-  state: DecisionState;
-  /**
-   * The meta-attribute "kind" represents the so-called Value Decision Kind.
-   * It indicates the responsibility for the selected Value Decision State.
-   *
-   * ### Implicit
-   *             "Implicit" means that the inclusion or exclusion of a Value has been made
-   * by the Configuration Engine when there is no other decision left.
-   *
-   * ### Explicit
-   * "Explicit" means that the inclusion or exclusion of a Value has been made
-   * by the consumer of the API.
-   */
-  kind: DecisionKind;
-}
-
-export type ExplicitDecision = BaseExplicitDecision &
-  (
-    | BaseExplicitDecisionTypeMapping<"Choice", ExplicitChoiceValueDecision>
-    | BaseExplicitDecisionTypeMapping<"Numeric", ExplicitNumericDecision>
-    | BaseExplicitDecisionTypeMapping<"Boolean", ExplicitBooleanDecision>
-    | BaseExplicitDecisionTypeMapping<"Component", ExplicitComponentDecision>
-  );
-
-/** The object "ExplicitChoiceDecision" encapsulates  a list of Choice Values with the associated current Decision State. */
-export interface ExplicitChoiceValueDecision {
-  type: "Choice";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  choiceValueId: string;
-  /**
-   * The "Decision State" refers to a Value of a Choice Attribute or a referenced
-   * Component Configuration Model. It is transmitted to the Configuration Engine with a request.
-   * ### Included
-   * "Included" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * are taken into account when the Configuration Engine searches for a Solution.
-   * - In case of a Choice Attribute this is analogous to selecting a Value.
-   *
-   * ### Excluded
-   * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * are not taken into account when the Configuration Engine searches for a Solution.
-   * - In case of a Choice Attribute an excluded Value can not become the subject of an Implicit Decision.
-   *
-   * ### Undefined
-   * "Undefined" states that it is not yet decided if a considered Choice Value or a referenced
-   * Component Configuration Model are taken into account or not.
-   * - In case of a Choice Attribute this is analogous to not having selected a Value.
-   * - An undefined Choice Value can still become the subject of an Implicit Decision.
-   * - A referenced Component Configuration Model that has the Decision State "undefined"
-   *   can also become the subject of an Implicit Decision.
-   */
-  state: DecisionState;
-}
-
-/** The object "ExplicitNumericDecision" encapsulates a Numeric Value with the associated current Decision State. */
-export interface ExplicitNumericDecision {
-  type: "Numeric";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  /** @format decimal */
-  state?: number | null;
-}
-
-/** The object "ExplicitBooleanDecision" encapsulates a Boolean Value with the associated current Decision State. */
-export interface ExplicitBooleanDecision {
-  type: "Boolean";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  state?: boolean | null;
-}
-
-/**
- * The object "ExplicitComponentDecision" specifies weather a referenced Component Configuration Model is taken into account
- * if the Configuration Engine searches a Solution.
- */
-export interface ExplicitComponentDecision {
-  type: "Component";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  /**
-   * The "Decision State" refers to a Value of a Choice Attribute or a referenced
-   * Component Configuration Model. It is transmitted to the Configuration Engine with a request.
-   * ### Included
-   * "Included" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * are taken into account when the Configuration Engine searches for a Solution.
-   * - In case of a Choice Attribute this is analogous to selecting a Value.
-   *
-   * ### Excluded
-   * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * are not taken into account when the Configuration Engine searches for a Solution.
-   * - In case of a Choice Attribute an excluded Value can not become the subject of an Implicit Decision.
-   *
-   * ### Undefined
-   * "Undefined" states that it is not yet decided if a considered Choice Value or a referenced
-   * Component Configuration Model are taken into account or not.
-   * - In case of a Choice Attribute this is analogous to not having selected a Value.
-   * - An undefined Choice Value can still become the subject of an Implicit Decision.
-   * - A referenced Component Configuration Model that has the Decision State "undefined"
-   *   can also become the subject of an Implicit Decision.
-   */
-  state: DecisionState;
-}
-
-/** Contains the resulting changes of the configuration session. */
-export interface PutManyDecisionsResponse {
-  /**
-   * The Consequences are the result of an evaluation weather of a Configuration Model or of made
-   * Decisions in conjunction with a Configuration Model.
-   */
-  consequences: Consequences;
-  /**
-   * Affected Decisions are those that were influenced by the Decision(s) given with the request.
-   * The influence is a result of the Rule evaluation by the Configuration Engine.
-   * The Decisions contained in the request are also returned.
-   */
-  affectedDecisions: Decisions;
-  /** Rejected Decisions are those from the request that could not be applied and were therefore rejected. */
-  rejectedDecisions: Decisions;
-}
-
-/**
- * An Explicit Decision is a Decision which is made by an API consumer, for instance a Configurator.
- * In contrast, an Implicit Decision is made by the Configuration Engine.
- * The object "ExplicitDecisions" encapsulates the Explicit Decisions for every Value of every
- * Attribute of the 4 different types.
- */
-export interface ExplicitDecisions {
-  mode?: Mode | null;
-  /** The object "ChoiceValueDecisions" encapsulates  a list of Explicit Choice Decisions. */
-  choiceDecisions?: ExplicitChoiceValueDecision[] | null;
-  /** The object "NumericDecisions" encapsulates  a list of Explicit Numeric Decisions. */
-  numericDecisions?: ExplicitNumericDecision[] | null;
-  /** The object "BooleanDecisions" encapsulates  a list of Explicit Boolean Decisions. */
-  booleanDecisions?: ExplicitBooleanDecision[] | null;
-  /** The object "ComponentDecisions" encapsulates  a list of Explicit Component Decisions. */
-  componentDecisions?: ExplicitComponentDecision[] | null;
-}
-
-export type Mode = BaseMode &
-  (
-    | BaseModeTypeMapping<"Default", DefaultMode>
-    | BaseModeTypeMapping<"DropExistingDecisions", DropExistingDecisionsMode>
-    | BaseModeTypeMapping<"KeepExistingDecisions", KeepExistingDecisionsMode>
-  );
-
-/** Alias for KeepExistingDecisionsMode. */
-export interface DefaultMode {
-  type: "Default";
-}
-
-export interface DropExistingDecisionsMode {
-  type: "DropExistingDecisions";
-  conflictResolution: ConflictResolution;
-}
-
-export type ConflictResolution = BaseConflictResolution &
-  (
-    | BaseConflictResolutionTypeMapping<"Manual", ManualConflictResolution>
-    | BaseConflictResolutionTypeMapping<"Automatic", AutomaticConflictResolution>
-  );
-
-export interface ManualConflictResolution {
-  type: "Manual";
-  includeConstraintsInConflictExplanation: boolean;
-}
-
-export interface AutomaticConflictResolution {
-  type: "Automatic";
-}
-
-export interface KeepExistingDecisionsMode {
-  type: "KeepExistingDecisions";
-}
-
-export interface ExplainResult {
-  constraintExplanations: ConstraintExplanation[];
-  decisionExplanations: DecisionExplanation[];
-}
-
-export type WhyNotSatisfiedRequest = BaseWhyNotSatisfiedRequest &
-  (
-    | BaseWhyNotSatisfiedRequestTypeMapping<"Attribute", WhyAttributeNotSatisfiedRequest>
-    | BaseWhyNotSatisfiedRequestTypeMapping<"Configuration", WhyConfigurationNotSatisfiedRequest>
-  );
-
-export interface WhyAttributeNotSatisfiedRequest {
-  type: "Attribute";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-}
-
-export interface WhyConfigurationNotSatisfiedRequest {
-  type: "Configuration";
-}
-
-export type WhyStateNotPossibleRequest = BaseWhyStateNotPossibleRequest &
-  (
-    | BaseWhyStateNotPossibleRequestTypeMapping<"Boolean", WhyBooleanStateNotPossibleRequest>
-    | BaseWhyStateNotPossibleRequestTypeMapping<"Numeric", WhyNumericStateNotPossibleRequest>
-    | BaseWhyStateNotPossibleRequestTypeMapping<"ChoiceValue", WhyChoiceValueStateNotPossibleRequest>
-    | BaseWhyStateNotPossibleRequestTypeMapping<"Component", WhyComponentStateNotPossibleRequest>
-  );
-
-export interface WhyBooleanStateNotPossibleRequest {
-  type: "Boolean";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  state: boolean;
-}
-
-export interface WhyNumericStateNotPossibleRequest {
-  type: "Numeric";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  /** @format decimal */
-  state: number;
-}
-
-export interface WhyChoiceValueStateNotPossibleRequest {
-  type: "ChoiceValue";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  choiceValueId: string;
-  /**
-   * A Decision is a decision about an Attribute. For each Value, it is stated explicitly or implicitly
-   * whether it should be included in the search for a Solution by the Configuration Engine.
-   * Before a Decision is made, there are two possible "Decision States": "Included" and "Excluded".
-   * In case of a Choice Attribute, these are "Value-Decision States", i. e. Decision States regarding a Choice Value.
-   * In case of a Component Attribute, these are "Model-Decision States", i. e. Decision States regarding a
-   * Component Configuration Model.
-   * ### Included
-   * "Included" means that a Value of a Choice Attribute or a referenced Component Configuration Model
-   * can be taken into account when the Configuration Engine searches for a Solution.
-   * ### Excluded
-   * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * cannot be taken into account when the Configuration Engine searches for a Solution.
-   */
-  state: PossibleDecisionState;
-}
-
-export interface WhyComponentStateNotPossibleRequest {
-  type: "Component";
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  /**
-   * A Decision is a decision about an Attribute. For each Value, it is stated explicitly or implicitly
-   * whether it should be included in the search for a Solution by the Configuration Engine.
-   * Before a Decision is made, there are two possible "Decision States": "Included" and "Excluded".
-   * In case of a Choice Attribute, these are "Value-Decision States", i. e. Decision States regarding a Choice Value.
-   * In case of a Component Attribute, these are "Model-Decision States", i. e. Decision States regarding a
-   * Component Configuration Model.
-   * ### Included
-   * "Included" means that a Value of a Choice Attribute or a referenced Component Configuration Model
-   * can be taken into account when the Configuration Engine searches for a Solution.
-   * ### Excluded
-   * "Excluded" means that a considered Value of a Choice Attribute or a referenced Component Configuration Model
-   * cannot be taken into account when the Configuration Engine searches for a Solution.
-   */
-  state: PossibleDecisionState;
-}
-
-export interface ConfigurationModelMeta {
-  globalAttributeIds: GlobalAttributeId[];
-  configurationModelId: string;
-}
-
-export interface CompleteMeta {
-  configurationModels: ConfigurationModelMeta[];
-}
-
-export interface ObsoletionMeta {
-  status: ObsoletionStatus;
-  /** @format date */
-  endOfLife?: string | null;
-}
-
-export enum ObsoletionStatus {
-  Current = "Current",
-  Obsolete = "Obsolete",
-}
-
-/** Contains the sessionId and other related data for the successfully created session. */
-export type CreateSessionSuccessResponse = CreateSessionResponse & {
-  /** Identifies a Session. */
-  sessionId?: string;
-  /** Describes the automatic expiration of a session. */
-  timeout?: SessionTimeout;
-};
-
-/** Describes the automatic expiration of a session. */
-export interface SessionTimeout {
-  /**
-   * Indicates the absolute expiration of the session - when the session will expire at latest.
-   * @format date-time
-   */
-  absolute: string;
-  /**
-   * Indicates what the sliding expiration of the session is in seconds. Meaning the session will expire if left untouched for the indicated amount of time.
-   * @format int32
-   */
-  slidingInSeconds: number;
-}
-
-export type CreateSessionResponse = object;
-
-/** This object contains the data required to create a new Configuration Session. */
-export interface CreateSessionRequest {
-  /**
-   * There are two ways to make a Configuration Model, which generally consists of several
-   * Sub Configuration Models, part of a Configuration Session.
-   * (1) A specific deployed model version can be obtained from a specific Channel.
-   *     This is the variant for the majority of cases.
-   * (2) The nested structure of the sub models can be specified as a "Package" directly in the request body.
-   */
-  configurationModelSource: ConfigurationModelSource;
-  /**
-   * This object can be used to specify, which Decisions are to be respected for which Attribute.
-   * Note: When using this object, all existing Attributes must be listed.
-   * Examples can be found in the product documentation.
-   */
-  attributeRelations?: DecisionsToRespect[] | null;
-  fixedDecisions?: FixedDecision[] | null;
-  wizardAttributeRelations?: WizardStep[] | null;
-  allowedInExplain?: AllowedInExplain | null;
-  disableConfigurationModelTrimming?: boolean | null;
-}
-
-/**
- * There are two ways to make a Configuration Model, which generally consists of several
- * Sub Configuration Models, part of a Configuration Session.
- * (1) A specific deployed model version can be obtained from a specific Channel.
- *     This is the variant for the majority of cases.
- * (2) The nested structure of the sub models can be specified as a "Package" directly in the request body.
- */
-export type ConfigurationModelSource = BaseConfigurationModelSource &
-  (
-    | BaseConfigurationModelSourceTypeMapping<"Channel", ConfigurationModelFromChannel>
-    | BaseConfigurationModelSourceTypeMapping<"Package", ConfigurationModelFromPackage>
-  );
-
-export interface ConfigurationModelFromChannel {
-  type: "Channel";
-  channel: string;
-  deploymentName: string;
-}
-
-export interface ConfigurationModelFromPackage {
-  type: "Package";
-  configurationModelPackage: ConfigurationModelPackage;
-}
-
-export interface ConfigurationModelPackage {
-  root: string;
-  configurationModels: ConfigurationModel[];
-}
-
-export interface ConfigurationModel {
-  configurationModelId: string;
-  attributes: Attributes;
-  sharedFromConfigurationModels?: string[] | null;
-  constraints?: Constraint[] | null;
-}
-
-export interface Attributes {
-  choiceAttributes?: ChoiceAttribute[] | null;
-  numericAttributes?: NumericAttribute[] | null;
-  booleanAttributes?: BooleanAttribute[] | null;
-  componentAttributes?: ComponentAttribute[] | null;
-}
-
-export interface ChoiceAttribute {
-  attributeId: string;
-  lowerBound: number;
-  upperBound: number;
-  choiceValues: ChoiceValue[];
-}
-
-export interface ChoiceValue {
-  choiceValueId: string;
-}
-
-export interface NumericAttribute {
-  attributeId: string;
-  isDecisionRequired: boolean;
-  /** @format decimal */
-  min: number;
-  /** @format decimal */
-  max: number;
-  decimalPlaces: number;
-}
-
-export interface BooleanAttribute {
-  attributeId: string;
-  isDecisionRequired: boolean;
-}
-
-export interface ComponentAttribute {
-  attributeId: string;
-  configurationModelId: string;
-  inclusion: ComponentInclusionType;
-}
-
-export type ComponentInclusionType = BaseComponentInclusionType &
-  (
-    | BaseComponentInclusionTypeTypeMapping<"OptionallyIncluded", OptionallyIncluded>
-    | BaseComponentInclusionTypeTypeMapping<"AlwaysIncluded", AlwaysIncluded>
-  );
-
-export interface OptionallyIncluded {
-  type: "OptionallyIncluded";
-  isDecisionRequired: boolean;
-}
-
-export interface AlwaysIncluded {
-  type: "AlwaysIncluded";
-}
-
-export type Constraint = BaseConstraint &
-  (
-    | BaseConstraintTypeMapping<"TextualConstraint", TextualConstraint>
-    | BaseConstraintTypeMapping<"TextualConstraintCollection", TextualConstraintCollection>
-  );
-
-export interface TextualConstraint {
-  constraintId: string;
-  textualConstraint: string;
-  type: "TextualConstraint";
-}
-
-export interface TextualConstraintCollection {
-  constraintId: string;
-  operator: TextualConstraintCollectionOperator;
-  textualConstraints: string[];
-  type: "TextualConstraintCollection";
-}
-
-export enum TextualConstraintCollectionOperator {
-  And = "And",
-  Or = "Or",
-}
-
-export interface DecisionsToRespect {
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  decisions: GlobalAttributeId[];
-}
-
-export interface WizardStep {
-  attributes: GlobalAttributeId[];
-}
-
-export interface AllowedInExplain {
-  rules?: AllowedRules | null;
-}
-
-export type AllowedRules = BaseAllowedRules &
-  (
-    | BaseAllowedRulesTypeMapping<"AllowedRulesNone", AllowedRulesNone>
-    | BaseAllowedRulesTypeMapping<"AllowedRulesSpecific", AllowedRulesSpecific>
-    | BaseAllowedRulesTypeMapping<"AllowedRulesAll", AllowedRulesAll>
-  );
-
-export interface AllowedRulesNone {
-  type: "AllowedRulesNone";
-}
-
-export interface AllowedRulesSpecific {
-  type: "AllowedRulesSpecific";
-  rules: GlobalConstraintId[];
-}
-
-export interface AllowedRulesAll {
-  type: "AllowedRulesAll";
-}
-
-export interface CloseSessionRequest {
-  sessionId: string;
-}
-
-interface BaseProblemDetails {
-  type: string;
-  title: string;
-  detail: string;
-}
-
-type BaseProblemDetailsTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-interface BaseFixedDecision {
-  type: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-}
-
-type BaseFixedDecisionTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-interface BaseConstraintDescription {
-  type: string;
-}
-
-type BaseConstraintDescriptionTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-interface BaseCausedByDecision {
-  type: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-  reason: Reason;
-}
-
-type BaseCausedByDecisionTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-interface BaseExplicitDecision {
-  type: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-}
-
-type BaseExplicitDecisionTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-interface BaseMode {
-  type: string;
-}
-
-type BaseModeTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-interface BaseConflictResolution {
-  type: string;
-}
-
-type BaseConflictResolutionTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-interface BaseWhyNotSatisfiedRequest {
-  type: string;
-}
-
-type BaseWhyNotSatisfiedRequestTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-interface BaseWhyStateNotPossibleRequest {
-  type: string;
-  /**
-   * The ability to nest Configuration Models and reuse them when modelling Components requires an Attribute identifier
-   * that is unique across the Models. Therefore, an object with the corresponding properties for mapping
-   * the identifier components is used.
-   * The GlobalAttributeId is practically a resource path, which can also be called an "Attribute Path"
-   * because it is the path to an Attribute.
-   * shared component path localId
-   * Details can be found in the API product documentation.
-   */
-  attributeId: GlobalAttributeId;
-}
-
-type BaseWhyStateNotPossibleRequestTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-/**
- * There are two ways to make a Configuration Model, which generally consists of several
- * Sub Configuration Models, part of a Configuration Session.
- * (1) A specific deployed model version can be obtained from a specific Channel.
- *     This is the variant for the majority of cases.
- * (2) The nested structure of the sub models can be specified as a "Package" directly in the request body.
- */
-interface BaseConfigurationModelSource {
-  type: string;
-}
-
-type BaseConfigurationModelSourceTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-interface BaseComponentInclusionType {
-  type: string;
-}
-
-type BaseComponentInclusionTypeTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-type BaseConstraint = object;
-
-type BaseConstraintTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-interface BaseAllowedRules {
-  type: string;
-}
-
-type BaseAllowedRulesTypeMapping<Key, Type> = {
-  type: Key;
-} & Type;
-
-export type QueryParamsType = Record<string | number, any>;
-export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
-
-export interface FullRequestParams extends Omit<RequestInit, "body"> {
-  /** set parameter to `true` for call `securityWorker` for this request */
-  secure?: boolean;
-  /** request path */
-  path: string;
-  /** content type of request body */
-  type?: ContentType;
-  /** query params */
-  query?: QueryParamsType;
-  /** format of response (i.e. response.json() -> format: "json") */
-  format?: ResponseFormat;
-  /** request body */
-  body?: unknown;
-  /** base url */
-  baseUrl?: string;
-  /** request cancellation token */
-  cancelToken?: CancelToken;
-}
-
-export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
-
-export interface ApiConfig<SecurityDataType = unknown> {
-  baseUrl?: string;
-  baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
-  securityWorker?: (securityData: SecurityDataType | null) => Promise<RequestParams | void> | RequestParams | void;
-  customFetch?: typeof fetch;
-}
-
-export interface HttpResponse<D extends unknown, E extends unknown = unknown> extends Response {
-  data: D;
-  error: E;
-}
-
-type CancelToken = Symbol | string | number;
-
-export enum ContentType {
-  Json = "application/json",
-  FormData = "multipart/form-data",
-  UrlEncoded = "application/x-www-form-urlencoded",
-  Text = "text/plain",
-}
-
-export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = "https://change-fixed-decisions-contract.spc.viamedici.dev/hca/api/engine";
-  private securityData: SecurityDataType | null = null;
-  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
-  private abortControllers = new Map<CancelToken, AbortController>();
-  private customFetch = (...fetchParams: Parameters<typeof fetch>) => fetch(...fetchParams);
-
-  private baseApiParams: RequestParams = {
-    credentials: "same-origin",
-    headers: {},
-    redirect: "follow",
-    referrerPolicy: "no-referrer",
-  };
-
-  constructor(apiConfig: ApiConfig<SecurityDataType> = {}) {
-    Object.assign(this, apiConfig);
-  }
-
-  public setSecurityData = (data: SecurityDataType | null) => {
-    this.securityData = data;
-  };
-
-  protected encodeQueryParam(key: string, value: any) {
-    const encodedKey = encodeURIComponent(key);
-    return `${encodedKey}=${encodeURIComponent(typeof value === "number" ? value : `${value}`)}`;
-  }
-
-  protected addQueryParam(query: QueryParamsType, key: string) {
-    return this.encodeQueryParam(key, query[key]);
-  }
-
-  protected addArrayQueryParam(query: QueryParamsType, key: string) {
-    const value = query[key];
-    return value.map((v: any) => this.encodeQueryParam(key, v)).join("&");
-  }
-
-  protected toQueryString(rawQuery?: QueryParamsType): string {
-    const query = rawQuery || {};
-    const keys = Object.keys(query).filter((key) => "undefined" !== typeof query[key]);
-    return keys
-      .map((key) => (Array.isArray(query[key]) ? this.addArrayQueryParam(query, key) : this.addQueryParam(query, key)))
-      .join("&");
-  }
-
-  protected addQueryParams(rawQuery?: QueryParamsType): string {
-    const queryString = this.toQueryString(rawQuery);
-    return queryString ? `?${queryString}` : "";
-  }
-
-  private contentFormatters: Record<ContentType, (input: any) => any> = {
-    [ContentType.Json]: (input: any) =>
-      input !== null && (typeof input === "object" || typeof input === "string") ? JSON.stringify(input) : input,
-    [ContentType.Text]: (input: any) => (input !== null && typeof input !== "string" ? JSON.stringify(input) : input),
-    [ContentType.FormData]: (input: any) =>
-      Object.keys(input || {}).reduce((formData, key) => {
-        const property = input[key];
-        formData.append(
-          key,
-          property instanceof Blob
-            ? property
-            : typeof property === "object" && property !== null
-            ? JSON.stringify(property)
-            : `${property}`,
-        );
-        return formData;
-      }, new FormData()),
-    [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
-  };
-
-  protected mergeRequestParams(params1: RequestParams, params2?: RequestParams): RequestParams {
-    return {
-      ...this.baseApiParams,
-      ...params1,
-      ...(params2 || {}),
-      headers: {
-        ...(this.baseApiParams.headers || {}),
-        ...(params1.headers || {}),
-        ...((params2 && params2.headers) || {}),
-      },
+// Generated from https://spc.viamedici.io/hca/api/engine/api-docs/v2/openapi.json by scripts/generate-engine-types.ts. Do not edit; regenerate instead.
+
+export interface paths {
+    "/v2/session/configuration/active-attributes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Active Attributes
+         * @description Lists the attributes currently set as active.
+         */
+        get: operations["ActiveAttributes_Get"];
+        put?: never;
+        /**
+         * Set Active Attributes
+         * @description Submits multiple attributes to be set as active.
+         *     The response contains the resulting [Consequences](https://viamedici-spc.github.io/docs/glossary/terms-state/#consequence) and
+         *     [Affected Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#affected-decision).
+         */
+        post: operations["ActiveAttributes_Post"];
+        /**
+         * Delete Active Attributes
+         * @description Deletes the active attributes.
+         *     The response contains the resulting [Consequences](https://viamedici-spc.github.io/docs/glossary/terms-state/#consequence) and
+         *     [Affected Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#affected-decision).
+         */
+        delete: operations["ActiveAttributes_Delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-  }
-
-  protected createAbortSignal = (cancelToken: CancelToken): AbortSignal | undefined => {
-    if (this.abortControllers.has(cancelToken)) {
-      const abortController = this.abortControllers.get(cancelToken);
-      if (abortController) {
-        return abortController.signal;
-      }
-      return void 0;
-    }
-
-    const abortController = new AbortController();
-    this.abortControllers.set(cancelToken, abortController);
-    return abortController.signal;
-  };
-
-  public abortRequest = (cancelToken: CancelToken) => {
-    const abortController = this.abortControllers.get(cancelToken);
-
-    if (abortController) {
-      abortController.abort();
-      this.abortControllers.delete(cancelToken);
-    }
-  };
-
-  public request = async <T = any, E = any>({
-    body,
-    secure,
-    path,
-    type,
-    query,
-    format,
-    baseUrl,
-    cancelToken,
-    ...params
-  }: FullRequestParams): Promise<HttpResponse<T, E>> => {
-    const secureParams =
-      ((typeof secure === "boolean" ? secure : this.baseApiParams.secure) &&
-        this.securityWorker &&
-        (await this.securityWorker(this.securityData))) ||
-      {};
-    const requestParams = this.mergeRequestParams(params, secureParams);
-    const queryString = query && this.toQueryString(query);
-    const payloadFormatter = this.contentFormatters[type || ContentType.Json];
-    const responseFormat = format || requestParams.format;
-
-    return this.customFetch(`${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`, {
-      ...requestParams,
-      headers: {
-        ...(requestParams.headers || {}),
-        ...(type && type !== ContentType.FormData ? { "Content-Type": type } : {}),
-      },
-      signal: (cancelToken ? this.createAbortSignal(cancelToken) : requestParams.signal) || null,
-      body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
-    }).then(async (response) => {
-      const r = response as HttpResponse<T, E>;
-      r.data = null as unknown as T;
-      r.error = null as unknown as E;
-
-      const data = !responseFormat
-        ? r
-        : await response[responseFormat]()
-            .then((data) => {
-              if (r.ok) {
-                r.data = data;
-              } else {
-                r.error = data;
-              }
-              return r;
-            })
-            .catch((e) => {
-              r.error = e;
-              return r;
-            });
-
-      if (cancelToken) {
-        this.abortControllers.delete(cancelToken);
-      }
-
-      if (!response.ok) throw data;
-      return data;
-    });
-  };
+    "/v2/session/configuration/active-attributes/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Evaluate Active Attributes
+         * @description Submits multiple attributes to be evaluated.
+         *     Works similarily to set active attributes, however it only use the provided set of active attributes for this evaluation and does not change the original set of active attributes.
+         *     The response contains the resulting [Consequences](https://viamedici-spc.github.io/docs/glossary/terms-state/#consequence) and
+         *     [Affected Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#affected-decision).
+         */
+        post: operations["ActiveAttributes_Evaluate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/configuration/consequence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get consequences
+         * @description Returns the evaluated [Consequences](https://viamedici-spc.github.io/docs/glossary/terms-state/#consequence) for all Attributes
+         *     in the current [Configuration Session](https://viamedici-spc.github.io/docs/glossary/terms-infrastructure/#configuration-session).
+         *     This route evaluates the current [Configuration State](https://viamedici-spc.github.io/docs/glossary/terms-state/#configuration-state)
+         *     based on the [Configuration Model](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#configuration-model)
+         *     and the [Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#decision)
+         *     made so far, including the underlying [Constraints](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#constraint)
+         *     and [Rules](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#configuration-rule).
+         *     The response contains:
+         *     The overall [Configuration Model-Satisfaction State](https://viamedici-spc.github.io/docs/glossary/terms-state/#configuration-model-satisfaction-state).
+         *     Attribute-specific Consequence information for all relevant [Attributes](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#attribute).
+         *     For each Attribute, the Consequence includes at least the [Attribute Satisfaction State](https://viamedici-spc.github.io/docs/glossary/terms-state/#attribute-satisfaction-state) (true or false).
+         */
+        get: operations["Consequence_Get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/configuration/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all decisions
+         * @description Returns all [Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#decision)
+         *     currently associated with the [Configuration Session](https://viamedici-spc.github.io/docs/glossary/terms-infrastructure/#configuration-session).
+         *     Decisions include [Explicit Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#explicit-decision) made by the client and
+         *     [Implicit Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#implicit-decision) derived by the engine.
+         */
+        get: operations["Decision_GetAllDecisions"];
+        /**
+         * Apply single decision
+         * @description Submits a [Single Decision](https://viamedici-spc.github.io/docs/glossary/terms-state/#single-decision).
+         *     The response contains the resulting [Consequences](https://viamedici-spc.github.io/docs/glossary/terms-state/#consequence) and
+         *     [Affected Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#affected-decision).
+         */
+        put: operations["Decision_PutDecision"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/configuration/decision/many": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Apply multiple decisions
+         * @description Submits [Multiple Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#multiple-decision).
+         *     The response contains the resulting [Consequences](https://viamedici-spc.github.io/docs/glossary/terms-state/#consequence),
+         *     [Affected Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#affected-decision), and
+         *     [Rejected Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#rejected-decision).
+         */
+        put: operations["Decision_PutMany"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/configuration/consequence/explain/why-not-satisfied": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Explain why not satisfied
+         * @description Returns [Explanations](https://viamedici-spc.github.io/docs/glossary/terms-state/#explanation) for why an
+         *     [Attribute](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#attribute) is not satisfied.
+         */
+        post: operations["Explain_WhyNotSatisfied"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/configuration/consequence/explain/why-not-satisfied/answer/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Get decisions responsible for not-satisfied state
+         * @description Returns the [Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#decision) responsible for
+         *     the not-satisfied state of an [Attribute](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#attribute).
+         */
+        post: operations["Explain_WhyNotSatisfiedDecisions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/configuration/consequence/explain/why-not-satisfied/answer/constraints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Get constraints responsible for not-satisfied state
+         * @description Returns the [Constraints](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#constraint) and
+         *     [Rules](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#configuration-rule) responsible for
+         *     the not-satisfied state of an [Attribute](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#attribute).
+         */
+        post: operations["Explain_WhyNotSatisfiedRules"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/configuration/consequence/explain/why-state-not-possible": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Explain why state is not possible
+         * @description Returns [Explanations](https://viamedici-spc.github.io/docs/glossary/terms-state/#explanation) for why a specific
+         *     [Value Decision State](https://viamedici-spc.github.io/docs/glossary/terms-state/#value-decision-state) is not possible.
+         */
+        post: operations["Explain_WhyStateNotPossible"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/configuration/consequence/explain/why-state-not-possible/answer/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Get decisions responsible for not-possible state
+         * @description Returns the [Decisions](https://viamedici-spc.github.io/docs/glossary/terms-state/#decision) responsible for
+         *     a specific [Value Decision State](https://viamedici-spc.github.io/docs/glossary/terms-state/#value-decision-state) being impossible.
+         */
+        post: operations["Explain_WhyStateNotPossibleDecisions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/configuration/consequence/explain/why-state-not-possible/answer/constraints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Get constraints responsible for not-possible state
+         * @description Returns the [Constraints](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#constraint) and
+         *     [Rules](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#configuration-rule) responsible for
+         *     a specific [Value Decision State](https://viamedici-spc.github.io/docs/glossary/terms-state/#value-decision-state) being impossible.
+         */
+        post: operations["Explain_WhyStateNotPossibleRules"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/configuration/meta/configuration-model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get model metadata
+         * @description Returns structural metadata for the [Configuration Model](https://viamedici-spc.github.io/docs/glossary/terms-modelling/#configuration-model)
+         *     associated with the current [Configuration Session](https://viamedici-spc.github.io/docs/glossary/terms-infrastructure/#configuration-session).
+         */
+        get: operations["Meta_GetConfigurationModel"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/configuration/meta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get complete metadata
+         * @description Returns the complete metadata for the current [Configuration Session](https://viamedici-spc.github.io/docs/glossary/terms-infrastructure/#configuration-session).
+         */
+        get: operations["Meta_Get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/obsoletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Obsoletion Meta
+         * @description Provides obsoletion status for the requested API-Version.
+         *     Additionally, obsolete routes can have an end-of-life sheduled.
+         */
+        get: operations["Obsoletion_GetObsoletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create session
+         * @description Creates a new [Configuration Session](https://viamedici-spc.github.io/docs/glossary/terms-infrastructure/#configuration-session)
+         *     for the current tenant. The returned session ID is required for subsequent session-scoped operations.
+         *     The request is validated against configured session restrictions (e.g., side-loading restrictions
+         *     and deployment/channel allowlists) before it is processed.
+         *     This endpoint requires API credentials (Bearer authentication).
+         */
+        post: operations["Session_Post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete session
+         * @description Terminates the [Configuration Session](https://viamedici-spc.github.io/docs/glossary/terms-infrastructure/#configuration-session)
+         *     identified by the sessionId.
+         *     All server-side state associated with the session is discarded.
+         */
+        delete: operations["Session_Delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/session/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close session
+         * @description This route has the same functional effect as Delete Session, but uses POST
+         *     to support scenarios where sending DELETE requests is not feasible (e.g., using the Beacon API during page/tab unload).
+         *     All server-side state associated with the session is discarded.
+         */
+        post: operations["Session_Close"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
-
-/**
- * @title Configuration Engine
- * @version 2026.4.0-change-fixed-decisions-contract.1
- * @license © 2026 Viamedici - All rights reserved (https://viamedici.de)
- * @termsOfService None
- * @baseUrl https://change-fixed-decisions-contract.spc.viamedici.dev/hca/api/engine
- * @contact Viamedici Software GmbH <info@viamedici.de> (https://viamedici.de)
- */
-export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
-  consequence = {
-    /**
- * @description The route provides a list of Consequences which is the result of an evaluation weather of a Configuration Model or of made Decisions in conjunction with a Configuration Model, especially with the underlying set of Rules. The overall Configuration Model-Satisfaction State (see Glossary) is also given. A Consequence specifies for a certain Attribute in every case the Value Satisfaction State (true or false). In the case of "false", at least one Decision must still be made regarding an Attribute Value. For a Choice Attribute several Decisions may be still necessary. In addition to the Value Satisfaction State, further information is provided depending on the type of Attribute (see the scheme).
- *
- * @tags Consequence
- * @name ConsequenceGet
- * @summary The route provides the Consequences for all Attributes in the Configuration Session determined by evaluating
-the Configuration Model and the made Decisions (if any).
- * @request GET:/v2/session/configuration/consequence
- * @secure
- */
-    consequenceGet: (params: RequestParams = {}) =>
-      this.request<Consequences, Unspecified>({
-        path: `/v2/session/configuration/consequence`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-  };
-  decision = {
-    /**
-     * @description The route transmits an Explicit Decision and returns the Consequences and the Affected Decisions. An Affected Decision is a Decision which is in a relation to the executed Explicit Decisions. The object "AffectedDecisions" contains also the Explicit Decisions transmitted by the request. When the API consumer is making a Decision for a Single Select Choice Attribute, the selection is updated to the new Decision. Any previous Choice Value Decision within the Choice Attribute will be replaced.
-     *
-     * @tags Decision
-     * @name DecisionPutDecision
-     * @summary The route transmits an Explicit Decision and returns the resulting consequences.
-     * @request PUT:/v2/session/configuration/decision
-     * @secure
-     */
-    decisionPutDecision: (data: ExplicitDecision, params: RequestParams = {}) =>
-      this.request<PutDecisionResponse, Unspecified>({
-        path: `/v2/session/configuration/decision`,
-        method: "PUT",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * @description The route provides a list of Decisions which is the result of determinations by a consumer of the API, such as a Configurator, or by the Configuration Engine. A Decision regarding an Attribute consists of two information, the Decision State and the Decision Kind. ### Decision State In case of a Choice Attribute is specified for all Values whether they are included in finding a Solution by the Configuration Engine or not. In case of a Component Attribute is specified whether a referenced Component Configuration Model is included in finding a Solution by the Configuration Engine or not. Set Values of Numeric and Boolean Attributes are always automatically taken into account. ### Decision Kind It states weather a Decision has been made by a consumer of the API or by the Configuration Engine.
- *
- * @tags Decision
- * @name DecisionGetAllDecisions
- * @summary The route provides the Decisions for all Attributes in the Configuration Session determined by a
-consumer of the API or the Configuration Engine.
- * @request GET:/v2/session/configuration/decision
- * @secure
- */
-    decisionGetAllDecisions: (params: RequestParams = {}) =>
-      this.request<Decisions, Unspecified>({
-        path: `/v2/session/configuration/decision`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description The route transmits an multiple Explicit Decision and returns the Consequences, the Affected Decisions and the Rejected Decisions. An Affected Decision is a Decision which is in a relation to the executed Explicit Decisions. The object "AffectedDecisions" contains also the Explicit Decisions transmitted by the request. A Rejected Decision is an Explicit Decision which contradicts the Configuration Model and has been therefore rejected by the Configuration Engine. There are several modes that control how Decisions are being applied.
-     *
-     * @tags Decision
-     * @name DecisionPutMany
-     * @summary The route transmits multiple Explicit Decisions and returns the resulting consequences.
-     * @request PUT:/v2/session/configuration/decision/many
-     * @secure
-     */
-    decisionPutMany: (data: ExplicitDecisions, params: RequestParams = {}) =>
-      this.request<PutManyDecisionsResponse, Unspecified | PutManyDecisionsConflict>({
-        path: `/v2/session/configuration/decision/many`,
-        method: "PUT",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  explain = {
-    /**
-     * No description
-     *
-     * @tags Explain
-     * @name ExplainWhyNotSatisfied
-     * @request POST:/v2/session/configuration/consequence/explain/why-not-satisfied
-     * @secure
-     */
-    explainWhyNotSatisfied: (data: WhyNotSatisfiedRequest, params: RequestParams = {}) =>
-      this.request<ExplainResult, Unspecified>({
-        path: `/v2/session/configuration/consequence/explain/why-not-satisfied`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Explain
-     * @name ExplainWhyNotSatisfiedDecisions
-     * @request POST:/v2/session/configuration/consequence/explain/why-not-satisfied/answer/decisions
-     * @secure
-     */
-    explainWhyNotSatisfiedDecisions: (data: WhyNotSatisfiedRequest, params: RequestParams = {}) =>
-      this.request<DecisionExplanation[], Unspecified>({
-        path: `/v2/session/configuration/consequence/explain/why-not-satisfied/answer/decisions`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Explain
-     * @name ExplainWhyNotSatisfiedRules
-     * @request POST:/v2/session/configuration/consequence/explain/why-not-satisfied/answer/constraints
-     * @secure
-     */
-    explainWhyNotSatisfiedRules: (data: WhyNotSatisfiedRequest, params: RequestParams = {}) =>
-      this.request<ConstraintExplanation[], Unspecified>({
-        path: `/v2/session/configuration/consequence/explain/why-not-satisfied/answer/constraints`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Explain
-     * @name ExplainWhyStateNotPossible
-     * @request POST:/v2/session/configuration/consequence/explain/why-state-not-possible
-     * @secure
-     */
-    explainWhyStateNotPossible: (data: WhyStateNotPossibleRequest, params: RequestParams = {}) =>
-      this.request<ExplainResult, Unspecified>({
-        path: `/v2/session/configuration/consequence/explain/why-state-not-possible`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Explain
-     * @name ExplainWhyStateNotPossibleDecisions
-     * @request POST:/v2/session/configuration/consequence/explain/why-state-not-possible/answer/decisions
-     * @secure
-     */
-    explainWhyStateNotPossibleDecisions: (data: WhyStateNotPossibleRequest, params: RequestParams = {}) =>
-      this.request<DecisionExplanation[], Unspecified>({
-        path: `/v2/session/configuration/consequence/explain/why-state-not-possible/answer/decisions`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Explain
-     * @name ExplainWhyStateNotPossibleRules
-     * @request POST:/v2/session/configuration/consequence/explain/why-state-not-possible/answer/constraints
-     * @secure
-     */
-    explainWhyStateNotPossibleRules: (data: WhyStateNotPossibleRequest, params: RequestParams = {}) =>
-      this.request<ConstraintExplanation[], Unspecified>({
-        path: `/v2/session/configuration/consequence/explain/why-state-not-possible/answer/constraints`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  meta = {
-    /**
-     * No description
-     *
-     * @tags Meta
-     * @name MetaGetConfigurationModel
-     * @request GET:/v2/session/configuration/meta/configuration-model
-     * @secure
-     */
-    metaGetConfigurationModel: (params: RequestParams = {}) =>
-      this.request<ConfigurationModelMeta[], Unspecified>({
-        path: `/v2/session/configuration/meta/configuration-model`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Meta
-     * @name MetaGet
-     * @request GET:/v2/session/configuration/meta
-     * @secure
-     */
-    metaGet: (params: RequestParams = {}) =>
-      this.request<CompleteMeta, Unspecified>({
-        path: `/v2/session/configuration/meta`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-  };
-  obsoletion = {
-    /**
-     * No description
-     *
-     * @tags Obsoletion
-     * @name ObsoletionGetObsoletion
-     * @request GET:/v2/obsoletion
-     * @secure
-     */
-    obsoletionGetObsoletion: (params: RequestParams = {}) =>
-      this.request<ObsoletionMeta, Unspecified>({
-        path: `/v2/obsoletion`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-  };
-  session = {
-    /**
-     * @description This route creates a new Configuration Session. The Session-ID included in the response serves as authentication for all "/session/*" prefixed routes. Note: This route requires API-Credentials.
-     *
-     * @tags Session
-     * @name SessionPost
-     * @summary Creates a new Configuration Session.
-     * @request POST:/v2/session
-     * @secure
-     */
-    sessionPost: (data: CreateSessionRequest, params: RequestParams = {}) =>
-      this.request<CreateSessionSuccessResponse, Unspecified | ConfigurationModelNotFeasible>({
-        path: `/v2/session`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description An existing Configuration Session is terminated. Note: All state associated with the session will be discarded.
-     *
-     * @tags Session
-     * @name SessionDelete
-     * @summary Terminates an existing Configuration Session.
-     * @request DELETE:/v2/session/{sessionId}
-     * @secure
-     */
-    sessionDelete: (sessionId: string, params: RequestParams = {}) =>
-      this.request<void, Unspecified>({
-        path: `/v2/session/${sessionId}`,
-        method: "DELETE",
-        secure: true,
-        ...params,
-      }),
-
-    /**
-     * @description An existing Configuration Session is terminated. Note: All state associated with the session will be discarded. This POST request has the same effect as the DELETE request. It must be used when the closing of a browser tab must be responded to. See also the specification under: https://developer.mozilla.org/en-US/docs/Web/API/Beacon_API.
-     *
-     * @tags Session
-     * @name SessionClose
-     * @summary Terminates an existing Configuration Session.
-     * @request POST:/v2/session/close
-     * @secure
-     */
-    sessionClose: (data: CloseSessionRequest, params: RequestParams = {}) =>
-      this.request<void, Unspecified>({
-        path: `/v2/session/close`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        ...params,
-      }),
-  };
+export type webhooks = Record<string, never>;
+export interface components {
+    schemas: {
+        ActiveAttributesRequest: {
+            activeAttributes: components["schemas"]["GlobalAttributeId"][];
+        };
+        ActiveAttributesResponse: {
+            consequences: components["schemas"]["Consequences"];
+            affectedDecisions: components["schemas"]["Decisions"];
+        };
+        AllowedInExplain: {
+            rules?: components["schemas"]["AllowedRules"] | null;
+        };
+        AllowedRules: {
+            type: string;
+        } & (components["schemas"]["AllowedRulesNone"] | components["schemas"]["AllowedRulesSpecific"] | components["schemas"]["AllowedRulesAll"]);
+        AllowedRulesAll: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "AllowedRulesAll";
+        };
+        AllowedRulesNone: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "AllowedRulesNone";
+        };
+        AllowedRulesSpecific: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "AllowedRulesSpecific";
+            rules: components["schemas"]["GlobalConstraintId"][];
+        };
+        AlwaysIncluded: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "AlwaysIncluded";
+        };
+        AssignedChannelNotFound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "AssignedChannelNotFound";
+            /** Format: int32 */
+            status: number;
+            globalChannelId: components["schemas"]["GlobalChannelId"];
+            title: string;
+            detail: string;
+        };
+        AttributeNotActive: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "AttributeNotActive";
+            /** Format: int32 */
+            status: number;
+            globalAttributeId: components["schemas"]["GlobalAttributeId"];
+            title: string;
+            detail: string;
+        };
+        AttributeNotFound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "AttributeNotFound";
+            /** Format: int32 */
+            status: number;
+            globalAttributeId: components["schemas"]["GlobalAttributeId"];
+            title: string;
+            detail: string;
+        };
+        Attributes: {
+            choiceAttributes?: components["schemas"]["ChoiceAttribute"][] | null;
+            numericAttributes?: components["schemas"]["NumericAttribute"][] | null;
+            booleanAttributes?: components["schemas"]["BooleanAttribute"][] | null;
+            componentAttributes?: components["schemas"]["ComponentAttribute"][] | null;
+        };
+        AuthenticationFailure: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "AuthenticationFailure";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        AutomaticConflictResolution: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Automatic";
+        };
+        BooleanAttribute: {
+            attributeId: string;
+            isDecisionRequired: boolean;
+        };
+        BooleanAttributeNotFound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "BooleanAttributeNotFound";
+            /** Format: int32 */
+            status: number;
+            globalAttributeId: components["schemas"]["GlobalAttributeId"];
+            title: string;
+            detail: string;
+        };
+        BooleanConsequence: {
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            isSatisfied: boolean;
+            selection: components["schemas"]["Selection"];
+            possibleDecisionStates: boolean[];
+            isPossibleDecisionStatesImmutable: boolean;
+        };
+        BooleanDecision: {
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            state: boolean | null;
+            kind: components["schemas"]["DecisionKind"];
+        };
+        Cardinality: {
+            lowerBound: number;
+            upperBound: number;
+        };
+        CardinalityConstraint: {
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Cardinality";
+        };
+        CausedByBooleanDecision: {
+            state?: boolean | null;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            reason: components["schemas"]["Reason"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Boolean";
+        };
+        CausedByChoiceValueDecision: {
+            choiceValueId: string;
+            state: components["schemas"]["PossibleDecisionState"];
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            reason: components["schemas"]["Reason"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Choice";
+        };
+        CausedByComponentDecision: {
+            state: components["schemas"]["PossibleDecisionState"];
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            reason: components["schemas"]["Reason"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Component";
+        };
+        CausedByDecision: {
+            type: string;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            reason: components["schemas"]["Reason"];
+        } & (components["schemas"]["CausedByChoiceValueDecision"] | components["schemas"]["CausedByNumericDecision"] | components["schemas"]["CausedByBooleanDecision"] | components["schemas"]["CausedByComponentDecision"]);
+        CausedByNumericDecision: {
+            /** Format: decimal */
+            state?: number | null;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            reason: components["schemas"]["Reason"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Numeric";
+        };
+        ChoiceAttribute: {
+            attributeId: string;
+            lowerBound: number;
+            upperBound: number;
+            choiceValues: components["schemas"]["ChoiceValue"][];
+        };
+        ChoiceAttributeNotFound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ChoiceAttributeNotFound";
+            /** Format: int32 */
+            status: number;
+            globalAttributeId: components["schemas"]["GlobalAttributeId"];
+            title: string;
+            detail: string;
+        };
+        ChoiceConsequence: {
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            isSatisfied: boolean;
+            cardinality: components["schemas"]["Cardinality"];
+            values: components["schemas"]["ChoiceValueConsequence"][];
+        };
+        ChoiceValue: {
+            choiceValueId: string;
+        };
+        ChoiceValueConsequence: {
+            choiceValueId: string;
+            possibleDecisionStates: components["schemas"]["PossibleDecisionState"][];
+            isPossibleDecisionStatesImmutable: boolean;
+        };
+        ChoiceValueDecision: {
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            choiceValueId: string;
+            state: components["schemas"]["DecisionState"];
+            kind: components["schemas"]["DecisionKind"];
+        };
+        ChoiceValueNotFound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ChoiceValueNotFound";
+            /** Format: int32 */
+            status: number;
+            globalChoiceValueId: components["schemas"]["GlobalChoiceValueId"];
+            title: string;
+            detail: string;
+        };
+        CloseSessionRequest: {
+            sessionId: string;
+        };
+        CompleteMeta: {
+            configurationModels: components["schemas"]["ConfigurationModelMeta"][];
+        };
+        ComponentAttribute: {
+            attributeId: string;
+            configurationModelId: string;
+            inclusion: components["schemas"]["ComponentInclusionType"];
+        };
+        ComponentAttributeNotFound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ComponentAttributeNotFound";
+            /** Format: int32 */
+            status: number;
+            globalAttributeId: components["schemas"]["GlobalAttributeId"];
+            title: string;
+            detail: string;
+        };
+        ComponentConsequence: {
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            isSatisfied: boolean;
+            inclusion: components["schemas"]["Inclusion"];
+            selection: components["schemas"]["Selection"] | null;
+            possibleDecisionStates: components["schemas"]["PossibleDecisionState"][];
+            isPossibleDecisionStatesImmutable: boolean;
+        };
+        ComponentDecision: {
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            state: components["schemas"]["DecisionState"];
+            kind: components["schemas"]["DecisionKind"];
+        };
+        ComponentInclusionType: {
+            type: string;
+        } & (components["schemas"]["OptionallyIncluded"] | components["schemas"]["AlwaysIncluded"]);
+        ConfigurationInitializationFailure: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ConfigurationInitializationFailure";
+            /** Format: int32 */
+            status: number;
+            deploymentId: string | null;
+            title: string;
+            detail: string;
+        };
+        ConfigurationModel: {
+            configurationModelId: string;
+            attributes: components["schemas"]["Attributes"];
+            sharedFromConfigurationModels?: string[] | null;
+            constraints?: components["schemas"]["Constraint"][] | null;
+        };
+        ConfigurationModelFromChannel: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Channel";
+            channel: string;
+            deploymentName: string;
+        };
+        ConfigurationModelFromPackage: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Package";
+            configurationModelPackage: components["schemas"]["ConfigurationModelPackage"];
+        };
+        ConfigurationModelInvalid: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ConfigurationModelInvalid";
+            /** Format: int32 */
+            status: number;
+            validationMessage: string | null;
+            title: string;
+            detail: string;
+        };
+        ConfigurationModelLoadFailure: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ConfigurationModelLoadFailure";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        ConfigurationModelMeta: {
+            globalAttributeIds: components["schemas"]["GlobalAttributeId"][];
+            configurationModelId: string;
+        };
+        ConfigurationModelNotFeasible: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ConfigurationModelNotFeasible";
+            /** Format: int32 */
+            status: number;
+            constraintExplanations: components["schemas"]["ConstraintExplanation"][] | null;
+            title: string;
+            detail: string;
+        };
+        ConfigurationModelNotFound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ConfigurationModelNotFound";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        ConfigurationModelPackage: {
+            root: string;
+            configurationModels: components["schemas"]["ConfigurationModel"][];
+        };
+        ConfigurationModelSource: {
+            type: string;
+        } & (components["schemas"]["ConfigurationModelFromChannel"] | components["schemas"]["ConfigurationModelFromPackage"]);
+        ConflictResolution: {
+            type: string;
+        } & (components["schemas"]["ManualConflictResolution"] | components["schemas"]["AutomaticConflictResolution"]);
+        ConflictWithConsequence: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ConflictWithConsequence";
+            /** Format: int32 */
+            status: number;
+            globalAttributeId: components["schemas"]["GlobalAttributeId"];
+            choiceValueId: string | null;
+            title: string;
+            detail: string;
+        };
+        Consequences: {
+            isConfigurationSatisfied: boolean | null;
+            canAttributeContributeToConfigurationSatisfaction: components["schemas"]["GlobalAttributeId"][];
+            choiceConsequences: components["schemas"]["ChoiceConsequence"][];
+            numericConsequences: components["schemas"]["NumericConsequence"][];
+            booleanConsequences: components["schemas"]["BooleanConsequence"][];
+            componentConsequences: components["schemas"]["ComponentConsequence"][];
+        };
+        Constraint: components["schemas"]["TextualConstraint"] | components["schemas"]["TextualConstraintCollection"];
+        ConstraintDescription: {
+            type: string;
+        } & (components["schemas"]["RuleConstraint"] | components["schemas"]["CardinalityConstraint"]);
+        ConstraintExplanation: {
+            causedByCardinalities: components["schemas"]["CardinalityConstraint"][];
+            causedByRules: components["schemas"]["RuleConstraint"][];
+        };
+        CreateSessionRequest: {
+            configurationModelSource: components["schemas"]["ConfigurationModelSource"];
+            attributeRelations?: components["schemas"]["DecisionsToRespect"][] | null;
+            fixedDecisions?: components["schemas"]["FixedDecision"][] | null;
+            wizardAttributeRelations?: components["schemas"]["WizardStep"][] | null;
+            allowedInExplain?: components["schemas"]["AllowedInExplain"] | null;
+            disableConfigurationModelTrimming?: boolean | null;
+        };
+        CreateSessionSuccessResponse: {
+            sessionId: string;
+            timeout: components["schemas"]["SessionTimeout"];
+        };
+        DecisionExplanation: {
+            causedByChoiceDecisions: components["schemas"]["CausedByChoiceValueDecision"][];
+            causedByNumericDecisions: components["schemas"]["CausedByNumericDecision"][];
+            causedByBooleanDecisions: components["schemas"]["CausedByBooleanDecision"][];
+            causedByComponentDecisions: components["schemas"]["CausedByComponentDecision"][];
+        };
+        /** @enum {string} */
+        DecisionKind: "Implicit" | "Explicit";
+        Decisions: {
+            booleanDecisions: components["schemas"]["BooleanDecision"][];
+            numericDecisions: components["schemas"]["NumericDecision"][];
+            componentDecisions: components["schemas"]["ComponentDecision"][];
+            choiceValueDecisions: components["schemas"]["ChoiceValueDecision"][];
+        };
+        /** @enum {string} */
+        DecisionState: "Included" | "Excluded" | "Undefined";
+        DecisionsToRespect: {
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            decisions: components["schemas"]["GlobalAttributeId"][];
+        };
+        DecisionsToRespectInvalid: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "DecisionsToRespectInvalid";
+            /** Format: int32 */
+            status: number;
+            validationMessage: string;
+            globalAttributeId: components["schemas"]["GlobalAttributeId"];
+            title: string;
+            detail: string;
+        };
+        DefaultMode: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Default";
+        };
+        DefinitiveConsequences: {
+            isConfigurationSatisfied: boolean;
+            canAttributeContributeToConfigurationSatisfaction: components["schemas"]["GlobalAttributeId"][];
+            choiceConsequences: components["schemas"]["ChoiceConsequence"][];
+            numericConsequences: components["schemas"]["NumericConsequence"][];
+            booleanConsequences: components["schemas"]["BooleanConsequence"][];
+            componentConsequences: components["schemas"]["ComponentConsequence"][];
+        };
+        DropExistingDecisionsMode: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "DropExistingDecisions";
+            conflictResolution: components["schemas"]["ConflictResolution"];
+        };
+        ExplainConflict: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ExplainConflict";
+            /** Format: int32 */
+            status: number;
+            source: string;
+            title: string;
+            detail: string;
+        };
+        ExplainFailure: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ExplainFailure";
+            /** Format: int32 */
+            status: number;
+            source: string;
+            title: string;
+            detail: string;
+        };
+        ExplainResult: {
+            constraintExplanations: components["schemas"]["ConstraintExplanation"][];
+            decisionExplanations: components["schemas"]["DecisionExplanation"][];
+        };
+        ExplicitBooleanDecision: {
+            state?: boolean | null;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Boolean";
+        };
+        ExplicitChoiceValueDecision: {
+            choiceValueId: string;
+            state: components["schemas"]["DecisionState"];
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Choice";
+        };
+        ExplicitComponentDecision: {
+            state: components["schemas"]["DecisionState"];
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Component";
+        };
+        ExplicitDecision: {
+            type: string;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        } & (components["schemas"]["ExplicitChoiceValueDecision"] | components["schemas"]["ExplicitNumericDecision"] | components["schemas"]["ExplicitBooleanDecision"] | components["schemas"]["ExplicitComponentDecision"]);
+        ExplicitDecisions: {
+            mode?: components["schemas"]["Mode"] | null;
+            choiceDecisions?: components["schemas"]["ExplicitChoiceValueDecision"][] | null;
+            numericDecisions?: components["schemas"]["ExplicitNumericDecision"][] | null;
+            booleanDecisions?: components["schemas"]["ExplicitBooleanDecision"][] | null;
+            componentDecisions?: components["schemas"]["ExplicitComponentDecision"][] | null;
+        };
+        ExplicitNumericDecision: {
+            /** Format: decimal */
+            state?: number | null;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Numeric";
+        };
+        FixedBooleanDecision: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Boolean";
+            state: boolean;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        };
+        FixedChoiceValueDecision: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Choice";
+            choiceValueId: string;
+            state: components["schemas"]["FixedDecisionState"];
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        };
+        FixedComponentDecision: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Component";
+            state: components["schemas"]["FixedDecisionState"];
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        };
+        FixedDecision: {
+            type: string;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        } & (components["schemas"]["FixedChoiceValueDecision"] | components["schemas"]["FixedNumericDecision"] | components["schemas"]["FixedBooleanDecision"] | components["schemas"]["FixedComponentDecision"]);
+        FixedDecisionsInvalid: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "FixedDecisionsInvalid";
+            /** Format: int32 */
+            status: number;
+            rejectedDecisions: components["schemas"]["FixedDecision"][];
+            validationMessage: string;
+            title: string;
+            detail: string;
+        };
+        /** @enum {string} */
+        FixedDecisionState: "Included" | "Excluded";
+        FixedNumericDecision: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Numeric";
+            /** Format: decimal */
+            state: number;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        };
+        GetActiveAttributesNoneResponse: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ActiveAttributesNone";
+        };
+        GetActiveAttributesResponse: {
+            type: string;
+        } & (components["schemas"]["GetActiveAttributesNoneResponse"] | components["schemas"]["GetActiveAttributesSomeResponse"]);
+        GetActiveAttributesSomeResponse: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ActiveAttributesSome";
+            activeAttributes: components["schemas"]["GlobalAttributeId"][];
+        };
+        GlobalAttributeId: {
+            localId: string;
+            sharedConfigurationModelId?: string | null;
+            componentPath?: string[] | null;
+        };
+        GlobalChannelId: {
+            deploymentId: components["schemas"]["GlobalDeploymentId"];
+            channel: string;
+        };
+        GlobalChoiceValueId: {
+            choiceValueId: string;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        };
+        GlobalConstraintId: {
+            localId: string;
+            configurationModelId: string;
+        };
+        GlobalDeploymentId: {
+            localId: string;
+            tenantId: string;
+        };
+        GlobalSessionId: {
+            sessionId: string;
+            tenantId: string;
+        };
+        /** @enum {string} */
+        HttpStatusCode: "Continue" | "SwitchingProtocols" | "Processing" | "EarlyHints" | "OK" | "Created" | "Accepted" | "NonAuthoritativeInformation" | "NoContent" | "ResetContent" | "PartialContent" | "MultiStatus" | "AlreadyReported" | "IMUsed" | "MultipleChoices" | "MultipleChoices" | "MovedPermanently" | "MovedPermanently" | "Found" | "Found" | "SeeOther" | "SeeOther" | "NotModified" | "UseProxy" | "Unused" | "TemporaryRedirect" | "TemporaryRedirect" | "PermanentRedirect" | "BadRequest" | "Unauthorized" | "PaymentRequired" | "Forbidden" | "NotFound" | "MethodNotAllowed" | "NotAcceptable" | "ProxyAuthenticationRequired" | "RequestTimeout" | "Conflict" | "Gone" | "LengthRequired" | "PreconditionFailed" | "RequestEntityTooLarge" | "RequestUriTooLong" | "UnsupportedMediaType" | "RequestedRangeNotSatisfiable" | "ExpectationFailed" | "MisdirectedRequest" | "UnprocessableEntity" | "UnprocessableEntity" | "Locked" | "FailedDependency" | "UpgradeRequired" | "PreconditionRequired" | "TooManyRequests" | "RequestHeaderFieldsTooLarge" | "UnavailableForLegalReasons" | "InternalServerError" | "NotImplemented" | "BadGateway" | "ServiceUnavailable" | "GatewayTimeout" | "HttpVersionNotSupported" | "VariantAlsoNegotiates" | "InsufficientStorage" | "LoopDetected" | "NotExtended" | "NetworkAuthenticationRequired";
+        /** @enum {string} */
+        Inclusion: "Always" | "Optional";
+        InternalServerError: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "InternalServerError";
+            /** Format: int32 */
+            status: number;
+            originalProblemType: string;
+            title: string;
+            detail: string;
+        };
+        KeepExistingDecisionsMode: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "KeepExistingDecisions";
+        };
+        ManualConflictResolution: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Manual";
+            includeConstraintsInConflictExplanation: boolean;
+        };
+        MissingSessionIdClaim: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "MissingSessionIdClaim";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        MissingTenantIdClaim: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "MissingTenantIdClaim";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        Mode: {
+            type: string;
+        } & (components["schemas"]["DefaultMode"] | components["schemas"]["DropExistingDecisionsMode"] | components["schemas"]["KeepExistingDecisionsMode"]);
+        NumericAttribute: {
+            attributeId: string;
+            isDecisionRequired: boolean;
+            /** Format: decimal */
+            min: number;
+            /** Format: decimal */
+            max: number;
+            decimalPlaces: number;
+        };
+        NumericAttributeNotFound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "NumericAttributeNotFound";
+            /** Format: int32 */
+            status: number;
+            globalAttributeId: components["schemas"]["GlobalAttributeId"];
+            title: string;
+            detail: string;
+        };
+        NumericConsequence: {
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            isSatisfied: boolean;
+            selection: components["schemas"]["Selection"];
+            range: components["schemas"]["NumericValueRange"];
+            decimalPlaces: number;
+            isPossibleDecisionStatesImmutable: boolean;
+        };
+        NumericDecision: {
+            attributeId: components["schemas"]["GlobalAttributeId"];
+            /** Format: decimal */
+            state: number | null;
+            kind: components["schemas"]["DecisionKind"];
+        };
+        NumericDecisionOutOfRange: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "NumericDecisionOutOfRange";
+            /** Format: int32 */
+            status: number;
+            globalAttributeId: components["schemas"]["GlobalAttributeId"];
+            range: string;
+            /** Format: decimal */
+            decision: number;
+            title: string;
+            detail: string;
+        };
+        NumericValueRange: {
+            /** Format: decimal */
+            min: number;
+            /** Format: decimal */
+            max: number;
+        };
+        ObsoletionMeta: {
+            status: components["schemas"]["ObsoletionStatus"];
+            /** Format: date */
+            endOfLife?: string | null;
+        };
+        /** @enum {string} */
+        ObsoletionStatus: "Current" | "Obsolete";
+        OptionallyIncluded: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "OptionallyIncluded";
+            isDecisionRequired: boolean;
+        };
+        /** @enum {string} */
+        PossibleDecisionState: "Included" | "Excluded";
+        ProblemDetails: {
+            type: string;
+            title: string;
+            detail: string;
+            /** Format: int32 */
+            status: number;
+        } & (components["schemas"]["RequestTimeout"] | components["schemas"]["RequestFailure"] | components["schemas"]["SerializationError"] | components["schemas"]["InternalServerError"] | components["schemas"]["MissingTenantIdClaim"] | components["schemas"]["MissingSessionIdClaim"] | components["schemas"]["TenantAccessForbidden"] | components["schemas"]["SessionIdInvalid"] | components["schemas"]["AuthenticationFailure"] | components["schemas"]["SideLoadingForbidden"] | components["schemas"]["SpecifiedDeploymentForbidden"] | components["schemas"]["AttributeNotFound"] | components["schemas"]["AttributeNotActive"] | components["schemas"]["ChoiceAttributeNotFound"] | components["schemas"]["ChoiceValueNotFound"] | components["schemas"]["NumericAttributeNotFound"] | components["schemas"]["BooleanAttributeNotFound"] | components["schemas"]["ComponentAttributeNotFound"] | components["schemas"]["NumericDecisionOutOfRange"] | components["schemas"]["ConflictWithConsequence"] | components["schemas"]["ConfigurationModelInvalid"] | components["schemas"]["DecisionsToRespectInvalid"] | components["schemas"]["FixedDecisionsInvalid"] | components["schemas"]["SessionParametersInvalid"] | components["schemas"]["ConfigurationModelNotFeasible"] | components["schemas"]["SolutionNotFeasible"] | components["schemas"]["PutManyDecisionsConflict"] | components["schemas"]["SetDecisionConflict"] | components["schemas"]["SessionNotFound"] | components["schemas"]["ConfigurationModelNotFound"] | components["schemas"]["SolverInitializationFailure"] | components["schemas"]["ConfigurationModelLoadFailure"] | components["schemas"]["ConfigurationInitializationFailure"] | components["schemas"]["SolverPoolInitializationFailure"] | components["schemas"]["SolveOperationTimeout"] | components["schemas"]["ExplainConflict"] | components["schemas"]["ExplainFailure"] | components["schemas"]["SnapshotInvalid"] | components["schemas"]["SnapshotNotFound"] | components["schemas"]["AssignedChannelNotFound"] | (components["schemas"]["Unspecified"] & {
+            type?: unknown;
+        }));
+        PutDecisionResponse: {
+            consequences: components["schemas"]["Consequences"];
+            affectedDecisions: components["schemas"]["Decisions"];
+        };
+        PutManyDecisionsConflict: {
+            /** Format: int32 */
+            status: number;
+            constraintExplanations: components["schemas"]["ConstraintExplanation"][];
+            decisionExplanations: components["schemas"]["DecisionExplanation"][];
+            title: string;
+            detail: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "PutManyDecisionsConflict";
+        };
+        PutManyDecisionsResponse: {
+            consequences: components["schemas"]["Consequences"];
+            affectedDecisions: components["schemas"]["Decisions"];
+            rejectedDecisions: components["schemas"]["Decisions"];
+        };
+        /** @enum {string} */
+        Reason: "NotAvailable" | "StateNotPossible";
+        RequestFailure: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "RequestFailure";
+            /** Format: int32 */
+            status: number;
+            exception: string;
+            title: string;
+            detail: string;
+        };
+        RequestTimeout: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "RequestTimeout";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        RuleConstraint: {
+            constraintId: components["schemas"]["GlobalConstraintId"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Rule";
+        };
+        /** @enum {string} */
+        Selection: "Mandatory" | "Optional";
+        SerializationError: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SerializationError";
+            /** Format: int32 */
+            status: number;
+            jsonException: string;
+            title: string;
+            detail: string;
+        };
+        SessionIdInvalid: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SessionIdInvalid";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        SessionNotFound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SessionNotFound";
+            /** Format: int32 */
+            status: number;
+            sessionId: components["schemas"]["GlobalSessionId"];
+            title: string;
+            detail: string;
+        };
+        SessionParametersInvalid: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SessionParametersInvalid";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        /** @description Describes the automatic expiration of a session. */
+        SessionTimeout: {
+            /**
+             * Format: date-time
+             * @description Indicates the absolute expiration of the session - when the session will expire at latest.
+             */
+            absolute: string;
+            /**
+             * Format: int32
+             * @description Indicates what the sliding expiration of the session is in seconds. Meaning the session will expire if left untouched for the indicated amount of time.
+             */
+            slidingInSeconds: number;
+        };
+        SetDecisionConflict: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SetDecisionConflict";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        SideLoadingForbidden: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SideLoadingForbidden";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        SnapshotInvalid: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SnapshotInvalid";
+            /** Format: int32 */
+            status: number;
+            validationMessage: string;
+            validationPath: string[];
+            title: string;
+            detail: string;
+        };
+        SnapshotNotFound: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SnapshotNotFound";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        SolutionNotFeasible: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SolutionNotFeasible";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        SolveOperationTimeout: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SolveOperationTimeout";
+            /** Format: int32 */
+            status: number;
+            timeout: string;
+            title: string;
+            detail: string;
+        };
+        SolverInitializationFailure: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SolverInitializationFailure";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        SolverPoolInitializationFailure: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SolverPoolInitializationFailure";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        SpecifiedDeploymentForbidden: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SpecifiedDeploymentForbidden";
+            /** Format: int32 */
+            status: number;
+            channel: string;
+            deploymentName: string;
+            title: string;
+            detail: string;
+        };
+        TenantAccessForbidden: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "TenantAccessForbidden";
+            /** Format: int32 */
+            status: number;
+            title: string;
+            detail: string;
+        };
+        TextualConstraint: {
+            constraintId: string;
+            textualConstraint: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "TextualConstraint";
+        };
+        TextualConstraintCollection: {
+            constraintId: string;
+            operator: components["schemas"]["TextualConstraintCollectionOperator"];
+            textualConstraints: string[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "TextualConstraintCollection";
+        };
+        /** @enum {string} */
+        TextualConstraintCollectionOperator: "And" | "Or";
+        Unspecified: {
+            type?: string | null;
+            title: string;
+            /** Format: int32 */
+            status?: number | null;
+            detail: string;
+            instance?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        WhyAttributeNotSatisfiedRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Attribute";
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        };
+        WhyBooleanStateNotPossibleRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Boolean";
+            state: boolean;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        };
+        WhyChoiceValueStateNotPossibleRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "ChoiceValue";
+            choiceValueId: string;
+            state: components["schemas"]["PossibleDecisionState"];
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        };
+        WhyComponentStateNotPossibleRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Component";
+            state: components["schemas"]["PossibleDecisionState"];
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        };
+        WhyConfigurationNotSatisfiedRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Configuration";
+        };
+        WhyNotSatisfiedRequest: {
+            type: string;
+        } & (components["schemas"]["WhyAttributeNotSatisfiedRequest"] | components["schemas"]["WhyConfigurationNotSatisfiedRequest"]);
+        WhyNumericStateNotPossibleRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "Numeric";
+            /** Format: decimal */
+            state: number;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        };
+        WhyStateNotPossibleRequest: {
+            type: string;
+            attributeId: components["schemas"]["GlobalAttributeId"];
+        } & (components["schemas"]["WhyBooleanStateNotPossibleRequest"] | components["schemas"]["WhyNumericStateNotPossibleRequest"] | components["schemas"]["WhyChoiceValueStateNotPossibleRequest"] | components["schemas"]["WhyComponentStateNotPossibleRequest"]);
+        WizardStep: {
+            attributes: components["schemas"]["GlobalAttributeId"][];
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
+}
+export type ActiveAttributesRequest = components['schemas']['ActiveAttributesRequest'];
+export type ActiveAttributesResponse = components['schemas']['ActiveAttributesResponse'];
+export type AllowedInExplain = components['schemas']['AllowedInExplain'];
+export type AllowedRules = components['schemas']['AllowedRules'];
+export type AllowedRulesAll = components['schemas']['AllowedRulesAll'];
+export type AllowedRulesNone = components['schemas']['AllowedRulesNone'];
+export type AllowedRulesSpecific = components['schemas']['AllowedRulesSpecific'];
+export type AlwaysIncluded = components['schemas']['AlwaysIncluded'];
+export type AssignedChannelNotFound = components['schemas']['AssignedChannelNotFound'];
+export type AttributeNotActive = components['schemas']['AttributeNotActive'];
+export type AttributeNotFound = components['schemas']['AttributeNotFound'];
+export type Attributes = components['schemas']['Attributes'];
+export type AuthenticationFailure = components['schemas']['AuthenticationFailure'];
+export type AutomaticConflictResolution = components['schemas']['AutomaticConflictResolution'];
+export type BooleanAttribute = components['schemas']['BooleanAttribute'];
+export type BooleanAttributeNotFound = components['schemas']['BooleanAttributeNotFound'];
+export type BooleanConsequence = components['schemas']['BooleanConsequence'];
+export type BooleanDecision = components['schemas']['BooleanDecision'];
+export type Cardinality = components['schemas']['Cardinality'];
+export type CardinalityConstraint = components['schemas']['CardinalityConstraint'];
+export type CausedByBooleanDecision = components['schemas']['CausedByBooleanDecision'];
+export type CausedByChoiceValueDecision = components['schemas']['CausedByChoiceValueDecision'];
+export type CausedByComponentDecision = components['schemas']['CausedByComponentDecision'];
+export type CausedByDecision = components['schemas']['CausedByDecision'];
+export type CausedByNumericDecision = components['schemas']['CausedByNumericDecision'];
+export type ChoiceAttribute = components['schemas']['ChoiceAttribute'];
+export type ChoiceAttributeNotFound = components['schemas']['ChoiceAttributeNotFound'];
+export type ChoiceConsequence = components['schemas']['ChoiceConsequence'];
+export type ChoiceValue = components['schemas']['ChoiceValue'];
+export type ChoiceValueConsequence = components['schemas']['ChoiceValueConsequence'];
+export type ChoiceValueDecision = components['schemas']['ChoiceValueDecision'];
+export type ChoiceValueNotFound = components['schemas']['ChoiceValueNotFound'];
+export type CloseSessionRequest = components['schemas']['CloseSessionRequest'];
+export type CompleteMeta = components['schemas']['CompleteMeta'];
+export type ComponentAttribute = components['schemas']['ComponentAttribute'];
+export type ComponentAttributeNotFound = components['schemas']['ComponentAttributeNotFound'];
+export type ComponentConsequence = components['schemas']['ComponentConsequence'];
+export type ComponentDecision = components['schemas']['ComponentDecision'];
+export type ComponentInclusionType = components['schemas']['ComponentInclusionType'];
+export type ConfigurationInitializationFailure = components['schemas']['ConfigurationInitializationFailure'];
+export type ConfigurationModel = components['schemas']['ConfigurationModel'];
+export type ConfigurationModelFromChannel = components['schemas']['ConfigurationModelFromChannel'];
+export type ConfigurationModelFromPackage = components['schemas']['ConfigurationModelFromPackage'];
+export type ConfigurationModelInvalid = components['schemas']['ConfigurationModelInvalid'];
+export type ConfigurationModelLoadFailure = components['schemas']['ConfigurationModelLoadFailure'];
+export type ConfigurationModelMeta = components['schemas']['ConfigurationModelMeta'];
+export type ConfigurationModelNotFeasible = components['schemas']['ConfigurationModelNotFeasible'];
+export type ConfigurationModelNotFound = components['schemas']['ConfigurationModelNotFound'];
+export type ConfigurationModelPackage = components['schemas']['ConfigurationModelPackage'];
+export type ConfigurationModelSource = components['schemas']['ConfigurationModelSource'];
+export type ConflictResolution = components['schemas']['ConflictResolution'];
+export type ConflictWithConsequence = components['schemas']['ConflictWithConsequence'];
+export type Consequences = components['schemas']['Consequences'];
+export type Constraint = components['schemas']['Constraint'];
+export type ConstraintDescription = components['schemas']['ConstraintDescription'];
+export type ConstraintExplanation = components['schemas']['ConstraintExplanation'];
+export type CreateSessionRequest = components['schemas']['CreateSessionRequest'];
+export type CreateSessionSuccessResponse = components['schemas']['CreateSessionSuccessResponse'];
+export type DecisionExplanation = components['schemas']['DecisionExplanation'];
+export type DecisionKind = components['schemas']['DecisionKind'];
+export type Decisions = components['schemas']['Decisions'];
+export type DecisionState = components['schemas']['DecisionState'];
+export type DecisionsToRespect = components['schemas']['DecisionsToRespect'];
+export type DecisionsToRespectInvalid = components['schemas']['DecisionsToRespectInvalid'];
+export type DefaultMode = components['schemas']['DefaultMode'];
+export type DefinitiveConsequences = components['schemas']['DefinitiveConsequences'];
+export type DropExistingDecisionsMode = components['schemas']['DropExistingDecisionsMode'];
+export type ExplainConflict = components['schemas']['ExplainConflict'];
+export type ExplainFailure = components['schemas']['ExplainFailure'];
+export type ExplainResult = components['schemas']['ExplainResult'];
+export type ExplicitBooleanDecision = components['schemas']['ExplicitBooleanDecision'];
+export type ExplicitChoiceValueDecision = components['schemas']['ExplicitChoiceValueDecision'];
+export type ExplicitComponentDecision = components['schemas']['ExplicitComponentDecision'];
+export type ExplicitDecision = components['schemas']['ExplicitDecision'];
+export type ExplicitDecisions = components['schemas']['ExplicitDecisions'];
+export type ExplicitNumericDecision = components['schemas']['ExplicitNumericDecision'];
+export type FixedBooleanDecision = components['schemas']['FixedBooleanDecision'];
+export type FixedChoiceValueDecision = components['schemas']['FixedChoiceValueDecision'];
+export type FixedComponentDecision = components['schemas']['FixedComponentDecision'];
+export type FixedDecision = components['schemas']['FixedDecision'];
+export type FixedDecisionsInvalid = components['schemas']['FixedDecisionsInvalid'];
+export type FixedDecisionState = components['schemas']['FixedDecisionState'];
+export type FixedNumericDecision = components['schemas']['FixedNumericDecision'];
+export type GetActiveAttributesNoneResponse = components['schemas']['GetActiveAttributesNoneResponse'];
+export type GetActiveAttributesResponse = components['schemas']['GetActiveAttributesResponse'];
+export type GetActiveAttributesSomeResponse = components['schemas']['GetActiveAttributesSomeResponse'];
+export type GlobalAttributeId = components['schemas']['GlobalAttributeId'];
+export type GlobalChannelId = components['schemas']['GlobalChannelId'];
+export type GlobalChoiceValueId = components['schemas']['GlobalChoiceValueId'];
+export type GlobalConstraintId = components['schemas']['GlobalConstraintId'];
+export type GlobalDeploymentId = components['schemas']['GlobalDeploymentId'];
+export type GlobalSessionId = components['schemas']['GlobalSessionId'];
+export type HttpStatusCode = components['schemas']['HttpStatusCode'];
+export type Inclusion = components['schemas']['Inclusion'];
+export type InternalServerError = components['schemas']['InternalServerError'];
+export type KeepExistingDecisionsMode = components['schemas']['KeepExistingDecisionsMode'];
+export type ManualConflictResolution = components['schemas']['ManualConflictResolution'];
+export type MissingSessionIdClaim = components['schemas']['MissingSessionIdClaim'];
+export type MissingTenantIdClaim = components['schemas']['MissingTenantIdClaim'];
+export type Mode = components['schemas']['Mode'];
+export type NumericAttribute = components['schemas']['NumericAttribute'];
+export type NumericAttributeNotFound = components['schemas']['NumericAttributeNotFound'];
+export type NumericConsequence = components['schemas']['NumericConsequence'];
+export type NumericDecision = components['schemas']['NumericDecision'];
+export type NumericDecisionOutOfRange = components['schemas']['NumericDecisionOutOfRange'];
+export type NumericValueRange = components['schemas']['NumericValueRange'];
+export type ObsoletionMeta = components['schemas']['ObsoletionMeta'];
+export type ObsoletionStatus = components['schemas']['ObsoletionStatus'];
+export type OptionallyIncluded = components['schemas']['OptionallyIncluded'];
+export type PossibleDecisionState = components['schemas']['PossibleDecisionState'];
+export type ProblemDetails = components['schemas']['ProblemDetails'];
+export type PutDecisionResponse = components['schemas']['PutDecisionResponse'];
+export type PutManyDecisionsConflict = components['schemas']['PutManyDecisionsConflict'];
+export type PutManyDecisionsResponse = components['schemas']['PutManyDecisionsResponse'];
+export type Reason = components['schemas']['Reason'];
+export type RequestFailure = components['schemas']['RequestFailure'];
+export type RequestTimeout = components['schemas']['RequestTimeout'];
+export type RuleConstraint = components['schemas']['RuleConstraint'];
+export type Selection = components['schemas']['Selection'];
+export type SerializationError = components['schemas']['SerializationError'];
+export type SessionIdInvalid = components['schemas']['SessionIdInvalid'];
+export type SessionNotFound = components['schemas']['SessionNotFound'];
+export type SessionParametersInvalid = components['schemas']['SessionParametersInvalid'];
+export type SessionTimeout = components['schemas']['SessionTimeout'];
+export type SetDecisionConflict = components['schemas']['SetDecisionConflict'];
+export type SideLoadingForbidden = components['schemas']['SideLoadingForbidden'];
+export type SnapshotInvalid = components['schemas']['SnapshotInvalid'];
+export type SnapshotNotFound = components['schemas']['SnapshotNotFound'];
+export type SolutionNotFeasible = components['schemas']['SolutionNotFeasible'];
+export type SolveOperationTimeout = components['schemas']['SolveOperationTimeout'];
+export type SolverInitializationFailure = components['schemas']['SolverInitializationFailure'];
+export type SolverPoolInitializationFailure = components['schemas']['SolverPoolInitializationFailure'];
+export type SpecifiedDeploymentForbidden = components['schemas']['SpecifiedDeploymentForbidden'];
+export type TenantAccessForbidden = components['schemas']['TenantAccessForbidden'];
+export type TextualConstraint = components['schemas']['TextualConstraint'];
+export type TextualConstraintCollection = components['schemas']['TextualConstraintCollection'];
+export type TextualConstraintCollectionOperator = components['schemas']['TextualConstraintCollectionOperator'];
+export type Unspecified = components['schemas']['Unspecified'];
+export type WhyAttributeNotSatisfiedRequest = components['schemas']['WhyAttributeNotSatisfiedRequest'];
+export type WhyBooleanStateNotPossibleRequest = components['schemas']['WhyBooleanStateNotPossibleRequest'];
+export type WhyChoiceValueStateNotPossibleRequest = components['schemas']['WhyChoiceValueStateNotPossibleRequest'];
+export type WhyComponentStateNotPossibleRequest = components['schemas']['WhyComponentStateNotPossibleRequest'];
+export type WhyConfigurationNotSatisfiedRequest = components['schemas']['WhyConfigurationNotSatisfiedRequest'];
+export type WhyNotSatisfiedRequest = components['schemas']['WhyNotSatisfiedRequest'];
+export type WhyNumericStateNotPossibleRequest = components['schemas']['WhyNumericStateNotPossibleRequest'];
+export type WhyStateNotPossibleRequest = components['schemas']['WhyStateNotPossibleRequest'];
+export type WizardStep = components['schemas']['WizardStep'];
+export type $defs = Record<string, never>;
+export interface operations {
+    ActiveAttributes_Get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The request was processed successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetActiveAttributesResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    ActiveAttributes_Post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The collection of Attributes to set as active. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActiveAttributesRequest"];
+            };
+        };
+        responses: {
+            /** @description The request was processed successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActiveAttributesResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    ActiveAttributes_Delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The request was processed successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActiveAttributesResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    ActiveAttributes_Evaluate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The collection of Attributes to set as active. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActiveAttributesRequest"];
+            };
+        };
+        responses: {
+            /** @description The request was processed successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActiveAttributesResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Consequence_Get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The Consequences were successfully evaluated and returned. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DefinitiveConsequences"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Decision_GetAllDecisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The current Decisions for the Configuration Session were successfully returned. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Decisions"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Decision_PutDecision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The Explicit Decision to apply. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExplicitDecision"];
+            };
+        };
+        responses: {
+            /** @description The request was processed successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PutDecisionResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            /** @description No Decision was applied because the submitted Decision was rejected and automatic conflict handling was disabled. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Decision_PutMany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The collection of Explicit Decisions to apply. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExplicitDecisions"];
+            };
+        };
+        responses: {
+            /** @description The request was processed successfully. Depending on the applied mode, some submitted Decisions may still appear in the Rejected Decisions collection. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PutManyDecisionsResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            /** @description No Decisions were applied because one or more submitted Decisions were rejected and automatic conflict handling was disabled. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PutManyDecisionsConflict"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Explain_WhyNotSatisfied: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description An instance of WhyNotSatisfiedRequest that contains the fully qualified identifier of the Attribute
+         *     for which the Explanations are requested.
+         */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhyNotSatisfiedRequest"];
+            };
+        };
+        responses: {
+            /**
+             * @description Returns an IActionResult containing an ExplainResult object representing the Explanation
+             *     if successful, or an appropriate HTTP error status.
+             */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplainResult"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Explain_WhyNotSatisfiedDecisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description An instance of WhyNotSatisfiedRequest that contains the fully qualified identifier of the Attribute
+         *     for which the Decision Explanations are requested.
+         */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhyNotSatisfiedRequest"];
+            };
+        };
+        responses: {
+            /**
+             * @description An IActionResult containing a response with an array of
+             *     DecisionExplanation objects if successful, or an appropriate HTTP error status.
+             */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionExplanation"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Explain_WhyNotSatisfiedRules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description An instance of WhyNotSatisfiedRequest that contains the fully qualified identifier of the Attribute
+         *     for which the Constraint Explanations are requested.
+         */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhyNotSatisfiedRequest"];
+            };
+        };
+        responses: {
+            /**
+             * @description An IActionResult representing the HTTP response containing an array of ConstraintExplanation objects
+             *     if successful, or an appropriate HTTP error status.
+             */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConstraintExplanation"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Explain_WhyStateNotPossible: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The details for the Attribute for which the Explanation is needed. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhyStateNotPossibleRequest"];
+            };
+        };
+        responses: {
+            /**
+             * @description An IActionResult containing the Explanations of why the Value State is not possible.
+             *     Returns an HTTP 200 OK response on success.
+             */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplainResult"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Explain_WhyStateNotPossibleDecisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The details for the Attribute for which the Explanations are needed. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhyStateNotPossibleRequest"];
+            };
+        };
+        responses: {
+            /**
+             * @description An IActionResult containing an array of DecisionExplanation objects
+             *     that describe the Decisions leading to the Value State being impossible.
+             *     Returns an HTTP 200 OK response on success.
+             */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionExplanation"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Explain_WhyStateNotPossibleRules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The details for the Attribute for which the Explanations are needed. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WhyStateNotPossibleRequest"];
+            };
+        };
+        responses: {
+            /**
+             * @description An IActionResult containing an array of ConstraintExplanation objects
+             *     that describe the Constraints leading to the Value State being impossible.
+             *     Returns an HTTP 200 OK response on success.
+             */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConstraintExplanation"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Meta_GetConfigurationModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configuration model metadata was successfully returned. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfigurationModelMeta"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Meta_Get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Complete metadata was successfully returned. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompleteMeta"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Obsoletion_GetObsoletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObsoletionMeta"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Session_Post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The payload containing all data required to create a Configuration Session. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description The session was created successfully and the response contains the created session information. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateSessionSuccessResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            /** @description The request could not be fulfilled due to licensing or quota restrictions. */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            /** @description The caller is authenticated but not allowed to create a session. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            /** @description The request is semantically invalid for session creation (for example invalid session parameters, invalid Configuration Model, non-feasible Configuration Model, or invalid Decisions to respect). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DecisionsToRespectInvalid"] | components["schemas"]["FixedDecisionsInvalid"] | components["schemas"]["SessionParametersInvalid"] | components["schemas"]["ConfigurationModelInvalid"] | components["schemas"]["ConfigurationModelNotFeasible"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Session_Delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The encoded session id of the Configuration Session to terminate. */
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The session was terminated successfully. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
+    Session_Close: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The request payload containing the encoded session id to close. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description The session was terminated successfully. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Unspecified"];
+                };
+            };
+        };
+    };
 }

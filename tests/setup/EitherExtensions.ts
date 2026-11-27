@@ -1,5 +1,5 @@
 import * as E from "fp-ts/Either";
-import {expect} from "vitest";
+import {expect} from "bun:test";
 import {stringify} from "./JSON";
 
 export const expectToBeRight = <L, R>(e: E.Either<L, R>): R => {

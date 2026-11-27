@@ -1,54 +1,54 @@
 // noinspection DuplicatedCode
-/// <reference types="../../jest-extended" />
 
-import {afterAll, beforeEach, describe, expect, it, MockedFunction, vi} from "vitest";
+import type {Mock} from "bun:test";
+import {setFetch} from "../../setup/Fetch";
+import {afterAll, beforeEach, describe, expect, it, mock} from "bun:test";
 import {E, pipe, RM, TE} from "@viamedici-spc/fp-ts-extensions";
-import {
-    createWorkProcessingMachine,
-    MachineState,
-    resolveDeferredPromises
-} from "../../../src/domain/WorkProcessingMachine";
+import type {MachineState} from "../../../src/domain/WorkProcessingMachine";
+import {createWorkProcessingMachine, resolveDeferredPromises} from "../../../src/domain/WorkProcessingMachine";
 import {
     sessionStateWithOneMandatoryBoolean,
     sessionStateWithOneMandatoryComponent,
-    sessionStateWithOneMandatoryNumeric
+    sessionStateWithOneMandatoryNumeric,
 } from "../../data/SessionStates";
-import {createStateMutatingWorkItemDummy, createStatePreservingWorkItemDummy} from "../../data/WorkItem";
-import {
-    Attribute,
-    AttributeType,
-    ConfiguratorErrorType,
-    globalAttributeIdKeyEq,
-    ServerError,
-    SessionNotFound,
-    TaskCancelled
-} from "../../../src";
+import {createStateMutatingWorkItemDummy, createStatePreservingWorkItemDummy, handledLater} from "../../data/WorkItem";
+import type {Attribute, ServerError, SessionNotFound, TaskCancelled} from "../../../src";
+import {AttributeType, ConfiguratorErrorType, globalAttributeIdKeyEq} from "../../../src";
 import getWorkProcessingMachineExpectations from "../../setup/WorkProcessingMachineExpectations";
-import {
+import type {
     ConfigurationSessionState,
-    FullQualifiedConfigurationSessionState
+    FullQualifiedConfigurationSessionState,
 } from "../../../src/domain/model/ConfigurationSessionState";
 import {expectToBeRight} from "../../setup/EitherExtensions";
-import {WorkItem} from "../../../src/domain/model/WorkItem";
+import type {WorkItem} from "../../../src/domain/model/WorkItem";
 import pDefer from "p-defer";
-import {closeSession, createSessionWithData} from "../../../src/domain/logic/EngineLogic";
+import type {closeSession, createSessionWithData} from "../../../src/domain/logic/EngineLogic";
 import waitForExpect from "wait-for-expect";
 import GlobalAttributeIdKeyBuilder from "../../../src/crossCutting/GlobalAttributeIdKeyBuilder";
 import {getComponentAttribute, getNumericAttribute} from "../../data/AttributeGeneration";
 import {createStatePreservingWorkItem} from "../../../src/domain/logic/WorkItem";
 import * as Session from "../../../src/domain/logic/SessionLogic";
-import {ScheduleTaskResult} from "../../../src/contract/Types";
+import type {ScheduleTaskResult} from "../../../src/contract/Types";
 
-vi.mock("../../../src/domain/logic/EngineLogic");
-
-const createSessionWithDataMock: MockedFunction<typeof createSessionWithData> = createSessionWithData as any;
-const closeSessionMock: MockedFunction<typeof closeSession> = closeSession as any;
+// The machine talks to the engine only through EngineLogic, so every function of it is a mock here.
+const createSessionWithDataMock: Mock<typeof createSessionWithData> = mock();
+const closeSessionMock: Mock<typeof closeSession> = mock();
+mock.module("../../../src/domain/logic/EngineLogic", () => ({
+    createSession: mock(),
+    makeManyDecisions: mock(),
+    makeDecision: mock(),
+    explain: mock(),
+    closeSession: closeSessionMock,
+    setSessionContext: mock(),
+    reinitialize: mock(),
+    createSessionWithData: createSessionWithDataMock,
+}));
 const globalFetch = global.fetch;
 
 describe("WorkProcessingMachine", () => {
     let sut: ReturnType<typeof createWorkProcessingMachine>;
     let expectation: ReturnType<typeof getWorkProcessingMachineExpectations>;
-    const emittedMachineState = vi.fn<(machineState: MachineState) => void>();
+    const emittedMachineState = mock<(machineState: MachineState) => void>();
 
     function enqueueWork(workItem: WorkItem<any>, ...workItems: ReadonlyArray<WorkItem<any>>) {
         [workItem, ...workItems].forEach(w => {
@@ -57,8 +57,8 @@ describe("WorkProcessingMachine", () => {
     }
 
     beforeEach(() => {
-        vi.resetAllMocks();
-        global.fetch = () => Promise.reject();
+        mock.clearAllMocks();
+        setFetch(() => Promise.reject());
         sut = createWorkProcessingMachine(sessionStateWithOneMandatoryBoolean);
         sut.on("MachineState", s => {
             emittedMachineState(s);
@@ -71,7 +71,7 @@ describe("WorkProcessingMachine", () => {
         if (sut) {
             sut.stop();
         }
-        global.fetch = globalFetch;
+        setFetch(globalFetch);
     });
 
     it("Parallel execution of StatePreservingWork", async () => {
@@ -104,7 +104,9 @@ describe("WorkProcessingMachine", () => {
         w2.resolveExecute(E.left({type: ConfiguratorErrorType.ServerError} satisfies ServerError));
         w3.resolveExecute(E.right(3));
 
-        await expect(w2.resultPromise).rejects.toStrictEqual({type: ConfiguratorErrorType.ServerError} satisfies ServerError);
+        await expect(w2.resultPromise).rejects.toStrictEqual({
+            type: ConfiguratorErrorType.ServerError,
+        } satisfies ServerError);
         await expect(w3.resultPromise).resolves.toBe(3);
 
         // Every work have to be executed only once.
@@ -154,10 +156,12 @@ describe("WorkProcessingMachine", () => {
         expect(w3.executeMock).toBeCalledTimes(0);
 
         // Resolve the first work.
-        w1.resolveExecute(E.right({
-            sessionState: sessionStateWithOneMandatoryNumeric as FullQualifiedConfigurationSessionState,
-            result: 1
-        }));
+        w1.resolveExecute(
+            E.right({
+                sessionState: sessionStateWithOneMandatoryNumeric as FullQualifiedConfigurationSessionState,
+                result: 1,
+            }),
+        );
         await expect(w1.resultPromise).resolves.toBe(1);
 
         // ----  Second work execution ---- //
@@ -177,10 +181,12 @@ describe("WorkProcessingMachine", () => {
         expect(w3.executeMock).toBeCalledTimes(0);
 
         // Resolve the second work.
-        w2.resolveExecute(E.right({
-            sessionState: sessionStateWithOneMandatoryBoolean as FullQualifiedConfigurationSessionState,
-            result: 2
-        }));
+        w2.resolveExecute(
+            E.right({
+                sessionState: sessionStateWithOneMandatoryBoolean as FullQualifiedConfigurationSessionState,
+                result: 2,
+            }),
+        );
         await expect(w2.resultPromise).resolves.toBe(2);
 
         // ----  Third work execution ---- //
@@ -200,10 +206,12 @@ describe("WorkProcessingMachine", () => {
         expect(w3.executeMock).toBeCalledTimes(1);
 
         // Resolve the third work.
-        w3.resolveExecute(E.right({
-            sessionState: sessionStateWithOneMandatoryNumeric as FullQualifiedConfigurationSessionState,
-            result: 3
-        }));
+        w3.resolveExecute(
+            E.right({
+                sessionState: sessionStateWithOneMandatoryNumeric as FullQualifiedConfigurationSessionState,
+                result: 3,
+            }),
+        );
         await expect(w3.resultPromise).resolves.toBe(3);
 
         // Result of w1 must be parameter of w2.
@@ -211,9 +219,9 @@ describe("WorkProcessingMachine", () => {
         if (w1Result.type === "return") {
             const w1SuccessResult = expectToBeRight(await w1Result.value());
             expect(w1SuccessResult.result).toBe(1);
-            expect(w1SuccessResult.sessionState).toEqual(w2.executeMock.mock.calls[0][0]);
+            expect<unknown>(w1SuccessResult.sessionState).toEqual(w2.executeMock.mock.calls[0][0]);
         } else {
-            expect(w1Result.type).toBe("return");
+            expect<unknown>(w1Result.type).toBe("return");
         }
 
         // Result of w2 must be parameter of w3.
@@ -221,9 +229,9 @@ describe("WorkProcessingMachine", () => {
         if (w2Result.type === "return") {
             const w2SuccessResult = expectToBeRight(await w2Result.value());
             expect(w2SuccessResult.result).toBe(2);
-            expect(w2SuccessResult.sessionState).toEqual(w3.executeMock.mock.calls[0][0]);
+            expect<unknown>(w2SuccessResult.sessionState).toEqual(w3.executeMock.mock.calls[0][0]);
         } else {
-            expect(w2Result.type).toBe("return");
+            expect<unknown>(w2Result.type).toBe("return");
         }
 
         // No work should be left.
@@ -265,10 +273,12 @@ describe("WorkProcessingMachine", () => {
             expect(sut.getSnapshot().context.workExecutionAttemptAmount).toHaveLength(1);
             expectation.expectWorkToBeExecuted(w1.workItem.itemId, 1);
 
-            w1.resolveExecute(E.left({
-                sessionState: sessionStateWithOneMandatoryNumeric,
-                error: {type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound
-            }));
+            w1.resolveExecute(
+                E.left({
+                    sessionState: sessionStateWithOneMandatoryNumeric,
+                    error: {type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound,
+                }),
+            );
 
             // Create session must have been called.
             await waitForExpect(() => {
@@ -282,7 +292,7 @@ describe("WorkProcessingMachine", () => {
             // The sessionId must be discarded if there was a SessionNotFound error.
             expect(sut.getSnapshot().context.sessionState).toEqual({
                 ...sessionStateWithOneMandatoryNumeric,
-                sessionId: undefined
+                sessionId: undefined,
             } satisfies ConfigurationSessionState);
 
             // Release the createSessionWithData request once the sessionState become the error result of w1.
@@ -295,10 +305,12 @@ describe("WorkProcessingMachine", () => {
 
             // The first work is executed a second time and resolves successful.
             expectation.expectWorkToBeExecuted(w1.workItem.itemId, 2);
-            w1.resolveExecute(E.right({
-                sessionState: sessionStateWithOneMandatoryNumeric,
-                result: 1
-            }));
+            w1.resolveExecute(
+                E.right({
+                    sessionState: sessionStateWithOneMandatoryNumeric,
+                    result: 1,
+                }),
+            );
             await expect(w1.resultPromise).resolves.toBe(1);
 
             // Wait for the sessionState become the result of w1.
@@ -315,72 +327,74 @@ describe("WorkProcessingMachine", () => {
         const work1 = 1;
         const work2 = 2;
         const work3 = 4;
-        it.each([work1, work2, work3, work1 + work2, work1 + work3, work2 + work3, work1 + work2 + work3])
-        ("StatePreservingWork", async (workToCancel: number) => {
-            const w1 = createStatePreservingWorkItemDummy<number>();
-            const w2 = createStatePreservingWorkItemDummy<number>();
-            const w3 = createStatePreservingWorkItemDummy<number>();
+        it.each([work1, work2, work3, work1 + work2, work1 + work3, work2 + work3, work1 + work2 + work3])(
+            "StatePreservingWork",
+            async (workToCancel: number) => {
+                const w1 = createStatePreservingWorkItemDummy<number>();
+                const w2 = createStatePreservingWorkItemDummy<number>();
+                const w3 = createStatePreservingWorkItemDummy<number>();
 
-            enqueueWork(w1.workItem, w2.workItem, w3.workItem);
+                enqueueWork(w1.workItem, w2.workItem, w3.workItem);
 
-            expectation.expectWorkInOrder([w1.workItem, w2.workItem, w3.workItem]);
-            // All works should be executed.
-            expect(sut.getSnapshot().context.workExecutionAttemptAmount).toHaveLength(3);
-            expectation.expectWorkToBeExecuted(w1.workItem.itemId, 1);
-            expectation.expectWorkToBeExecuted(w2.workItem.itemId, 1);
-            expectation.expectWorkToBeExecuted(w3.workItem.itemId, 1);
+                expectation.expectWorkInOrder([w1.workItem, w2.workItem, w3.workItem]);
+                // All works should be executed.
+                expect(sut.getSnapshot().context.workExecutionAttemptAmount).toHaveLength(3);
+                expectation.expectWorkToBeExecuted(w1.workItem.itemId, 1);
+                expectation.expectWorkToBeExecuted(w2.workItem.itemId, 1);
+                expectation.expectWorkToBeExecuted(w3.workItem.itemId, 1);
 
-            const error = E.left({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
-            if (workToCancel & work1) {
-                w1.resolveExecute(error);
-            }
-            if (workToCancel & work2) {
-                w2.resolveExecute(error);
-            }
-            if (workToCancel & work3) {
-                w3.resolveExecute(error);
-            }
+                const error = E.left({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
+                if (workToCancel & work1) {
+                    w1.resolveExecute(error);
+                }
+                if (workToCancel & work2) {
+                    w2.resolveExecute(error);
+                }
+                if (workToCancel & work3) {
+                    w3.resolveExecute(error);
+                }
 
-            // Create session must have been called.
-            await waitForExpect(() => {
-                expect(createSessionWithDataMock).toBeCalledTimes(1);
-            });
+                // Create session must have been called.
+                await waitForExpect(() => {
+                    expect(createSessionWithDataMock).toBeCalledTimes(1);
+                });
 
-            // The state machine must be in restoring state.
-            expect(sut.getSnapshot().matches("restoreSession")).toBeTruthy();
+                // The state machine must be in restoring state.
+                expect(sut.getSnapshot().matches("restoreSession")).toBeTruthy();
 
-            // The sessionId must be discarded if there was a SessionNotFound error.
-            expect(sut.getSnapshot().context.sessionState).toEqual({
-                ...sessionStateWithOneMandatoryBoolean,
-                sessionId: undefined,
-            } satisfies ConfigurationSessionState);
+                // The sessionId must be discarded if there was a SessionNotFound error.
+                expect(sut.getSnapshot().context.sessionState).toEqual({
+                    ...sessionStateWithOneMandatoryBoolean,
+                    sessionId: undefined,
+                } satisfies ConfigurationSessionState);
 
-            releaseCreateSessionPromise.resolve();
+                releaseCreateSessionPromise.resolve();
 
-            // Wait for the sessionState become the result of createSessionWithData.
-            await waitForExpect(() => {
+                // Wait for the sessionState become the result of createSessionWithData.
+                await waitForExpect(() => {
+                    expect(sut.getSnapshot().context.sessionState).toEqual(sessionStateWithOneMandatoryComponent);
+                });
+
+                // All work are executed a second time and resolve successful.
+                expectation.expectWorkToBeExecuted(w1.workItem.itemId, 2);
+                expectation.expectWorkToBeExecuted(w2.workItem.itemId, 2);
+                expectation.expectWorkToBeExecuted(w3.workItem.itemId, 2);
+                w1.resolveExecute(E.right(1));
+                w2.resolveExecute(E.right(2));
+                w3.resolveExecute(E.right(3));
+                await expect(w1.resultPromise).resolves.toBe(1);
+                await expect(w2.resultPromise).resolves.toBe(2);
+                await expect(w3.resultPromise).resolves.toBe(3);
+
+                // The sessionState must still be the result of createSessionWithData.
                 expect(sut.getSnapshot().context.sessionState).toEqual(sessionStateWithOneMandatoryComponent);
-            });
 
-            // All work are executed a second time and resolve successful.
-            expectation.expectWorkToBeExecuted(w1.workItem.itemId, 2);
-            expectation.expectWorkToBeExecuted(w2.workItem.itemId, 2);
-            expectation.expectWorkToBeExecuted(w3.workItem.itemId, 2);
-            w1.resolveExecute(E.right(1));
-            w2.resolveExecute(E.right(2));
-            w3.resolveExecute(E.right(3));
-            await expect(w1.resultPromise).resolves.toBe(1);
-            await expect(w2.resultPromise).resolves.toBe(2);
-            await expect(w3.resultPromise).resolves.toBe(3);
-
-            // The sessionState must still be the result of createSessionWithData.
-            expect(sut.getSnapshot().context.sessionState).toEqual(sessionStateWithOneMandatoryComponent);
-
-            // All work must have been executed twice.
-            expect(w1.executeMock).toBeCalledTimes(2);
-            expect(w2.executeMock).toBeCalledTimes(2);
-            expect(w3.executeMock).toBeCalledTimes(2);
-        });
+                // All work must have been executed twice.
+                expect(w1.executeMock).toBeCalledTimes(2);
+                expect(w2.executeMock).toBeCalledTimes(2);
+                expect(w3.executeMock).toBeCalledTimes(2);
+            },
+        );
     });
 
     describe("SessionNotFound with failed recovery", () => {
@@ -409,10 +423,12 @@ describe("WorkProcessingMachine", () => {
             expect(sut.getSnapshot().context.workExecutionAttemptAmount).toHaveLength(1);
             expectation.expectWorkToBeExecuted(w1.workItem.itemId, 1);
 
-            w1.resolveExecute(E.left({
-                sessionState: sessionStateWithOneMandatoryNumeric,
-                error: {type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound
-            }));
+            w1.resolveExecute(
+                E.left({
+                    sessionState: sessionStateWithOneMandatoryNumeric,
+                    error: {type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound,
+                }),
+            );
 
             // Create session must have been called.
             await waitForExpect(() => {
@@ -426,7 +442,7 @@ describe("WorkProcessingMachine", () => {
             // The sessionId must be discarded if there was a SessionNotFound error.
             expect(sut.getSnapshot().context.sessionState).toEqual({
                 ...sessionStateWithOneMandatoryNumeric,
-                sessionId: undefined
+                sessionId: undefined,
             } satisfies ConfigurationSessionState);
 
             // Release the createSessionWithData request once the sessionState become the error result of w1.
@@ -434,8 +450,14 @@ describe("WorkProcessingMachine", () => {
 
             // w1 and w2 become rejected. w2 is reject because allowSimultaneouslyTermination was set to true.
             // If there was any error during session recovery, the error is always changed to SessionNotFound.
-            await expect(w1.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
-            await expect(w2.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
+            await Promise.all([
+                expect(w1.resultPromise).rejects.toEqual({
+                    type: ConfiguratorErrorType.SessionNotFound,
+                } satisfies SessionNotFound),
+                expect(w2.resultPromise).rejects.toEqual({
+                    type: ConfiguratorErrorType.SessionNotFound,
+                } satisfies SessionNotFound),
+            ]);
 
             // The third and fourth work should remain.
             expectation.expectWorkInOrder([w3.workItem, w4.workItem]);
@@ -478,15 +500,21 @@ describe("WorkProcessingMachine", () => {
             // The sessionId must be discarded if there was a SessionNotFound error.
             expect(sut.getSnapshot().context.sessionState).toEqual({
                 ...sessionStateWithOneMandatoryBoolean,
-                sessionId: undefined
+                sessionId: undefined,
             } satisfies ConfigurationSessionState);
 
             releaseCreateSessionPromise.resolve();
 
             // w1 and w2 become rejected. w1 is reject because StatePreserving work is always rejected if parallel running work is rejected with SessionNotFound.
             // If there was any error during session recovery, the error is always changed to SessionNotFound.
-            await expect(w1.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
-            await expect(w2.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.SessionNotFound} satisfies SessionNotFound);
+            await Promise.all([
+                expect(w1.resultPromise).rejects.toEqual({
+                    type: ConfiguratorErrorType.SessionNotFound,
+                } satisfies SessionNotFound),
+                expect(w2.resultPromise).rejects.toEqual({
+                    type: ConfiguratorErrorType.SessionNotFound,
+                } satisfies SessionNotFound),
+            ]);
 
             // w3 and w4 should remain because w3 doesn't allow simultaneously termination.
             expectation.expectWorkInOrder([w3.workItem, w4.workItem]);
@@ -515,33 +543,45 @@ describe("WorkProcessingMachine", () => {
             ...c,
             attributes: pipe(
                 c.attributes,
-                RM.upsertAt(globalAttributeIdKeyEq)<Attribute>(attributeId, getNumericAttribute("A1", {hash: undefined})[1])
-            )
+                RM.upsertAt(globalAttributeIdKeyEq)<Attribute>(
+                    attributeId,
+                    getNumericAttribute("A1", {hash: undefined})[1],
+                ),
+            ),
         }));
         const w3 = createStateMutatingWorkItemDummy<number>(true, c => ({
             ...c,
-            attributes: RM.empty
+            attributes: RM.empty,
         }));
         const w4 = createStateMutatingWorkItemDummy<number>(true, c => ({
             ...c,
             attributes: pipe(
                 c.attributes,
-                RM.upsertAt(globalAttributeIdKeyEq)<Attribute>(attributeId, getComponentAttribute("A1", {hash: undefined})[1])
-            )
+                RM.upsertAt(globalAttributeIdKeyEq)<Attribute>(
+                    attributeId,
+                    getComponentAttribute("A1", {hash: undefined})[1],
+                ),
+            ),
         }));
 
         // Initial the attribute is of type Boolean
-        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Boolean);
+        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(
+            AttributeType.Boolean,
+        );
 
         // W1 should change nothing
         enqueueWork(w1.workItem);
         expectation.expectWorkInOrder([w1.workItem]);
-        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Boolean);
+        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(
+            AttributeType.Boolean,
+        );
 
         // W2 should change the attribute type to Numeric
         enqueueWork(w2.workItem);
         expectation.expectWorkInOrder([w1.workItem, w2.workItem]);
-        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Numeric);
+        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(
+            AttributeType.Numeric,
+        );
 
         // W3 should clear all attributes
         enqueueWork(w3.workItem);
@@ -551,45 +591,63 @@ describe("WorkProcessingMachine", () => {
         // W4 will add a Component attribute
         enqueueWork(w4.workItem);
         expectation.expectWorkInOrder([w1.workItem, w2.workItem, w3.workItem, w4.workItem]);
-        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Component);
+        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(
+            AttributeType.Component,
+        );
 
         // Rejecting w1 to w3 should change nothing to the configuration because w4 still overlay the attributes
         // Reject w1
         emittedMachineState.mockClear();
-        w1.resolveExecute(E.left({
-            sessionState: null,
-            error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError
-        }));
+        w1.resolveExecute(
+            E.left({
+                sessionState: null,
+                error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError,
+            }),
+        );
         await expect(w1.resultPromise).rejects.toBeTruthy();
-        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Component);
+        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(
+            AttributeType.Component,
+        );
         // Reject w2
         emittedMachineState.mockClear();
-        w2.resolveExecute(E.left({
-            sessionState: null,
-            error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError
-        }));
+        w2.resolveExecute(
+            E.left({
+                sessionState: null,
+                error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError,
+            }),
+        );
         await expect(w2.resultPromise).rejects.toBeTruthy();
-        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Component);
+        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(
+            AttributeType.Component,
+        );
         // Reject w3
         emittedMachineState.mockClear();
-        w3.resolveExecute(E.left({
-            sessionState: null,
-            error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError
-        }));
+        w3.resolveExecute(
+            E.left({
+                sessionState: null,
+                error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError,
+            }),
+        );
         await expect(w3.resultPromise).rejects.toBeTruthy();
-        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Component);
+        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(
+            AttributeType.Component,
+        );
 
         // Rejecting w4 should restore the initial Boolean attribute
         emittedMachineState.mockClear();
-        w4.resolveExecute(E.left({
-            sessionState: null,
-            error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError
-        }));
+        w4.resolveExecute(
+            E.left({
+                sessionState: null,
+                error: {type: ConfiguratorErrorType.ServerError} satisfies ServerError,
+            }),
+        );
         await expect(w4.resultPromise).rejects.toBeTruthy();
-        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(AttributeType.Boolean);
+        expect(getLastEmittedState().sessionState.configuration.attributes.get(attributeId)!.type).toBe(
+            AttributeType.Boolean,
+        );
     });
 
-    it("Shutdown rejects all pending work", () => {
+    it("Shutdown rejects all pending work", async () => {
         sut.start();
 
         const w1 = createStateMutatingWorkItemDummy<number>(true);
@@ -601,9 +659,13 @@ describe("WorkProcessingMachine", () => {
 
         sut.send({type: "Shutdown"});
 
-        expect(w1.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.TaskCancelled} satisfies TaskCancelled);
-        expect(w2.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.TaskCancelled} satisfies TaskCancelled);
-        expect(w3.resultPromise).rejects.toEqual({type: ConfiguratorErrorType.TaskCancelled} satisfies TaskCancelled);
+        await Promise.all(
+            [w1, w2, w3].map(w =>
+                expect(w.resultPromise).rejects.toEqual({
+                    type: ConfiguratorErrorType.TaskCancelled,
+                } satisfies TaskCancelled),
+            ),
+        );
     });
 
     it("Errors during executing reject promise", async () => {
@@ -616,10 +678,14 @@ describe("WorkProcessingMachine", () => {
             throw new Error("MappingError");
         })();
 
+        handledLater(w1.deferredPromise.promise);
+        handledLater(w2.deferredPromise.promise);
         enqueueWork(w1, w2);
 
-        await expect(w1.deferredPromise.promise).rejects.toThrowError("MappingError");
-        await expect(w2.deferredPromise.promise).rejects.toThrowError("MappingError");
+        await Promise.all([
+            expect(w1.deferredPromise.promise).rejects.toThrow("MappingError"),
+            expect(w2.deferredPromise.promise).rejects.toThrow("MappingError"),
+        ]);
     });
 
     describe("ScheduleTask", () => {
@@ -636,10 +702,12 @@ describe("WorkProcessingMachine", () => {
             expect(sut.getSnapshot().context.workExecutionAttemptAmount).toHaveLength(1);
 
             // Resolve the first WorkItem
-            w1.resolveExecute(E.right({
-                sessionState: sessionStateWithOneMandatoryNumeric as FullQualifiedConfigurationSessionState,
-                result: 1
-            }));
+            w1.resolveExecute(
+                E.right({
+                    sessionState: sessionStateWithOneMandatoryNumeric as FullQualifiedConfigurationSessionState,
+                    result: 1,
+                }),
+            );
             await expect(w1.resultPromise).resolves.toBe(1);
 
             // WorkItem 3 is still pending
@@ -667,10 +735,12 @@ describe("WorkProcessingMachine", () => {
             expectation.expectWorkInOrder([w1.workItem, w2]);
 
             // If the first work is finished, the second work should also be removed from the queue because it was aborted previously.
-            w1.resolveExecute(E.right({
-                sessionState: sessionStateWithOneMandatoryNumeric as FullQualifiedConfigurationSessionState,
-                result: 1
-            }));
+            w1.resolveExecute(
+                E.right({
+                    sessionState: sessionStateWithOneMandatoryNumeric as FullQualifiedConfigurationSessionState,
+                    result: 1,
+                }),
+            );
             await expect(w1.resultPromise).resolves.toBe(1);
 
             await waitForExpect(() => expectation.expectWorkInOrder([]));

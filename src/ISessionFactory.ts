@@ -1,5 +1,5 @@
-import IConfigurationSession from "./IConfigurationSession";
-import {SessionContext} from "./contract/Types";
+import type IConfigurationSession from "./IConfigurationSession";
+import type {SessionContext} from "./contract/Types";
 
 export default interface ISessionFactory {
     /**
@@ -8,4 +8,4 @@ export default interface ISessionFactory {
      * @return A promise that resolves to an instance of IConfigurationSession.
      */
     createSession(sessionContext: SessionContext): Promise<IConfigurationSession>;
-};
+}

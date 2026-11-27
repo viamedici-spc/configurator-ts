@@ -1,13 +1,9 @@
-import {
-    ExplicitDecision,
-    DropExistingDecisionsMode,
-    KeepExistingDecisionsMode
-} from "../contract/Types";
+import type {ExplicitDecision, DropExistingDecisionsMode, KeepExistingDecisionsMode} from "../contract/Types";
 import GlobalAttributeIdKeyBuilder from "../crossCutting/GlobalAttributeIdKeyBuilder";
 import {getExplicitDecisionsForAttribute} from "./logic/ConfigurationRawData";
 import {O, pipe, RA} from "@viamedici-spc/fp-ts-extensions";
 import {explicitDecisionByIdEq, explicitDecisionEq} from "../contract/Eqs";
-import configurationRawData from "./model/ConfigurationRawData";
+import type configurationRawData from "./model/ConfigurationRawData";
 
 export function shouldSkipMakeDecision(explicitDecision: ExplicitDecision, rawData: configurationRawData): boolean {
     const existingDecision = rawData.decisions.get(GlobalAttributeIdKeyBuilder(explicitDecision.attributeId));
@@ -21,13 +17,16 @@ export function shouldSkipMakeDecision(explicitDecision: ExplicitDecision, rawDa
             // If there is no existing decision but the new decision is null, it is assumed to be equal.
             () => explicitDecision.state == null,
             // If there is an existing decision, it must be equal.
-            d => explicitDecisionEq.equals(d, explicitDecision)
-        )
+            d => explicitDecisionEq.equals(d, explicitDecision),
+        ),
     );
 
     return doesDecisionAlreadyExist;
 }
 
-export function shouldSkipMakeManyDecisions(manyDecisions: ReadonlyArray<ExplicitDecision>, mode: KeepExistingDecisionsMode["type"] | DropExistingDecisionsMode["type"]): boolean {
+export function shouldSkipMakeManyDecisions(
+    manyDecisions: ReadonlyArray<ExplicitDecision>,
+    mode: KeepExistingDecisionsMode["type"] | DropExistingDecisionsMode["type"],
+): boolean {
     return RA.isEmpty(manyDecisions) && mode === "KeepExistingDecisions";
 }

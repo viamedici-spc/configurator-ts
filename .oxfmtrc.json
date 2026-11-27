@@ -1,0 +1,16 @@
+{
+  "printWidth": 120,
+  "tabWidth": 4,
+  "bracketSpacing": false,
+  "arrowParens": "avoid",
+  "ignorePatterns": ["**/*.md", "dist/**", "src/apiClient/engine/**", "package-check/consumer/index.ts"],
+  "overrides": [
+    {
+      "files": ["*.json", "*.yml", "*.yaml"],
+      "options": {
+        "tabWidth": 2
+      }
+    }
+  ],
+  "endOfLine": "lf"
+}

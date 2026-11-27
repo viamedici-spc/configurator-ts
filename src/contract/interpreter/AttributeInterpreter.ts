@@ -1,22 +1,19 @@
 import {match} from "ts-pattern";
-import {Ord, OrdT, pipe, RA, RM} from "@viamedici-spc/fp-ts-extensions";
-import {
-    Attribute,
-    AttributeType,
-    ChoiceAttribute,
-    ChoiceValue,
-    ChoiceValueDecisionState, ChoiceValueId,
-    Inclusion,
-    Selection,
-} from "../Types";
+import type {OrdT} from "@viamedici-spc/fp-ts-extensions";
+import {Ord, pipe, RA, RM} from "@viamedici-spc/fp-ts-extensions";
+import type {Attribute, ChoiceAttribute, ChoiceValue, ChoiceValueId} from "../Types";
+import {AttributeType, ChoiceValueDecisionState, Inclusion, Selection} from "../Types";
 import * as ChoiceValueInterpreter from "./ChoiceValueInterpreter";
 
 export function isMandatory(attribute: Attribute): boolean {
     return match(attribute)
-        .with({type: AttributeType.Choice}, (a) => a.cardinality.lowerBound > 0)
-        .with({type: AttributeType.Boolean}, (a) => a.selection === Selection.Mandatory)
-        .with({type: AttributeType.Numeric}, (a) => a.selection === Selection.Mandatory)
-        .with({type: AttributeType.Component}, (a) => a.inclusion === Inclusion.Optional && a.selection === Selection.Mandatory)
+        .with({type: AttributeType.Choice}, a => a.cardinality.lowerBound > 0)
+        .with({type: AttributeType.Boolean}, a => a.selection === Selection.Mandatory)
+        .with({type: AttributeType.Numeric}, a => a.selection === Selection.Mandatory)
+        .with(
+            {type: AttributeType.Component},
+            a => a.inclusion === Inclusion.Optional && a.selection === Selection.Mandatory,
+        )
         .exhaustive();
 }
 
@@ -29,7 +26,7 @@ export function getAllowedChoiceValues(attribute: ChoiceAttribute): ReadonlyArra
         attribute.values,
         RM.toReadonlyArray(Ord.trivial as OrdT<ChoiceValueId>),
         RA.map(([_, value]) => value),
-        RA.filter(ChoiceValueInterpreter.isAllowed)
+        RA.filter(ChoiceValueInterpreter.isAllowed),
     );
 }
 
@@ -38,7 +35,7 @@ export function getBlockedChoiceValues(attribute: ChoiceAttribute): ReadonlyArra
         attribute.values,
         RM.toReadonlyArray(Ord.trivial as OrdT<ChoiceValueId>),
         RA.map(([_, value]) => value),
-        RA.filter(ChoiceValueInterpreter.isBlocked)
+        RA.filter(ChoiceValueInterpreter.isBlocked),
     );
 }
 

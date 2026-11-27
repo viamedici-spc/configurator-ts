@@ -1,3 +1,7 @@
+---
+status: accepted
+---
+
 # Fixed Decisions
 
 ## Goal
